@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "types": ["node"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "outDir": "dist"
+  },
+  "include": ["**/*.ts", "**/*.tsx", "vite.config.ts", "node/**/*.ts"],
+  "exclude": ["node_modules", "dist", "build"]
+}

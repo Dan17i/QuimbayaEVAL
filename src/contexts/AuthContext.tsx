@@ -1,6 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { toast } from 'sonner';
+import { authService } from '../services/authService';
 
 export type UserRole = 'maestro' | 'estudiante' | 'coordinador';
 
@@ -26,25 +27,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useLocalStorage<User | null>(STORAGE_KEY, null);
 
   const login = async (email: string, password: string, role: UserRole) => {
-    // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Login directo sin validación (prototipo)
-    const mockUser: User = {
-      id: `${role}-001`,
-      name: role === 'maestro' ? 'Prof. Juan García' : role === 'estudiante' ? 'Ana López' : 'Dr. Carlos Méndez',
-      email: email || `${role}@universidad.edu`,
-      role,
-    };
-    
-    setUser(mockUser);
-    toast.success(`Bienvenido, ${mockUser.name}`, {
-      description: `Has iniciado sesión como ${role}`,
-    });
+    try {
+      const response = await authService.login(email, password, role);
+      
+      const userData: User = {
+        id: String(response.id),
+        name: response.name,
+        email: response.email,
+        role: response.role,
+      };
+      
+      setUser(userData);
+      toast.success(`Bienvenido, ${userData.name}`, {
+        description: `Has iniciado sesión como ${role}`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al iniciar sesión';
+      toast.error('Error de autenticación', {
+        description: message,
+      });
+      throw error;
+    }
   };
 
   const logout = () => {
     const userName = user?.name || 'Usuario';
+    authService.logout();
     setUser(null);
     toast.info('Sesión cerrada', {
       description: `Hasta luego, ${userName}`,

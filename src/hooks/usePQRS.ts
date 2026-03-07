@@ -1,12 +1,33 @@
-import { useState, useMemo } from 'react';
-import { TicketPQRS, EstadoPQRS, TipoPQRS } from '../types';
-import { mockTicketsPQRS } from '../services/mockData';
+import { useState, useEffect, useMemo } from 'react';
+import { pqrsService, PQRS, EstadoPQRS, TipoPQRS } from '../services/pqrsService';
+import { toast } from 'sonner';
 
 /**
  * Hook para manejar tickets PQRS
  */
 export const usePQRS = () => {
-  const [tickets] = useState<TicketPQRS[]>(mockTicketsPQRS);
+  const [tickets, setTickets] = useState<PQRS[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPQRS = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await pqrsService.getMisPQRS();
+      setTickets(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al cargar PQRS';
+      setError(message);
+      toast.error('Error', { description: message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPQRS();
+  }, []);
 
   const ticketsPendientes = useMemo(() => 
     tickets.filter(ticket => ticket.estado === 'Pendiente'),
@@ -25,12 +46,18 @@ export const usePQRS = () => {
     return tickets.find(ticket => ticket.id === id);
   };
 
+  const refetch = () => {
+    fetchPQRS();
+  };
+
   return {
     tickets,
     ticketsPendientes,
+    loading,
+    error,
     getByEstado,
     getByTipo,
     getById,
+    refetch,
   };
 };
-

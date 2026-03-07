@@ -9,46 +9,146 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Plus, MessageSquare } from 'lucide-react';
+import { Plus, MessageSquare, AlertCircle } from 'lucide-react';
 import { usePQRS } from '../hooks/usePQRS';
+import { useCursos } from '../hooks/useCursos';
+import { pqrsService, TipoPQRS } from '../services/pqrsService';
 import { Badge } from '../components/Badge';
 import { StatusBadge } from '../components/StatusBadge';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { EmptyState } from '../components/EmptyState';
 import { formatDateTime } from '../utils/date';
 import { ROUTES } from '../constants/routes';
-import { EmptyState } from '../components/EmptyState';
 import { toast } from 'sonner';
-import { TipoPQRS } from '../types';
+import { useForm } from 'react-hook-form';
+
+interface PQRSFormData {
+  tipo: TipoPQRS;
+  asunto: string;
+  descripcion: string;
+  cursoId?: number;
+}
 
 export const PQRSPage: React.FC = () => {
-  const { tickets, getByEstado } = usePQRS();
+  const { tickets, loading, error, getByEstado, refetch } = usePQRS();
+  const { cursos, loading: loadingCursos } = useCursos();
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('Todos');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm<PQRSFormData>();
+
+  const tipoSeleccionado = watch('tipo');
 
   const ticketsActivos = useMemo(() => {
-    const filtrados = tickets.filter(t => t.estado !== 'Resuelto');
+    const filtrados = tickets.filter(t => t.estado !== 'Resuelta');
     if (categoriaFiltro === 'Todos') return filtrados;
     return filtrados.filter(t => t.estado === categoriaFiltro as any);
   }, [tickets, categoriaFiltro]);
 
   const ticketsResueltos = useMemo(() => 
-    getByEstado('Resuelto'),
+    getByEstado('Resuelta'),
     [getByEstado]
   );
 
   const getTipoBadge = (tipo: TipoPQRS) => {
     const variants: Record<TipoPQRS, 'default' | 'error' | 'warning' | 'info'> = {
-      'Pregunta': 'default',
+      'Petición': 'info',
       'Queja': 'error',
       'Reclamo': 'warning',
-      'Sugerencia': 'info',
+      'Sugerencia': 'default',
     };
     return <Badge variant={variants[tipo]}>{tipo}</Badge>;
   };
 
-  const handleEnviarSolicitud = () => {
-    toast.success('Solicitud enviada', {
-      description: 'Tu PQRS ha sido registrada y será revisada pronto',
-    });
+  const onSubmit = async (data: PQRSFormData) => {
+    try {
+      setSubmitting(true);
+
+      // Validaciones
+      if (!data.tipo) {
+        toast.error('Campo requerido', {
+          description: 'Selecciona el tipo de solicitud',
+        });
+        return;
+      }
+
+      if (!data.asunto.trim()) {
+        toast.error('Campo requerido', {
+          description: 'Ingresa un asunto para tu solicitud',
+        });
+        return;
+      }
+
+      if (!data.descripcion.trim()) {
+        toast.error('Campo requerido', {
+          description: 'Describe tu solicitud con detalle',
+        });
+        return;
+      }
+
+      // Crear PQRS
+      await pqrsService.create({
+        tipo: data.tipo,
+        asunto: data.asunto,
+        descripcion: data.descripcion,
+        cursoId: data.cursoId,
+      });
+
+      toast.success('Solicitud enviada', {
+        description: 'Tu PQRS ha sido registrada y será revisada pronto',
+      });
+
+      // Limpiar formulario y cerrar dialog
+      reset();
+      setDialogOpen(false);
+      
+      // Recargar lista de PQRS
+      refetch();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al enviar la solicitud';
+      toast.error('Error', {
+        description: message,
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  // Manejo de estados de carga
+  if (loading || loadingCursos) {
+    return (
+      <ProtectedRoute>
+        <Layout breadcrumbs={[{ label: 'Dashboard', href: ROUTES.DASHBOARD }, { label: 'PQRS' }]}>
+          <LoadingSpinner size="lg" text="Cargando solicitudes..." />
+        </Layout>
+      </ProtectedRoute>
+    );
+  }
+
+  // Manejo de errores
+  if (error) {
+    return (
+      <ProtectedRoute>
+        <Layout breadcrumbs={[{ label: 'Dashboard', href: ROUTES.DASHBOARD }, { label: 'PQRS' }]}>
+          <EmptyState 
+            icon={AlertCircle} 
+            title="Error al cargar solicitudes" 
+            description={error}
+            actionLabel="Reintentar"
+            onAction={refetch}
+          />
+        </Layout>
+      </ProtectedRoute>
+    );
+  }
 
   const sidebar = (
     <Card>
@@ -95,7 +195,7 @@ export const PQRSPage: React.FC = () => {
               <h2>PQRS - Peticiones, Quejas, Reclamos y Sugerencias</h2>
               <p className="text-gray-600 mt-2">Canal de comunicación con el equipo académico</p>
             </div>
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="flex items-center gap-2">
                   <Plus className="w-4 h-4" />
@@ -109,52 +209,105 @@ export const PQRSPage: React.FC = () => {
                     Completa el formulario para enviar tu petición, queja, reclamo o sugerencia
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="tipo">Tipo de Solicitud</Label>
-                    <Select>
+                    <Label htmlFor="tipo">Tipo de Solicitud *</Label>
+                    <Select onValueChange={(value) => setValue('tipo', value as TipoPQRS)}>
                       <SelectTrigger id="tipo">
                         <SelectValue placeholder="Selecciona el tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pregunta">Pregunta</SelectItem>
-                        <SelectItem value="queja">Queja</SelectItem>
-                        <SelectItem value="reclamo">Reclamo</SelectItem>
-                        <SelectItem value="sugerencia">Sugerencia</SelectItem>
+                        <SelectItem value="Petición">Petición</SelectItem>
+                        <SelectItem value="Queja">Queja</SelectItem>
+                        <SelectItem value="Reclamo">Reclamo</SelectItem>
+                        <SelectItem value="Sugerencia">Sugerencia</SelectItem>
                       </SelectContent>
                     </Select>
+                    {errors.tipo && (
+                      <p className="text-sm text-red-600" role="alert">{errors.tipo.message}</p>
+                    )}
                   </div>
+                  
                   <div className="space-y-2">
                     <Label htmlFor="curso-pqrs">Curso Relacionado (opcional)</Label>
-                    <Select>
+                    <Select onValueChange={(value) => setValue('cursoId', value === 'general' ? undefined : Number(value))}>
                       <SelectTrigger id="curso-pqrs">
                         <SelectValue placeholder="Selecciona un curso" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="general">General</SelectItem>
-                        <SelectItem value="MAT-301">MAT-301</SelectItem>
-                        <SelectItem value="FIS-401">FIS-401</SelectItem>
-                        <SelectItem value="PRG-205">PRG-205</SelectItem>
+                        {cursos.map((curso) => (
+                          <SelectItem key={curso.id} value={String(curso.id)}>
+                            {curso.codigo} - {curso.nombre}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="asunto">Asunto</Label>
-                    <Input id="asunto" placeholder="Resume tu solicitud en una línea" />
+                    <Label htmlFor="asunto">Asunto *</Label>
+                    <Input 
+                      id="asunto" 
+                      placeholder="Resume tu solicitud en una línea"
+                      {...register('asunto', {
+                        required: 'El asunto es requerido',
+                        minLength: {
+                          value: 5,
+                          message: 'El asunto debe tener al menos 5 caracteres'
+                        }
+                      })}
+                      aria-invalid={errors.asunto ? 'true' : 'false'}
+                    />
+                    {errors.asunto && (
+                      <p className="text-sm text-red-600" role="alert">{errors.asunto.message}</p>
+                    )}
                   </div>
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="descripcion">Descripción Detallada</Label>
+                    <Label htmlFor="descripcion">Descripción Detallada *</Label>
                     <Textarea
                       id="descripcion"
                       placeholder="Describe tu solicitud con el mayor detalle posible..."
                       rows={6}
+                      {...register('descripcion', {
+                        required: 'La descripción es requerida',
+                        minLength: {
+                          value: 20,
+                          message: 'La descripción debe tener al menos 20 caracteres'
+                        }
+                      })}
+                      aria-invalid={errors.descripcion ? 'true' : 'false'}
                     />
+                    {errors.descripcion && (
+                      <p className="text-sm text-red-600" role="alert">{errors.descripcion.message}</p>
+                    )}
                   </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline">Cancelar</Button>
-                  <Button onClick={handleEnviarSolicitud}>Enviar Solicitud</Button>
-                </DialogFooter>
+                  
+                  <DialogFooter>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => {
+                        reset();
+                        setDialogOpen(false);
+                      }}
+                      disabled={submitting}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={submitting}>
+                      {submitting ? (
+                        <span className="flex items-center gap-2">
+                          <LoadingSpinner size="sm" />
+                          Enviando...
+                        </span>
+                      ) : (
+                        'Enviar Solicitud'
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </form>
               </DialogContent>
             </Dialog>
           </div>

@@ -44,20 +44,46 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      // Validación adicional antes de enviar
-      if (data.email && !isValidEmail(data.email)) {
-        toast.error('Email inválido', {
-          description: 'Por favor ingresa un email válido',
+      // Validación: email y password son requeridos para autenticación real
+      if (!data.email || !data.password) {
+        toast.error('Campos requeridos', {
+          description: 'Por favor ingresa tu email y contraseña',
         });
+        setLoading(false);
         return;
       }
 
-      await login(data.email || 'usuario', data.password || 'demo', selectedRole);
+      // Validación de formato de email
+      if (!isValidEmail(data.email)) {
+        toast.error('Email inválido', {
+          description: 'Por favor ingresa un email válido',
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Intentar login con el backend
+      await login(data.email, data.password, selectedRole);
+      
+      // Si el login es exitoso, navegar al dashboard
       navigate('/dashboard');
     } catch (err) {
-      toast.error('Error al iniciar sesión', {
-        description: 'Por favor intenta nuevamente',
-      });
+      // Manejar diferentes tipos de errores
+      const error = err as any;
+      
+      if (error.response?.status === 401) {
+        toast.error('Credenciales inválidas', {
+          description: 'Email o contraseña incorrectos',
+        });
+      } else if (error.message?.includes('Network Error') || error.code === 'ERR_NETWORK') {
+        toast.error('Error de conexión', {
+          description: 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo en http://localhost:8080',
+        });
+      } else {
+        toast.error('Error al iniciar sesión', {
+          description: error.message || 'Por favor intenta nuevamente',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -114,12 +140,13 @@ export const LoginPage: React.FC = () => {
               <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
                 <TabsContent value="estudiante" className="space-y-4 mt-0">
                   <div className="space-y-2">
-                    <Label htmlFor="email-estudiante">Correo Electrónico (opcional)</Label>
+                    <Label htmlFor="email-estudiante">Correo Electrónico</Label>
                     <Input
                       id="email-estudiante"
                       type="email"
                       placeholder="estudiante@universidad.edu"
                       {...register('email', {
+                        required: 'El email es requerido',
                         validate: (value) => {
                           if (value && !isValidEmail(value)) {
                             return 'Email inválido';
@@ -128,33 +155,47 @@ export const LoginPage: React.FC = () => {
                         },
                       })}
                       aria-invalid={errors.email ? 'true' : 'false'}
+                      aria-describedby={errors.email ? 'email-error' : undefined}
                     />
                     {errors.email && (
-                      <p className="text-sm text-red-600">{errors.email.message}</p>
+                      <p id="email-error" className="text-sm text-red-600" role="alert">
+                        {errors.email.message}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password-estudiante">Contraseña (opcional)</Label>
+                    <Label htmlFor="password-estudiante">Contraseña</Label>
                     <Input
                       id="password-estudiante"
                       type="password"
-                      {...register('password')}
+                      placeholder="••••••••"
+                      {...register('password', {
+                        required: 'La contraseña es requerida',
+                        minLength: {
+                          value: 3,
+                          message: 'La contraseña debe tener al menos 3 caracteres'
+                        }
+                      })}
                       aria-invalid={errors.password ? 'true' : 'false'}
+                      aria-describedby={errors.password ? 'password-error' : undefined}
                     />
                     {errors.password && (
-                      <p className="text-sm text-red-600">{errors.password.message}</p>
+                      <p id="password-error" className="text-sm text-red-600" role="alert">
+                        {errors.password.message}
+                      </p>
                     )}
                   </div>
                 </TabsContent>
 
                 <TabsContent value="maestro" className="space-y-4 mt-0">
                   <div className="space-y-2">
-                    <Label htmlFor="email-maestro">Correo Electrónico (opcional)</Label>
+                    <Label htmlFor="email-maestro">Correo Electrónico</Label>
                     <Input
                       id="email-maestro"
                       type="email"
-                      placeholder="profesor@universidad.edu"
+                      placeholder="maestro@universidad.edu"
                       {...register('email', {
+                        required: 'El email es requerido',
                         validate: (value) => {
                           if (value && !isValidEmail(value)) {
                             return 'Email inválido';
@@ -163,33 +204,47 @@ export const LoginPage: React.FC = () => {
                         },
                       })}
                       aria-invalid={errors.email ? 'true' : 'false'}
+                      aria-describedby={errors.email ? 'email-error' : undefined}
                     />
                     {errors.email && (
-                      <p className="text-sm text-red-600">{errors.email.message}</p>
+                      <p id="email-error" className="text-sm text-red-600" role="alert">
+                        {errors.email.message}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password-maestro">Contraseña (opcional)</Label>
+                    <Label htmlFor="password-maestro">Contraseña</Label>
                     <Input
                       id="password-maestro"
                       type="password"
-                      {...register('password')}
+                      placeholder="••••••••"
+                      {...register('password', {
+                        required: 'La contraseña es requerida',
+                        minLength: {
+                          value: 3,
+                          message: 'La contraseña debe tener al menos 3 caracteres'
+                        }
+                      })}
                       aria-invalid={errors.password ? 'true' : 'false'}
+                      aria-describedby={errors.password ? 'password-error' : undefined}
                     />
                     {errors.password && (
-                      <p className="text-sm text-red-600">{errors.password.message}</p>
+                      <p id="password-error" className="text-sm text-red-600" role="alert">
+                        {errors.password.message}
+                      </p>
                     )}
                   </div>
                 </TabsContent>
 
                 <TabsContent value="coordinador" className="space-y-4 mt-0">
                   <div className="space-y-2">
-                    <Label htmlFor="email-coordinador">Correo Electrónico (opcional)</Label>
+                    <Label htmlFor="email-coordinador">Correo Electrónico</Label>
                     <Input
                       id="email-coordinador"
                       type="email"
                       placeholder="coordinador@universidad.edu"
                       {...register('email', {
+                        required: 'El email es requerido',
                         validate: (value) => {
                           if (value && !isValidEmail(value)) {
                             return 'Email inválido';
@@ -198,21 +253,34 @@ export const LoginPage: React.FC = () => {
                         },
                       })}
                       aria-invalid={errors.email ? 'true' : 'false'}
+                      aria-describedby={errors.email ? 'email-error' : undefined}
                     />
                     {errors.email && (
-                      <p className="text-sm text-red-600">{errors.email.message}</p>
+                      <p id="email-error" className="text-sm text-red-600" role="alert">
+                        {errors.email.message}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password-coordinador">Contraseña (opcional)</Label>
+                    <Label htmlFor="password-coordinador">Contraseña</Label>
                     <Input
                       id="password-coordinador"
                       type="password"
-                      {...register('password')}
+                      placeholder="••••••••"
+                      {...register('password', {
+                        required: 'La contraseña es requerida',
+                        minLength: {
+                          value: 3,
+                          message: 'La contraseña debe tener al menos 3 caracteres'
+                        }
+                      })}
                       aria-invalid={errors.password ? 'true' : 'false'}
+                      aria-describedby={errors.password ? 'password-error' : undefined}
                     />
                     {errors.password && (
-                      <p className="text-sm text-red-600">{errors.password.message}</p>
+                      <p id="password-error" className="text-sm text-red-600" role="alert">
+                        {errors.password.message}
+                      </p>
                     )}
                   </div>
                 </TabsContent>
@@ -235,11 +303,23 @@ export const LoginPage: React.FC = () => {
               </form>
             </Tabs>
 
-            {/* Mensaje informativo - Principio de Cierre (Gestalt) */}
-            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg" role="note" aria-label="Información del prototipo">
-              <p className="text-xs sm:text-sm text-gray-700">
-                <strong className="text-blue-700">Prototipo:</strong> Solo selecciona tu rol y presiona "Ingresar" para acceder directamente
-              </p>
+            {/* Mensaje informativo */}
+            <div className="mt-4 sm:mt-6 space-y-3">
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertDescription className="text-xs sm:text-sm text-gray-700">
+                  <strong className="text-blue-700">Credenciales de prueba:</strong>
+                  <ul className="mt-2 space-y-1 list-disc list-inside">
+                    <li>Estudiante: estudiante@universidad.edu / password123</li>
+                    <li>Maestro: maestro@universidad.edu / password123</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+              
+              <Alert className="bg-amber-50 border-amber-200">
+                <AlertDescription className="text-xs sm:text-sm text-gray-700">
+                  <strong className="text-amber-700">Nota:</strong> Asegúrate de que el backend esté corriendo en http://localhost:8080
+                </AlertDescription>
+              </Alert>
             </div>
           </CardContent>
         </Card>

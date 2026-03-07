@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
@@ -18,19 +18,49 @@ import { EmptyState } from '../components/EmptyState';
 
 export const DashboardEstudiante: React.FC = () => {
   const navigate = useNavigate();
-  const { evaluaciones, loading: loadingEvaluaciones, error: errorEvaluaciones } = useEvaluaciones();
-  const { cursos, loading: loadingCursos, error: errorCursos } = useCursos();
-  const [loading] = useState(false); // En el futuro vendrá del hook de datos
+  const { evaluaciones, loading: loadingEvaluaciones, error: errorEvaluaciones, refetch: refetchEvaluaciones } = useEvaluaciones({ estado: 'Activa' });
+  const { cursos, loading: loadingCursos, error: errorCursos, refetch: refetchCursos } = useCursos();
+  const [loading] = useState(false);
 
-  const evaluacionesAbiertas = evaluaciones.filter(e => e.estado === 'Activa');
-  const cursosActivos = cursos.filter(c => c.estado === 'Activo');
+  const evaluacionesAbiertas = useMemo(() => 
+    evaluaciones.filter(e => e.estado === 'Activa'),
+    [evaluaciones]
+  );
 
+  const cursosActivos = useMemo(() => 
+    cursos.slice(0, 4), // Mostrar solo los primeros 4 cursos
+    [cursos]
+  );
+
+  // Manejo de estados de carga
   if (loadingEvaluaciones || loadingCursos) {
-    return <LoadingSpinner size="lg" text="Cargando datos..." />;
+    return (
+      <ProtectedRoute allowedRoles={['estudiante']}>
+        <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
+          <LoadingSpinner size="lg" text="Cargando tu dashboard..." />
+        </Layout>
+      </ProtectedRoute>
+    );
   }
 
+  // Manejo de errores con opción de reintentar
   if (errorEvaluaciones || errorCursos) {
-    return <EmptyState icon={AlertCircle} title="Error al cargar datos" description="No se pudieron cargar las evaluaciones o cursos." />;
+    return (
+      <ProtectedRoute allowedRoles={['estudiante']}>
+        <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
+          <EmptyState 
+            icon={AlertCircle} 
+            title="Error al cargar datos" 
+            description={errorEvaluaciones || errorCursos || "No se pudieron cargar los datos del dashboard."}
+            actionLabel="Reintentar"
+            onAction={() => {
+              refetchEvaluaciones();
+              refetchCursos();
+            }}
+          />
+        </Layout>
+      </ProtectedRoute>
+    );
   }
 
   return (

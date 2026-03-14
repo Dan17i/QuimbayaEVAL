@@ -1,152 +1,238 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { FileDown, Filter, RefreshCw } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { FileDown, RefreshCw, Users, BarChart3, TrendingUp, BookOpen } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { StatCard } from '../components/StatCard';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ROUTES } from '../constants/routes';
 import { Estadistica } from '../types';
-import { BarChart3, FileText } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatNumber } from '../utils/format';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useCursos } from '../hooks/useCursos';
 import { useDocentes } from '../hooks/useDocentes';
+import { useAuth } from '../contexts/AuthContext';
+import { resultadosService, ResultadoDetalle, ResumenCurso } from '../services/resultadosService';
+import { cursosService, Curso } from '../services/cursosService';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 
 export const ReportesPage: React.FC = () => {
+  const { user } = useAuth();
+  const isCoordinador = user?.role === 'coordinador';
+
   const { evaluaciones, loading: loadingEvals } = useEvaluaciones();
   const { cursos, loading: loadingCursos } = useCursos();
   const { docentes, loading: loadingDocentes } = useDocentes();
-  const reporteRef = useRef<HTMLDivElement>(null);
 
-  const [filtroCurso, setFiltroCurso] = useState<string>('all');
+  // Filtros
   const [filtroDocente, setFiltroDocente] = useState<string>('all');
+  const [filtroCursoId, setFiltroCursoId] = useState<string>('');
 
-  const loading = loadingEvals || loadingCursos || loadingDocentes;
+  // Datos de notas
+  const [notasEstudiantes, setNotasEstudiantes] = useState<ResultadoDetalle[]>([]);
+  const [resumenGrupo, setResumenGrupo] = useState<ResumenCurso[]>([]);
+  const [loadingNotas, setLoadingNotas] = useState(false);
 
-  // Evaluaciones filtradas según selección
-  const evaluacionesFiltradas = useMemo(() => {
-    let result = evaluaciones;
-    if (filtroCurso !== 'all') result = result.filter(e => e.curso === filtroCurso);
-    // filtro por docente: necesitamos saber qué cursos pertenecen al docente
-    // el campo profesor viene del mapeo en useEvaluaciones si el back lo retorna
-    if (filtroDocente !== 'all') {
-      const docenteId = Number(filtroDocente);
-      const cursosDelDocente = cursos
-        .filter(c => c.profesorId === docenteId)
-        .map(c => c.codigo);
-      result = result.filter(e => cursosDelDocente.includes(e.curso));
-    }
-    return result;
-  }, [evaluaciones, cursos, filtroCurso, filtroDocente]);
+  const loading = loadingEvals || loadingCursos || (isCoordinador && loadingDocentes);
 
-  const evaluacionesPorCurso = useMemo(() => {
-    const cursosBase = filtroCurso !== 'all'
-      ? cursos.filter(c => c.codigo === filtroCurso)
-      : filtroDocente !== 'all'
-        ? cursos.filter(c => c.profesorId === Number(filtroDocente))
-        : cursos;
+  // Cursos filtrados por docente (coordinador) o todos (maestro)
+  const cursosFiltrados = useMemo(() => {
+    if (!isCoordinador) return cursos;
+    if (filtroDocente === 'all') return cursos;
+    return cursos.filter(c => c.profesorId === Number(filtroDocente));
+  }, [cursos, filtroDocente, isCoordinador]);
 
-    return cursosBase.map(c => ({
-      curso: c.codigo,
-      nombre: c.nombre,
-      total: evaluacionesFiltradas.filter(e => e.curso === c.codigo).length,
-      activas: evaluacionesFiltradas.filter(e => e.curso === c.codigo && e.estado === 'Activa').length,
-      cerradas: evaluacionesFiltradas.filter(e => e.curso === c.codigo && e.estado === 'Cerrada').length,
-    })).filter(c => c.total > 0);
-  }, [cursos, evaluacionesFiltradas, filtroCurso, filtroDocente]);
+  // Al cambiar curso, cargar notas
+  useEffect(() => {
+    if (!filtroCursoId) return;
+    const id = Number(filtroCursoId);
+    setLoadingNotas(true);
+    Promise.all([
+      resultadosService.getByCurso(id),
+      resultadosService.getResumenCurso(id),
+    ]).then(([notas, resumen]) => {
+      setNotasEstudiantes(notas);
+      setResumenGrupo(resumen);
+    }).catch(() => {
+      toast.error('Error al cargar notas del curso');
+    }).finally(() => setLoadingNotas(false));
+  }, [filtroCursoId]);
 
-  const distribucionEstados = useMemo(() => {
-    const estados = ['Activa', 'Cerrada', 'Programada', 'Borrador'] as const;
-    return estados.map(estado => ({
-      estado,
-      cantidad: evaluacionesFiltradas.filter(e => e.estado === estado).length,
-    })).filter(e => e.cantidad > 0);
-  }, [evaluacionesFiltradas]);
+  // Cuando cambia docente, resetear curso
+  useEffect(() => {
+    setFiltroCursoId('');
+    setNotasEstudiantes([]);
+    setResumenGrupo([]);
+  }, [filtroDocente]);
 
+  const cursoActual = cursos.find(c => String(c.id) === filtroCursoId);
+
+  // KPIs generales
   const estadisticasKPIs = useMemo<Estadistica[]>(() => [
-    { label: 'Cursos', value: String(evaluacionesPorCurso.length), icon: BarChart3, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Total Evaluaciones', value: String(evaluacionesFiltradas.length), icon: FileText, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Activas', value: String(evaluacionesFiltradas.filter(e => e.estado === 'Activa').length), icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Cerradas', value: String(evaluacionesFiltradas.filter(e => e.estado === 'Cerrada').length), icon: FileText, color: 'text-orange-600', bg: 'bg-orange-50' },
-  ], [evaluacionesPorCurso, evaluacionesFiltradas]);
+    { label: 'Total Cursos', value: String(cursosFiltrados.length), icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Total Evaluaciones', value: String(evaluaciones.length), icon: FileText, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Activas', value: String(evaluaciones.filter(e => e.estado === 'Activa').length), icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Cerradas', value: String(evaluaciones.filter(e => e.estado === 'Cerrada').length), icon: FileText, color: 'text-orange-600', bg: 'bg-orange-50' },
+  ], [cursosFiltrados, evaluaciones]);
 
-  const docenteSeleccionado = docentes.find(d => String(d.id) === filtroDocente);
-  const cursoSeleccionado = cursos.find(c => c.codigo === filtroCurso);
+  // Promedio general del grupo (de resumenGrupo)
+  const promedioGeneral = useMemo(() => {
+    if (resumenGrupo.length === 0) return null;
+    const sum = resumenGrupo.reduce((acc, r) => acc + r.promedioGrupo, 0);
+    return (sum / resumenGrupo.length).toFixed(1);
+  }, [resumenGrupo]);
 
-  const tituloReporte = [
-    docenteSeleccionado ? `Docente: ${docenteSeleccionado.name}` : null,
-    cursoSeleccionado ? `Curso: ${cursoSeleccionado.codigo}` : null,
-  ].filter(Boolean).join(' | ') || 'Todos los cursos y docentes';
+  const totalAprobados = useMemo(() =>
+    resumenGrupo.reduce((acc, r) => acc + r.aprobados, 0), [resumenGrupo]);
 
-  const handleExportarPDF = async () => {
-    if (!reporteRef.current) return;
-    const toastId = toast.loading('Generando PDF...');
+  const totalReprobados = useMemo(() =>
+    resumenGrupo.reduce((acc, r) => acc + r.reprobados, 0), [resumenGrupo]);
+
+  // --- EXPORTAR PDF ---
+  const handleExportarPDF = () => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const canvas = await html2canvas(reporteRef.current, { scale: 2, useCORS: true }) as any;
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pageWidth = pdf.internal.pageSize.getWidth();
-      const imgWidth = pageWidth - 20;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
-      pdf.save(`reporte-${new Date().toISOString().slice(0, 10)}.pdf`);
-      toast.success('PDF generado', { id: toastId, description: 'Archivo descargado correctamente' });
+      let y = 20;
+
+      // Encabezado
+      pdf.setFontSize(16);
+      pdf.setTextColor(30, 64, 175);
+      pdf.text('Reporte QuimbayaEVAL', pageWidth / 2, y, { align: 'center' });
+      y += 7;
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Generado: ${new Date().toLocaleDateString('es-CO')}`, pageWidth / 2, y, { align: 'center' });
+      if (cursoActual) {
+        y += 5;
+        pdf.text(`Curso: ${cursoActual.codigo} - ${cursoActual.nombre}`, pageWidth / 2, y, { align: 'center' });
+      }
+      y += 10;
+
+      if (notasEstudiantes.length > 0) {
+        // Tabla notas estudiantes
+        pdf.setFontSize(12);
+        pdf.setTextColor(30, 30, 30);
+        pdf.text('Notas por Estudiante', 14, y);
+        y += 7;
+
+        pdf.setFillColor(59, 130, 246);
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(8);
+        pdf.rect(14, y - 4, pageWidth - 28, 7, 'F');
+        pdf.text('Estudiante', 16, y);
+        pdf.text('Evaluación', 70, y);
+        pdf.text('Nota', 140, y);
+        pdf.text('Porcentaje', 158, y);
+        y += 6;
+
+        pdf.setTextColor(40, 40, 40);
+        notasEstudiantes.forEach((n, i) => {
+          if (y > 270) { pdf.addPage(); y = 20; }
+          if (i % 2 === 0) {
+            pdf.setFillColor(240, 245, 255);
+            pdf.rect(14, y - 4, pageWidth - 28, 7, 'F');
+          }
+          pdf.text(n.estudianteNombre.slice(0, 28), 16, y);
+          pdf.text(n.evaluacionNombre.slice(0, 30), 70, y);
+          pdf.text(`${n.puntuacionTotal}/${n.puntuacionMaxima}`, 140, y);
+          pdf.text(`${n.porcentaje.toFixed(1)}%`, 160, y);
+          y += 7;
+        });
+        y += 5;
+      }
+
+      if (resumenGrupo.length > 0) {
+        if (y > 240) { pdf.addPage(); y = 20; }
+        pdf.setFontSize(12);
+        pdf.setTextColor(30, 30, 30);
+        pdf.text('Resumen del Grupo', 14, y);
+        y += 7;
+
+        pdf.setFillColor(16, 185, 129);
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(8);
+        pdf.rect(14, y - 4, pageWidth - 28, 7, 'F');
+        pdf.text('Evaluación', 16, y);
+        pdf.text('Promedio', 100, y);
+        pdf.text('Aprobados', 125, y);
+        pdf.text('Reprobados', 152, y);
+        y += 6;
+
+        pdf.setTextColor(40, 40, 40);
+        resumenGrupo.forEach((r, i) => {
+          if (y > 270) { pdf.addPage(); y = 20; }
+          if (i % 2 === 0) {
+            pdf.setFillColor(240, 255, 248);
+            pdf.rect(14, y - 4, pageWidth - 28, 7, 'F');
+          }
+          pdf.text(r.evaluacionNombre.slice(0, 40), 16, y);
+          pdf.text(`${r.promedioGrupo.toFixed(1)}%`, 102, y);
+          pdf.text(String(r.aprobados), 130, y);
+          pdf.text(String(r.reprobados), 157, y);
+          y += 7;
+        });
+      }
+
+      pdf.save(`reporte-${cursoActual?.codigo ?? 'general'}-${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast.success('PDF generado', { description: 'Archivo descargado correctamente' });
     } catch {
-      toast.error('Error al generar PDF', { id: toastId });
+      toast.error('Error al generar PDF');
     }
   };
 
+  // --- EXPORTAR EXCEL ---
   const handleExportarExcel = () => {
     try {
       const wb = XLSX.utils.book_new();
 
-      // Hoja 1: Resumen
-      const wsResumen = XLSX.utils.aoa_to_sheet([
+      if (notasEstudiantes.length > 0) {
+        const wsNotas = XLSX.utils.aoa_to_sheet([
+          ['Estudiante', 'Email', 'Evaluación', 'Curso', 'Nota', 'Máximo', 'Porcentaje'],
+          ...notasEstudiantes.map(n => [
+            n.estudianteNombre, n.estudianteEmail, n.evaluacionNombre,
+            n.cursoNombre, n.puntuacionTotal, n.puntuacionMaxima, `${n.porcentaje.toFixed(1)}%`,
+          ]),
+        ]);
+        XLSX.utils.book_append_sheet(wb, wsNotas, 'Notas Estudiantes');
+      }
+
+      if (resumenGrupo.length > 0) {
+        const wsResumen = XLSX.utils.aoa_to_sheet([
+          ['Evaluación', 'Promedio Grupo (%)', 'Total Estudiantes', 'Aprobados', 'Reprobados'],
+          ...resumenGrupo.map(r => [
+            r.evaluacionNombre, r.promedioGrupo.toFixed(1),
+            r.totalEstudiantes, r.aprobados, r.reprobados,
+          ]),
+        ]);
+        XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Grupo');
+      }
+
+      // Hoja general siempre
+      const wsGeneral = XLSX.utils.aoa_to_sheet([
         ['Reporte QuimbayaEVAL', new Date().toLocaleDateString('es-CO')],
-        ['Filtro', tituloReporte],
+        ['Curso', cursoActual ? `${cursoActual.codigo} - ${cursoActual.nombre}` : 'Todos'],
         [],
-        ['KPI', 'Valor'],
-        ['Total Cursos', evaluacionesPorCurso.length],
-        ['Total Evaluaciones', evaluacionesFiltradas.length],
-        ['Activas', evaluacionesFiltradas.filter(e => e.estado === 'Activa').length],
-        ['Cerradas', evaluacionesFiltradas.filter(e => e.estado === 'Cerrada').length],
+        ['Total Cursos', cursosFiltrados.length],
+        ['Total Evaluaciones', evaluaciones.length],
+        ['Activas', evaluaciones.filter(e => e.estado === 'Activa').length],
+        ['Cerradas', evaluaciones.filter(e => e.estado === 'Cerrada').length],
       ]);
-      XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+      XLSX.utils.book_append_sheet(wb, wsGeneral, 'Resumen General');
 
-      // Hoja 2: Por curso
-      const wsCursos = XLSX.utils.aoa_to_sheet([
-        ['Código', 'Nombre', 'Total', 'Activas', 'Cerradas'],
-        ...evaluacionesPorCurso.map(c => [c.curso, c.nombre, c.total, c.activas, c.cerradas]),
-      ]);
-      XLSX.utils.book_append_sheet(wb, wsCursos, 'Por Curso');
-
-      // Hoja 3: Por estado
-      const wsEstados = XLSX.utils.aoa_to_sheet([
-        ['Estado', 'Cantidad'],
-        ...distribucionEstados.map(e => [e.estado, e.cantidad]),
-      ]);
-      XLSX.utils.book_append_sheet(wb, wsEstados, 'Por Estado');
-
-      XLSX.writeFile(wb, `reporte-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      XLSX.writeFile(wb, `reporte-${cursoActual?.codigo ?? 'general'}-${new Date().toISOString().slice(0, 10)}.xlsx`);
       toast.success('Excel generado', { description: 'Archivo descargado correctamente' });
     } catch {
       toast.error('Error al generar Excel');
     }
-  };
-
-  const handleLimpiarFiltros = () => {
-    setFiltroCurso('all');
-    setFiltroDocente('all');
   };
 
   const sidebar = (
@@ -154,51 +240,48 @@ export const ReportesPage: React.FC = () => {
       <CardContent className="pt-6">
         <h3 className="mb-4">Filtros</h3>
         <div className="space-y-4">
+          {isCoordinador && (
+            <div>
+              <label className="text-sm text-gray-600 mb-2 block">Docente</label>
+              <Select value={filtroDocente} onValueChange={setFiltroDocente}>
+                <SelectTrigger><SelectValue placeholder="Todos los docentes" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los docentes</SelectItem>
+                  {docentes.map(d => (
+                    <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div>
-            <label className="text-sm text-gray-600 mb-2 block">Docente</label>
-            <Select value={filtroDocente} onValueChange={setFiltroDocente}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todos los docentes" />
-              </SelectTrigger>
+            <label className="text-sm text-gray-600 mb-2 block">Curso</label>
+            <Select value={filtroCursoId} onValueChange={setFiltroCursoId}>
+              <SelectTrigger><SelectValue placeholder="Selecciona un curso" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los docentes</SelectItem>
-                {docentes.map(d => (
-                  <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
+                {cursosFiltrados.map(c => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.codigo} - {c.nombre}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div>
-            <label className="text-sm text-gray-600 mb-2 block">Curso</label>
-            <Select value={filtroCurso} onValueChange={setFiltroCurso}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todos los cursos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los cursos</SelectItem>
-                {cursos
-                  .filter(c => filtroDocente === 'all' || c.profesorId === Number(filtroDocente))
-                  .map(c => (
-                    <SelectItem key={c.id} value={c.codigo}>{c.codigo} - {c.nombre}</SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button
-            variant="ghost"
-            className="w-full flex items-center gap-2"
-            onClick={handleLimpiarFiltros}
-          >
-            <RefreshCw className="w-4 h-4" />
-            Limpiar filtros
+          <Button variant="ghost" className="w-full flex items-center gap-2" onClick={() => {
+            setFiltroDocente('all');
+            setFiltroCursoId('');
+            setNotasEstudiantes([]);
+            setResumenGrupo([]);
+          }}>
+            <RefreshCw className="w-4 h-4" /> Limpiar
           </Button>
         </div>
 
         <div className="mt-6 p-3 bg-blue-50 rounded-lg">
           <p className="text-xs text-gray-600">
-            Los filtros aplican tanto a las gráficas como a la exportación PDF y Excel.
+            Selecciona un curso para ver las notas detalladas y exportarlas.
           </p>
         </div>
       </CardContent>
@@ -215,13 +298,15 @@ export const ReportesPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2>Reportes y Análisis</h2>
-              <p className="text-gray-500 mt-1 text-sm">{tituloReporte}</p>
+              <p className="text-gray-500 mt-1 text-sm">
+                {cursoActual ? `${cursoActual.codigo} - ${cursoActual.nombre}` : 'Selecciona un curso para ver las notas'}
+              </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportarPDF}>
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleExportarPDF} disabled={!filtroCursoId}>
                 <FileDown className="w-4 h-4" /> PDF
               </Button>
-              <Button className="flex items-center gap-2" onClick={handleExportarExcel}>
+              <Button className="flex items-center gap-2" onClick={handleExportarExcel} disabled={!filtroCursoId}>
                 <FileDown className="w-4 h-4" /> Excel
               </Button>
             </div>
@@ -230,100 +315,180 @@ export const ReportesPage: React.FC = () => {
           {loading ? (
             <LoadingSpinner size="lg" text="Cargando datos..." />
           ) : (
-            <div ref={reporteRef} className="space-y-6">
-              {/* KPIs */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                {estadisticasKPIs.map((stat) => <StatCard key={stat.label} stat={stat} />)}
+            <div className="space-y-6">
+              {/* KPIs generales */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {estadisticasKPIs.map(stat => <StatCard key={stat.label} stat={stat} />)}
               </div>
 
-              {/* Gráfica por curso */}
-              {evaluacionesPorCurso.length > 0 && (
+              {/* Contenido del curso seleccionado */}
+              {!filtroCursoId ? (
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Evaluaciones por Curso</CardTitle>
-                    <CardDescription>Total registradas por materia</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={evaluacionesPorCurso}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="curso" />
-                        <YAxis allowDecimals={false} />
-                        <Tooltip />
-                        <Bar dataKey="total" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Total" />
-                        <Bar dataKey="activas" fill="#10b981" radius={[8, 8, 0, 0]} name="Activas" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <CardContent className="py-12 text-center text-gray-400">
+                    <BookOpen className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                    <p>Selecciona un curso en el panel izquierdo para ver las notas.</p>
                   </CardContent>
                 </Card>
-              )}
+              ) : loadingNotas ? (
+                <LoadingSpinner size="md" text="Cargando notas..." />
+              ) : (
+                <Tabs defaultValue="notas">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="notas">Notas por Estudiante</TabsTrigger>
+                    <TabsTrigger value="resumen">Resumen del Grupo</TabsTrigger>
+                  </TabsList>
 
-              {/* Distribución por estado */}
-              {distribucionEstados.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Distribución por Estado</CardTitle>
-                    <CardDescription>Evaluaciones agrupadas por estado actual</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={220}>
-                      <BarChart data={distribucionEstados} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" allowDecimals={false} />
-                        <YAxis type="category" dataKey="estado" width={90} />
-                        <Tooltip />
-                        <Bar dataKey="cantidad" fill="#8b5cf6" radius={[0, 8, 8, 0]} name="Cantidad" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              )}
+                  {/* TAB 1: Notas individuales */}
+                  <TabsContent value="notas" className="mt-4">
+                    {notasEstudiantes.length === 0 ? (
+                      <Card>
+                        <CardContent className="py-10 text-center text-gray-400">
+                          No hay notas registradas para este curso aún.
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Notas por Estudiante</CardTitle>
+                          <CardDescription>{cursoActual?.codigo} — {notasEstudiantes.length} registros</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="overflow-x-auto -mx-6">
+                            <div className="inline-block min-w-full px-6">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Estudiante</TableHead>
+                                    <TableHead>Evaluación</TableHead>
+                                    <TableHead>Nota</TableHead>
+                                    <TableHead>Porcentaje</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {notasEstudiantes.map(n => (
+                                    <TableRow key={n.id}>
+                                      <TableCell>
+                                        <div>
+                                          <p className="text-gray-900">{n.estudianteNombre}</p>
+                                          <p className="text-xs text-gray-500">{n.estudianteEmail}</p>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell>{n.evaluacionNombre}</TableCell>
+                                      <TableCell>
+                                        <span className="font-medium">{n.puntuacionTotal}</span>
+                                        <span className="text-gray-400">/{n.puntuacionMaxima}</span>
+                                      </TableCell>
+                                      <TableCell>
+                                        <span className={n.porcentaje >= 60 ? 'text-green-600' : 'text-red-600'}>
+                                          {n.porcentaje.toFixed(1)}%
+                                        </span>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </TabsContent>
 
-              {/* Tabla detallada */}
-              {evaluacionesPorCurso.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Detalle por Curso</CardTitle>
-                    <CardDescription>Vista completa de métricas por materia</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto -mx-6">
-                      <div className="inline-block min-w-full px-6">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Código</TableHead>
-                              <TableHead>Nombre</TableHead>
-                              <TableHead>Total</TableHead>
-                              <TableHead>Activas</TableHead>
-                              <TableHead>Cerradas</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {evaluacionesPorCurso.map((curso) => (
-                              <TableRow key={curso.curso}>
-                                <TableCell>{curso.curso}</TableCell>
-                                <TableCell>{curso.nombre}</TableCell>
-                                <TableCell>{formatNumber(curso.total)}</TableCell>
-                                <TableCell><span className="text-green-600">{curso.activas}</span></TableCell>
-                                <TableCell><span className="text-blue-600">{curso.cerradas}</span></TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                  {/* TAB 2: Resumen del grupo */}
+                  <TabsContent value="resumen" className="mt-4 space-y-4">
+                    {resumenGrupo.length === 0 ? (
+                      <Card>
+                        <CardContent className="py-10 text-center text-gray-400">
+                          No hay datos de resumen para este curso aún.
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <>
+                        {/* KPIs del grupo */}
+                        {promedioGeneral && (
+                          <div className="grid grid-cols-3 gap-4">
+                            <Card>
+                              <CardContent className="pt-5 pb-5">
+                                <p className="text-sm text-gray-500">Promedio General</p>
+                                <p className="text-3xl mt-1 text-blue-600">{promedioGeneral}%</p>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardContent className="pt-5 pb-5">
+                                <p className="text-sm text-gray-500">Aprobados</p>
+                                <p className="text-3xl mt-1 text-green-600">{totalAprobados}</p>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardContent className="pt-5 pb-5">
+                                <p className="text-sm text-gray-500">Reprobados</p>
+                                <p className="text-3xl mt-1 text-red-600">{totalReprobados}</p>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        )}
 
-              {evaluacionesPorCurso.length === 0 && (
-                <Card>
-                  <CardContent className="py-12 text-center text-gray-500">
-                    <Filter className="w-8 h-8 mx-auto mb-3 text-gray-300" />
-                    <p>No hay datos para los filtros seleccionados.</p>
-                  </CardContent>
-                </Card>
+                        {/* Gráfica promedio por evaluación */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Promedio por Evaluación</CardTitle>
+                            <CardDescription>Desempeño del grupo en cada evaluación</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ResponsiveContainer width="100%" height={280}>
+                              <BarChart data={resumenGrupo}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="evaluacionNombre" tick={{ fontSize: 11 }} />
+                                <YAxis domain={[0, 100]} unit="%" />
+                                <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
+                                <Bar dataKey="promedioGrupo" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Promedio" />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </CardContent>
+                        </Card>
+
+                        {/* Tabla resumen */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Detalle por Evaluación</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="overflow-x-auto -mx-6">
+                              <div className="inline-block min-w-full px-6">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Evaluación</TableHead>
+                                      <TableHead>Promedio</TableHead>
+                                      <TableHead>Total</TableHead>
+                                      <TableHead>Aprobados</TableHead>
+                                      <TableHead>Reprobados</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {resumenGrupo.map(r => (
+                                      <TableRow key={r.evaluacionId}>
+                                        <TableCell>{r.evaluacionNombre}</TableCell>
+                                        <TableCell>
+                                          <span className={r.promedioGrupo >= 60 ? 'text-green-600' : 'text-red-600'}>
+                                            {r.promedioGrupo.toFixed(1)}%
+                                          </span>
+                                        </TableCell>
+                                        <TableCell>{r.totalEstudiantes}</TableCell>
+                                        <TableCell><span className="text-green-600">{r.aprobados}</span></TableCell>
+                                        <TableCell><span className="text-red-600">{r.reprobados}</span></TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </>
+                    )}
+                  </TabsContent>
+                </Tabs>
               )}
             </div>
           )}

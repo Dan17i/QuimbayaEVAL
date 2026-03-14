@@ -12,6 +12,28 @@ export interface Resultado {
   createdAt: string;
 }
 
+export interface ResultadoDetalle {
+  id: number;
+  submissionId: number;
+  estudianteNombre: string;
+  estudianteEmail: string;
+  evaluacionNombre: string;
+  cursoNombre: string;
+  puntuacionTotal: number;
+  puntuacionMaxima: number;
+  porcentaje: number;
+  createdAt: string;
+}
+
+export interface ResumenCurso {
+  evaluacionId: number;
+  evaluacionNombre: string;
+  promedioGrupo: number;
+  totalEstudiantes: number;
+  aprobados: number;
+  reprobados: number;
+}
+
 export const resultadosService = {
   async getMisResultados(): Promise<Resultado[]> {
     const { data } = await api.get<ApiResponse<Resultado[]>>('/resultados/mis-resultados');
@@ -20,6 +42,16 @@ export const resultadosService = {
 
   async getByEvaluacion(evaluacionId: number): Promise<Resultado[]> {
     const { data } = await api.get<ApiResponse<Resultado[]>>(`/resultados/evaluacion/${evaluacionId}`);
+    return data.data;
+  },
+
+  async getByCurso(cursoId: number): Promise<ResultadoDetalle[]> {
+    const { data } = await api.get<ApiResponse<ResultadoDetalle[]>>(`/resultados/curso/${cursoId}`);
+    return data.data;
+  },
+
+  async getResumenCurso(cursoId: number): Promise<ResumenCurso[]> {
+    const { data } = await api.get<ApiResponse<ResumenCurso[]>>(`/resultados/curso/${cursoId}/resumen`);
     return data.data;
   },
 };

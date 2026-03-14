@@ -20,6 +20,7 @@ export const ROUTES = {
   
   // Rutas de Coordinador
   USUARIOS: '/usuarios',
+  CURSOS: '/cursos',
   
   // Rutas Comunes
   PQRS: '/pqrs',

@@ -420,7 +420,6 @@ export const UsuariosPage: React.FC = () => {
                     <RefreshCw className="w-4 h-4" />
                   </Button>
                 </div>
-                </div>
               </div>
             </CardHeader>
             <CardContent>

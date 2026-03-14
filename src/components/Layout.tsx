@@ -181,10 +181,13 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
           )}
 
           <div className="p-4 sm:p-6 lg:p-8">
-            {/* Grid responsivo con principio de Continuidad (Gestalt) */}
-            <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${sidebar ? 'lg:grid-cols-[320px_1fr]' : ''}`}>
-              {sidebar && <div className="order-2 lg:order-1">{sidebar}</div>}
-              <div className={sidebar ? 'order-1 lg:order-2' : ''}>{children}</div>
+            <div className={`grid grid-cols-1 gap-6 lg:gap-8 ${sidebar ? 'xl:grid-cols-[280px_1fr]' : ''}`}>
+              {sidebar && (
+                <div className="order-2 xl:order-1">
+                  {sidebar}
+                </div>
+              )}
+              <div className={sidebar ? 'order-1 xl:order-2 min-w-0' : 'min-w-0'}>{children}</div>
             </div>
           </div>
         </main>

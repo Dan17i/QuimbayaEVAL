@@ -88,21 +88,21 @@ export const CrearEvaluacionPage: React.FC = () => {
         sidebar={sidebar}
       >
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2>Nueva Evaluación</h2>
               <p className="text-gray-600 mt-2">Crea una evaluación desde cero o usa el banco de preguntas</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" className="flex items-center gap-2 flex-1 sm:flex-none">
                 <Eye className="w-4 h-4" />
-                Vista Previa
+                <span className="hidden sm:inline">Vista Previa</span>
               </Button>
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" className="flex items-center gap-2 flex-1 sm:flex-none">
                 <Save className="w-4 h-4" />
-                Guardar Borrador
+                <span className="hidden sm:inline">Guardar</span>
               </Button>
-              <Button className="flex items-center gap-2">
+              <Button className="flex items-center gap-2 flex-1 sm:flex-none">
                 <Send className="w-4 h-4" />
                 Publicar
               </Button>
@@ -121,7 +121,7 @@ export const CrearEvaluacionPage: React.FC = () => {
               <CardTitle>Información General</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="nombre">Nombre de la Evaluación *</Label>
                   <Input id="nombre" placeholder="Ej: Parcial 1 - Cálculo Integral" />
@@ -165,7 +165,7 @@ export const CrearEvaluacionPage: React.FC = () => {
                   <Label htmlFor="fecha-fin">Fecha de Cierre *</Label>
                   <Input id="fecha-fin" type="datetime-local" />
                 </div>
-                <div className="col-span-2 space-y-2">
+                <div className="sm:col-span-2 space-y-2">
                   <Label htmlFor="instrucciones">Instrucciones</Label>
                   <Textarea
                     id="instrucciones"
@@ -173,17 +173,17 @@ export const CrearEvaluacionPage: React.FC = () => {
                     rows={3}
                   />
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <Label htmlFor="intentos">Número de Intentos Permitidos</Label>
-                    <p className="text-xs text-gray-500">Deja vacío para intentos ilimitados</p>
+                    <Label htmlFor="intentos">Intentos Permitidos</Label>
+                    <p className="text-xs text-gray-500">Vacío = ilimitados</p>
                   </div>
                   <Input id="intentos" type="number" className="w-24" placeholder="1" />
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-4">
                   <div>
                     <Label htmlFor="mostrar-resultados">Mostrar Resultados Inmediatos</Label>
-                    <p className="text-xs text-gray-500">Los estudiantes ven su calificación al terminar</p>
+                    <p className="text-xs text-gray-500">Los estudiantes ven su nota al terminar</p>
                   </div>
                   <Switch id="mostrar-resultados" />
                 </div>

@@ -266,14 +266,14 @@ export const UsuariosPage: React.FC = () => {
         sidebar={sidebar}
       >
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2>Gestión de Usuarios</h2>
               <p className="text-gray-600 mt-2">Administra cuentas, roles y permisos del sistema</p>
             </div>
             <Dialog>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
+                <Button className="flex items-center gap-2 w-full sm:w-auto">
                   <Plus className="w-4 h-4" />
                   Nuevo Usuario
                 </Button>

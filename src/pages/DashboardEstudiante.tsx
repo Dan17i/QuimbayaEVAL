@@ -1,62 +1,59 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { FileText, Clock, CheckCircle, AlertCircle, BookOpen } from 'lucide-react';
-import { Progress } from '../components/ui/progress';
+import { FileText, Clock, CheckCircle, AlertCircle, BookOpen, TrendingUp } from 'lucide-react';
 import { StatCard } from '../components/StatCard';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useCursos } from '../hooks/useCursos';
-import { estadisticasEstudiante } from '../services/mockData';
-import { formatDateTime, formatDate } from '../utils/date';
+import { useSubmissions } from '../hooks/useSubmissions';
+import { useAuth } from '../contexts/AuthContext';
+import { formatDateTime } from '../utils/date';
 import { ROUTES } from '../constants/routes';
 import { StatCardSkeleton } from '../components/SkeletonLoader';
-import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EmptyState } from '../components/EmptyState';
+import { Estadistica } from '../types';
 
 export const DashboardEstudiante: React.FC = () => {
   const navigate = useNavigate();
-  const { evaluaciones, loading: loadingEvaluaciones, error: errorEvaluaciones, refetch: refetchEvaluaciones } = useEvaluaciones({ estado: 'Activa' });
-  const { cursos, loading: loadingCursos, error: errorCursos, refetch: refetchCursos } = useCursos();
-  const [loading] = useState(false);
+  const { user } = useAuth();
+  const estudianteId = user ? Number(user.id) : undefined;
 
-  const evaluacionesAbiertas = useMemo(() => 
+  const { evaluaciones, loading: loadingEvals, error: errorEvals, refetch: refetchEvals } = useEvaluaciones();
+  const { cursos, loading: loadingCursos, error: errorCursos, refetch: refetchCursos } = useCursos();
+  const { submissions, loading: loadingSubs } = useSubmissions(estudianteId);
+
+  const evaluacionesAbiertas = useMemo(() =>
     evaluaciones.filter(e => e.estado === 'Activa'),
     [evaluaciones]
   );
 
-  const cursosActivos = useMemo(() => 
-    cursos.slice(0, 4), // Mostrar solo los primeros 4 cursos
-    [cursos]
+  const completadas = useMemo(() =>
+    submissions.filter(s => s.estado === 'Calificada' || s.estado === 'Enviada'),
+    [submissions]
   );
 
-  // Manejo de estados de carga
-  if (loadingEvaluaciones || loadingCursos) {
-    return (
-      <ProtectedRoute allowedRoles={['estudiante']}>
-        <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
-          <LoadingSpinner size="lg" text="Cargando tu dashboard..." />
-        </Layout>
-      </ProtectedRoute>
-    );
-  }
+  const estadisticas = useMemo<Estadistica[]>(() => [
+    { label: 'Cursos Inscritos', value: String(cursos.length), icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Evaluaciones Abiertas', value: String(evaluacionesAbiertas.length), icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Completadas', value: String(completadas.length), icon: CheckCircle, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { label: 'Total Evaluaciones', value: String(evaluaciones.length), icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
+  ], [cursos, evaluacionesAbiertas, completadas, evaluaciones]);
 
-  // Manejo de errores con opción de reintentar
-  if (errorEvaluaciones || errorCursos) {
+  const loading = loadingEvals || loadingCursos || loadingSubs;
+
+  if (errorEvals || errorCursos) {
     return (
       <ProtectedRoute allowedRoles={['estudiante']}>
         <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
-          <EmptyState 
-            icon={AlertCircle} 
-            title="Error al cargar datos" 
-            description={errorEvaluaciones || errorCursos || "No se pudieron cargar los datos del dashboard."}
+          <EmptyState
+            icon={AlertCircle}
+            title="Error al cargar datos"
+            description={errorEvals || errorCursos || 'No se pudieron cargar los datos del dashboard.'}
             actionLabel="Reintentar"
-            onAction={() => {
-              refetchEvaluaciones();
-              refetchCursos();
-            }}
+            onAction={() => { refetchEvals(); refetchCursos(); }}
           />
         </Layout>
       </ProtectedRoute>
@@ -72,24 +69,20 @@ export const DashboardEstudiante: React.FC = () => {
             <p className="text-gray-600 mt-2">Revisa tus evaluaciones pendientes y progreso académico</p>
           </div>
 
-          {/* Stats Grid - Optimizado para móvil */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {loading ? (
-              Array.from({ length: 4 }).map((_, index) => (
-                <StatCardSkeleton key={index} />
-              ))
+              Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
             ) : (
-              estadisticasEstudiante.map((stat) => (
-                <StatCard key={stat.label} stat={stat} />
-              ))
+              estadisticas.map((stat) => <StatCard key={stat.label} stat={stat} />)
             )}
           </div>
 
-          {/* Evaluaciones Abiertas - Principio de Cierre (Gestalt) y contraste de color */}
+          {/* Evaluaciones Abiertas */}
           <Card className="border-l-4 border-l-orange-500 shadow-lg bg-gradient-to-r from-orange-50 to-white">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <div className="bg-orange-100 p-2 rounded-full" aria-hidden="true">
+                <div className="bg-orange-100 p-2 rounded-full">
                   <AlertCircle className="w-5 h-5 text-orange-600" />
                 </div>
                 <CardTitle className="text-orange-900">Evaluaciones Abiertas - Requieren tu Atención</CardTitle>
@@ -97,55 +90,56 @@ export const DashboardEstudiante: React.FC = () => {
               <CardDescription>Completa estas evaluaciones antes de la fecha límite</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4" role="list" aria-label="Evaluaciones pendientes">
-                {evaluacionesAbiertas.map((evaluacion) => (
-                  <article 
-                    key={evaluacion.id} 
-                    className="bg-white p-6 border border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                    role="listitem"
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                      <div className="flex-1 space-y-4">
-                        {/* Título y tipo - Proximidad */}
-                        <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="text-gray-900">{evaluacion.name}</h3>
-                          <span className="inline-flex px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs">
-                            {evaluacion.tipo}
-                          </span>
+              {loading ? (
+                <p className="text-gray-500 text-sm">Cargando...</p>
+              ) : evaluacionesAbiertas.length === 0 ? (
+                <EmptyState icon={CheckCircle} title="Sin evaluaciones pendientes" description="No tienes evaluaciones abiertas en este momento." />
+              ) : (
+                <div className="space-y-4">
+                  {evaluacionesAbiertas.map((evaluacion) => (
+                    <article key={evaluacion.id} className="bg-white p-6 border border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                        <div className="flex-1 space-y-4">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="text-gray-900">{evaluacion.name}</h3>
+                            <span className="inline-flex px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs">
+                              {evaluacion.tipo}
+                            </span>
+                          </div>
+                          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                            <div className="flex flex-col">
+                              <dt className="text-gray-600">Curso</dt>
+                              <dd className="text-gray-900 mt-1">{evaluacion.curso}</dd>
+                            </div>
+                            {evaluacion.profesor && (
+                              <div className="flex flex-col">
+                                <dt className="text-gray-600">Profesor</dt>
+                                <dd className="text-gray-900 mt-1">{evaluacion.profesor}</dd>
+                              </div>
+                            )}
+                            <div className="flex flex-col">
+                              <dt className="text-gray-600">Fecha límite</dt>
+                              <dd className="text-orange-700 mt-1">{formatDateTime(evaluacion.deadline)}</dd>
+                            </div>
+                            {evaluacion.duracion && (
+                              <div className="flex flex-col">
+                                <dt className="text-gray-600">Duración</dt>
+                                <dd className="text-gray-900 mt-1">{evaluacion.duracion}</dd>
+                              </div>
+                            )}
+                          </dl>
                         </div>
-                        
-                        {/* Información agrupada - Sistema 8pt */}
-                        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                          <div className="flex flex-col">
-                            <dt className="text-gray-600">Curso</dt>
-                            <dd className="text-gray-900 mt-1">{evaluacion.curso}</dd>
-                          </div>
-                          <div className="flex flex-col">
-                            <dt className="text-gray-600">Profesor</dt>
-                            <dd className="text-gray-900 mt-1">{evaluacion.profesor}</dd>
-                          </div>
-                          <div className="flex flex-col">
-                            <dt className="text-gray-600">Fecha límite</dt>
-                            <dd className="text-orange-700 mt-1">{formatDateTime(evaluacion.deadline)}</dd>
-                          </div>
-                          <div className="flex flex-col">
-                            <dt className="text-gray-600">Duración</dt>
-                            <dd className="text-gray-900 mt-1">{evaluacion.duracion}</dd>
-                          </div>
-                        </dl>
+                        <Button
+                          className="w-full lg:w-auto flex-shrink-0 bg-orange-600 hover:bg-orange-700"
+                          onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}
+                        >
+                          Iniciar Evaluación
+                        </Button>
                       </div>
-                      
-                      <Button 
-                        className="w-full lg:w-auto flex-shrink-0 bg-orange-600 hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2" 
-                        onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}
-                        aria-label={`Iniciar evaluación: ${evaluacion.name}`}
-                      >
-                        Iniciar Evaluación
-                      </Button>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -153,74 +147,51 @@ export const DashboardEstudiante: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Mis Cursos Activos</CardTitle>
-              <CardDescription>Progreso y próximas evaluaciones por curso</CardDescription>
+              <CardDescription>Cursos en los que estás inscrito</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {cursosActivos.map((curso) => (
-                  <div key={curso.id} className="p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="text-gray-900">{curso.codigo} - {curso.nombre}</h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Próxima evaluación: <span className="text-gray-900">{curso.proxEval}</span> • {formatDate(curso.evalDate)}
-                        </p>
-                      </div>
-                      <span className="text-blue-600">{curso.progreso}%</span>
+              {loading ? (
+                <p className="text-gray-500 text-sm">Cargando...</p>
+              ) : cursos.length === 0 ? (
+                <EmptyState icon={BookOpen} title="Sin cursos" description="No estás inscrito en ningún curso." />
+              ) : (
+                <div className="space-y-4">
+                  {cursos.slice(0, 4).map((curso) => (
+                    <div key={curso.id} className="p-4 border border-gray-200 rounded-lg">
+                      <h3 className="text-gray-900">{curso.codigo} - {curso.nombre}</h3>
+                      {curso.descripcion && (
+                        <p className="text-sm text-gray-600 mt-1">{curso.descripcion}</p>
+                      )}
                     </div>
-                    <Progress value={curso.progreso} className="h-2" />
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Quick Actions - Semejanza y Continuidad (Gestalt) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="navigation" aria-label="Acciones rápidas">
-            <Card 
-              className="hover:shadow-lg hover:border-blue-300 transition-all duration-200 cursor-pointer group focus-within:ring-2 focus-within:ring-blue-500" 
-              onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}
-              tabIndex={0}
-              role="button"
-              onKeyPress={(e) => e.key === 'Enter' && navigate(ROUTES.MIS_EVALUACIONES)}
-              aria-label="Ir a mis evaluaciones"
-            >
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}>
               <CardHeader>
-                <div className="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
+                <div className="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
                   <FileText className="w-6 h-6 text-blue-600" />
                 </div>
                 <CardTitle>Mis Evaluaciones</CardTitle>
                 <CardDescription>Ver todas las evaluaciones por curso</CardDescription>
               </CardHeader>
             </Card>
-
-            <Card 
-              className="hover:shadow-lg hover:border-green-300 transition-all duration-200 cursor-pointer group focus-within:ring-2 focus-within:ring-green-500" 
-              onClick={() => navigate(ROUTES.HISTORIAL)}
-              tabIndex={0}
-              role="button"
-              onKeyPress={(e) => e.key === 'Enter' && navigate(ROUTES.HISTORIAL)}
-              aria-label="Ir a historial"
-            >
+            <Card className="hover:shadow-lg hover:border-green-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.HISTORIAL)}>
               <CardHeader>
-                <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3 group-hover:bg-green-100 transition-colors">
+                <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
                 <CardTitle>Historial</CardTitle>
                 <CardDescription>Revisa tus calificaciones y feedback</CardDescription>
               </CardHeader>
             </Card>
-
-            <Card 
-              className="hover:shadow-lg hover:border-purple-300 transition-all duration-200 cursor-pointer group focus-within:ring-2 focus-within:ring-purple-500"
-              onClick={() => navigate(ROUTES.MIS_CURSOS)}
-              tabIndex={0}
-              role="button"
-              onKeyPress={(e) => e.key === 'Enter' && navigate(ROUTES.MIS_CURSOS)}
-              aria-label="Ir a mis cursos"
-            >
+            <Card className="hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.MIS_CURSOS)}>
               <CardHeader>
-                <div className="bg-purple-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3 group-hover:bg-purple-100 transition-colors">
+                <div className="bg-purple-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
                   <BookOpen className="w-6 h-6 text-purple-600" />
                 </div>
                 <CardTitle>Mis Cursos</CardTitle>

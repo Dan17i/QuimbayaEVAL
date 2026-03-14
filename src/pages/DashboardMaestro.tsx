@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
@@ -7,17 +7,36 @@ import { Button } from '../components/ui/button';
 import { FileText, ClipboardList, BarChart3, Plus, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { StatCard } from '../components/StatCard';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
-import { estadisticasMaestro } from '../services/mockData';
+import { useCursos } from '../hooks/useCursos';
+import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { formatDate } from '../utils/date';
-import { EstadoEvaluacion } from '../types';
-import { useState } from 'react';
+import { EstadoEvaluacion, Estadistica } from '../types';
 import { StatCardSkeleton } from '../components/SkeletonLoader';
+import { MessageSquare, Users } from 'lucide-react';
 
 export const DashboardMaestro: React.FC = () => {
   const navigate = useNavigate();
-  const { evaluacionesRecientes } = useEvaluaciones();
-  const [loading] = useState(false); // En el futuro vendrá del hook de datos
+  const { user } = useAuth();
+  const { evaluaciones, evaluacionesRecientes, loading: loadingEvals } = useEvaluaciones();
+  const { cursos, loading: loadingCursos } = useCursos();
+
+  const loading = loadingEvals || loadingCursos;
+
+  const evaluacionesActivas = useMemo(() =>
+    evaluaciones.filter(e => e.estado === 'Activa'), [evaluaciones]
+  );
+
+  const porCalificar = useMemo(() =>
+    evaluaciones.filter(e => e.estado === 'Cerrada'), [evaluaciones]
+  );
+
+  const estadisticas = useMemo<Estadistica[]>(() => [
+    { label: 'Evaluaciones Activas', value: String(evaluacionesActivas.length), icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Por Calificar', value: String(porCalificar.length), icon: ClipboardList, color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Mis Cursos', value: String(cursos.length), icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Total Evaluaciones', value: String(evaluaciones.length), icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-50' },
+  ], [evaluacionesActivas, porCalificar, cursos, evaluaciones]);
 
   const getEstadoBadge = (estado: EstadoEvaluacion) => {
     const badges = {
@@ -33,117 +52,90 @@ export const DashboardMaestro: React.FC = () => {
     <ProtectedRoute allowedRoles={['maestro']}>
       <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
         <div className="space-y-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2>Bienvenido, Profesor</h2>
+              <h2>Bienvenido, {user?.name || 'Profesor'}</h2>
               <p className="text-gray-600 mt-2">Resumen de tus evaluaciones y actividad reciente</p>
             </div>
-            <Button className="flex items-center gap-2" onClick={() => navigate(ROUTES.CREAR_EVALUACION)}>
+            <Button className="flex items-center gap-2 w-full sm:w-auto" onClick={() => navigate(ROUTES.CREAR_EVALUACION)}>
               <Plus className="w-4 h-4" />
               Nueva Evaluación
             </Button>
           </div>
 
-          {/* Stats Grid - Optimizado para móvil */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {loading ? (
-              Array.from({ length: 4 }).map((_, index) => (
-                <StatCardSkeleton key={index} />
-              ))
+              Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
             ) : (
-              estadisticasMaestro.map((stat) => (
-                <StatCard key={stat.label} stat={stat} />
-              ))
+              estadisticas.map((stat) => <StatCard key={stat.label} stat={stat} />)
             )}
           </div>
 
-          {/* Recent Evaluaciones */}
+          {/* Evaluaciones Recientes */}
           <Card>
             <CardHeader>
               <CardTitle>Evaluaciones Recientes</CardTitle>
               <CardDescription>Gestiona tus evaluaciones activas y próximas</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {evaluacionesRecientes.map((evaluacion) => (
-                  <div key={evaluacion.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-gray-900">{evaluacion.name}</h3>
-                        {getEstadoBadge(evaluacion.estado)}
+              {loading ? (
+                <p className="text-gray-500 text-sm">Cargando...</p>
+              ) : evaluacionesRecientes.length === 0 ? (
+                <p className="text-gray-500 text-sm">No hay evaluaciones aún.</p>
+              ) : (
+                <div className="space-y-4">
+                  {evaluacionesRecientes.map((evaluacion) => (
+                    <div key={evaluacion.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-gray-900 truncate">{evaluacion.name}</h3>
+                          {getEstadoBadge(evaluacion.estado)}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-gray-600">
+                          <span>Curso: {evaluacion.curso}</span>
+                          <span className="hidden sm:inline">•</span>
+                          <span>Límite: {formatDate(evaluacion.deadline)}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                        <span>Curso: {evaluacion.curso}</span>
-                        <span>•</span>
-                        <span>Fecha límite: {formatDate(evaluacion.deadline)}</span>
-                        {evaluacion.pendientes && evaluacion.pendientes > 0 && (
-                          <>
-                            <span>•</span>
-                            <span className="text-orange-600">{evaluacion.pendientes} por calificar</span>
-                          </>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {evaluacion.estado === 'Borrador' && (
+                          <Button variant="outline" size="sm">Editar</Button>
+                        )}
+                        {evaluacion.estado === 'Cerrada' && (
+                          <Button size="sm" onClick={() => navigate(ROUTES.CALIFICAR)}>Calificar</Button>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {evaluacion.estado === 'Borrador' && (
-                        <Button variant="outline" size="sm">Editar</Button>
-                      )}
-                      {evaluacion.pendientes && evaluacion.pendientes > 0 && (
-                        <Button size="sm" onClick={() => navigate(ROUTES.CALIFICAR)}>Calificar</Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Quick Actions - Semejanza y Continuidad (Gestalt) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6" role="navigation" aria-label="Acciones rápidas">
-            <Card 
-              className="hover:shadow-lg hover:border-blue-300 transition-all duration-200 cursor-pointer group focus-within:ring-2 focus-within:ring-blue-500" 
-              onClick={() => navigate(ROUTES.CREAR_EVALUACION)}
-              tabIndex={0}
-              role="button"
-              onKeyPress={(e) => e.key === 'Enter' && navigate(ROUTES.CREAR_EVALUACION)}
-              aria-label="Crear nueva evaluación"
-            >
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.CREAR_EVALUACION)}>
               <CardHeader>
-                <div className="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-100 transition-colors">
+                <div className="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
                   <FileText className="w-6 h-6 text-blue-600" />
                 </div>
                 <CardTitle>Crear Evaluación</CardTitle>
-                <CardDescription>Inicia una nueva evaluación desde cero o usa plantillas</CardDescription>
+                <CardDescription>Inicia una nueva evaluación desde cero</CardDescription>
               </CardHeader>
             </Card>
-
-            <Card 
-              className="hover:shadow-lg hover:border-orange-300 transition-all duration-200 cursor-pointer group focus-within:ring-2 focus-within:ring-orange-500" 
-              onClick={() => navigate(ROUTES.CALIFICAR)}
-              tabIndex={0}
-              role="button"
-              onKeyPress={(e) => e.key === 'Enter' && navigate(ROUTES.CALIFICAR)}
-              aria-label="Calificar evaluaciones"
-            >
+            <Card className="hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.CALIFICAR)}>
               <CardHeader>
-                <div className="bg-orange-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3 group-hover:bg-orange-100 transition-colors">
+                <div className="bg-orange-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
                   <ClipboardList className="w-6 h-6 text-orange-600" />
                 </div>
                 <CardTitle>Calificar</CardTitle>
                 <CardDescription>Revisa y califica las evaluaciones pendientes</CardDescription>
               </CardHeader>
             </Card>
-
-            <Card 
-              className="hover:shadow-lg hover:border-green-300 transition-all duration-200 cursor-pointer group focus-within:ring-2 focus-within:ring-green-500" 
-              onClick={() => navigate(ROUTES.REPORTES)}
-              tabIndex={0}
-              role="button"
-              onKeyPress={(e) => e.key === 'Enter' && navigate(ROUTES.REPORTES)}
-              aria-label="Ver reportes de desempeño"
-            >
+            <Card className="hover:shadow-lg hover:border-green-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.REPORTES)}>
               <CardHeader>
-                <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3 group-hover:bg-green-100 transition-colors">
+                <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
                   <BarChart3 className="w-6 h-6 text-green-600" />
                 </div>
                 <CardTitle>Ver Reportes</CardTitle>

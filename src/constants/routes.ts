@@ -24,5 +24,6 @@ export const ROUTES = {
   
   // Rutas Comunes
   PQRS: '/pqrs',
+  PERFIL: '/perfil',
 } as const;
 

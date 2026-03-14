@@ -114,7 +114,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
           </div>
           {/* Información de usuario agrupada - Responsivo */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <div className="text-right hidden md:block">
+            <div className="text-right hidden md:block cursor-pointer hover:opacity-75 transition-opacity"
+              onClick={() => navigate('/perfil')} title="Ver mi perfil">
               <p className="text-sm text-gray-900">{user?.name}</p>
               <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
             </div>

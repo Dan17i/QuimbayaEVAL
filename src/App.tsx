@@ -17,6 +17,7 @@ const HistorialPage = lazy(() => import('./pages/HistorialPage').then(module => 
 const ReportesPage = lazy(() => import('./pages/ReportesPage').then(module => ({ default: module.ReportesPage })));
 const UsuariosPage = lazy(() => import('./pages/UsuariosPage').then(module => ({ default: module.UsuariosPage })));
 const CursosAdminPage = lazy(() => import('./pages/CursosAdminPage').then(module => ({ default: module.CursosAdminPage })));
+const PerfilPage = lazy(() => import('./pages/PerfilPage').then(module => ({ default: module.PerfilPage })));
 const PQRSPage = lazy(() => import('./pages/PQRSPage').then(module => ({ default: module.PQRSPage })));
 const MisCursosPage = lazy(() => import('./pages/MisCursosPage').then(module => ({ default: module.MisCursosPage })));
 const RealizarEvaluacionPage = lazy(() => import('./pages/RealizarEvaluacionPage').then(module => ({ default: module.RealizarEvaluacionPage })));
@@ -185,6 +186,14 @@ function AppRouter() {
         element={
           <ProtectedRoute>
             <PQRSPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/perfil"
+        element={
+          <ProtectedRoute>
+            <PerfilPage />
           </ProtectedRoute>
         }
       />

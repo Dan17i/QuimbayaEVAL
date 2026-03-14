@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
-import { pqrsService, PQRS, EstadoPQRS, TipoPQRS } from '../services/pqrsService';
+import { pqrsService, PQRS as PQRSBackend, EstadoPQRS, TipoPQRS } from '../services/pqrsService';
+import { cursosService } from '../services/cursosService';
+import { TicketPQRS } from '../types';
 import { toast } from 'sonner';
 
 /**
- * Hook para manejar tickets PQRS
+ * Hook para manejar tickets PQRS — mapea datos del backend al formato de la UI
  */
 export const usePQRS = () => {
-  const [tickets, setTickets] = useState<PQRS[]>([]);
+  const [tickets, setTickets] = useState<TicketPQRS[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,8 +16,26 @@ export const usePQRS = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await pqrsService.getMisPQRS();
-      setTickets(data);
+      const [rawTickets, cursos] = await Promise.all([
+        pqrsService.getMisPQRS(),
+        cursosService.getAll(),
+      ]);
+
+      const cursoMap = new Map(cursos.map(c => [c.id, `${c.codigo} - ${c.nombre}`]));
+
+      const mapped: TicketPQRS[] = rawTickets.map((t: PQRSBackend) => ({
+        id: t.id,
+        tipo: t.tipo,
+        asunto: t.asunto,
+        descripcion: t.descripcion,
+        estado: t.estado,
+        fechaCreacion: t.fechaCreacion,
+        createdAt: t.createdAt,
+        curso: t.cursoId ? (cursoMap.get(t.cursoId) ?? 'General') : 'General',
+        respuesta: t.respuesta,
+      }));
+
+      setTickets(mapped);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar PQRS';
       setError(message);

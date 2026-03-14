@@ -22,7 +22,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ estado, showIcon = tru
           label: estado,
         };
       case 'Cerrada':
-      case 'Resuelto':
+      case 'Resuelta':
         return {
           variant: 'success' as const,
           icon: CheckCircle,

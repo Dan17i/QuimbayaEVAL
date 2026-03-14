@@ -4,8 +4,8 @@
 
 export type EstadoEvaluacion = 'Activa' | 'Cerrada' | 'Programada' | 'Borrador';
 export type TipoEvaluacion = 'Examen' | 'Quiz' | 'Taller' | 'Proyecto' | 'Tarea';
-export type EstadoPQRS = 'Pendiente' | 'En Proceso' | 'Resuelto';
-export type TipoPQRS = 'Pregunta' | 'Reclamo' | 'Sugerencia' | 'Queja';
+export type EstadoPQRS = 'Pendiente' | 'En Proceso' | 'Resuelta' | 'Cerrada';
+export type TipoPQRS = 'Petición' | 'Queja' | 'Reclamo' | 'Sugerencia';
 
 export interface Evaluacion {
   id: number;
@@ -43,7 +43,8 @@ export interface TicketPQRS {
   asunto: string;
   descripcion: string;
   estado: EstadoPQRS;
-  fecha: string;
+  fechaCreacion: string;
+  createdAt: string;
   curso: string;
   respuesta?: string | null;
 }

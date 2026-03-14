@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { evaluacionesService, Evaluacion, EstadoEvaluacion, EvaluacionFilters } from '../services/evaluacionesService';
+import { evaluacionesService, Evaluacion as EvaluacionBackend, EstadoEvaluacion, EvaluacionFilters } from '../services/evaluacionesService';
+import { cursosService } from '../services/cursosService';
+import { Evaluacion } from '../types';
 import { toast } from 'sonner';
 
 /**
- * Hook para manejar evaluaciones
+ * Hook para manejar evaluaciones — mapea datos del backend al formato de la UI
  */
 export const useEvaluaciones = (filters?: EvaluacionFilters) => {
   const [evaluaciones, setEvaluaciones] = useState<Evaluacion[]>([]);
@@ -14,8 +16,25 @@ export const useEvaluaciones = (filters?: EvaluacionFilters) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await evaluacionesService.getAll(filters);
-      setEvaluaciones(data);
+      const [rawEvals, cursos] = await Promise.all([
+        evaluacionesService.getAll(filters),
+        cursosService.getAll(),
+      ]);
+
+      const cursoMap = new Map(cursos.map(c => [c.id, c.codigo]));
+
+      const mapped: Evaluacion[] = rawEvals.map((e: EvaluacionBackend) => ({
+        id: e.id,
+        name: e.nombre,
+        curso: cursoMap.get(e.cursoId) ?? String(e.cursoId),
+        deadline: e.deadline ?? e.createdAt,
+        estado: e.estado,
+        tipo: e.tipo,
+        duracion: e.duracionMinutos ? `${e.duracionMinutos} min` : undefined,
+        intentos: e.intentosPermitidos,
+      }));
+
+      setEvaluaciones(mapped);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar evaluaciones';
       setError(message);
@@ -48,7 +67,7 @@ export const useEvaluaciones = (filters?: EvaluacionFilters) => {
   };
 
   const getByCurso = (cursoId: number) => {
-    return evaluaciones.filter(evaluacion => evaluacion.cursoId === cursoId);
+    return evaluaciones.filter(evaluacion => evaluacion.curso === String(cursoId));
   };
 
   const refetch = () => {

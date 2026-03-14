@@ -11,6 +11,7 @@ export interface Submission {
   estado: EstadoSubmission;
   intentoNumero: number;
   fechaInicio: string;
+  fechaFinalizacion: string | null; // alias de fechaEnvio en el back
   fechaEnvio: string | null;
   createdAt: string;
   updatedAt: string;

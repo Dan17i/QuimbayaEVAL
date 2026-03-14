@@ -10,8 +10,7 @@ import { StatCard } from '../components/StatCard';
 import { EmptyState } from '../components/EmptyState';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
-import { resultadosService, ResultadoDetalle } from '../services/resultadosService';
-import { formatDate } from '../utils/date';
+import { resultadosService, ResultadoDetalle } from '../services/resultadosService';import { formatDate } from '../utils/date';
 import { ROUTES } from '../constants/routes';
 import { Estadistica } from '../types';
 import { toast } from 'sonner';
@@ -25,11 +24,8 @@ export const HistorialPage: React.FC = () => {
     const cargar = async () => {
       setLoading(true);
       try {
-        // getMisResultados usa el token del usuario autenticado en el backend
-        const raw = await resultadosService.getMisResultados();
-        // El backend devuelve Resultado básico; si tiene detalle usamos getByCurso
-        // Por ahora mapeamos lo que tenemos
-        setResultados(raw as unknown as ResultadoDetalle[]);
+        const data = await resultadosService.getMisResultados() as unknown as ResultadoDetalle[];
+        setResultados(data);
       } catch {
         toast.error('Error', { description: 'No se pudo cargar el historial' });
       } finally {
@@ -93,7 +89,7 @@ export const HistorialPage: React.FC = () => {
             <div className="space-y-4">
               {resultados.map((r) => {
                 const nota = r.notaEscala ?? (r.porcentaje / 20);
-                const aprobado = nota >= 3;
+                const aprobado = r.estadoAprobacion === 'Aprobado';
                 return (
                   <Card key={r.id}>
                     <CardHeader>
@@ -112,6 +108,9 @@ export const HistorialPage: React.FC = () => {
                             {nota.toFixed(1)}
                           </p>
                           <p className="text-sm text-gray-500">/ 5.0</p>
+                          <p className={`text-xs mt-1 font-medium ${aprobado ? 'text-green-600' : 'text-red-500'}`}>
+                            {r.estadoAprobacion}
+                          </p>
                         </div>
                       </div>
                     </CardHeader>

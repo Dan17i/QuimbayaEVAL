@@ -4,10 +4,9 @@ import { ApiResponse } from './authService';
 export interface Calificacion {
   id: number;
   submissionId: number;
+  preguntaId: number;
   puntuacionObtenida: number;
-  puntuacionMaxima: number;
   retroalimentacion: string;
-  calificadoPorId: number;
   fechaCalificacion: string;
   createdAt: string;
   updatedAt: string;
@@ -15,10 +14,9 @@ export interface Calificacion {
 
 export interface CreateCalificacionRequest {
   submissionId: number;
+  preguntaId: number;
   puntuacionObtenida: number;
-  puntuacionMaxima: number;
   retroalimentacion: string;
-  calificadoPorId: number;
 }
 
 export const calificacionesService = {

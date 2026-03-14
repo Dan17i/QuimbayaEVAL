@@ -24,6 +24,7 @@ export interface ResultadoDetalle {
   puntuacionMaxima: number;
   porcentaje: number;
   notaEscala: number;
+  estadoAprobacion: 'Aprobado' | 'Reprobado';
   createdAt: string;
 }
 
@@ -38,8 +39,8 @@ export interface ResumenCurso {
 }
 
 export const resultadosService = {
-  async getMisResultados(): Promise<Resultado[]> {
-    const { data } = await api.get<ApiResponse<Resultado[]>>('/resultados/mis-resultados');
+  async getMisResultados(): Promise<ResultadoDetalle[]> {
+    const { data } = await api.get<ApiResponse<ResultadoDetalle[]>>('/resultados/mis-resultados');
     return data.data;
   },
 

@@ -65,13 +65,17 @@ export const CalificarPage: React.FC = () => {
     if (!submission) return;
     setSaving(true);
     try {
-      await calificacionesService.create({
-        submissionId: submission.id,
-        puntuacionObtenida: puntajeTotal,
-        puntuacionMaxima: puntajeMax,
-        retroalimentacion: feedback,
-        calificadoPorId: 0, // el backend lo toma del token
-      });
+      // Una calificacion por pregunta según el contrato del backend
+      await Promise.all(
+        preguntas.map(p =>
+          calificacionesService.create({
+            submissionId: submission.id,
+            preguntaId: p.id,
+            puntuacionObtenida: puntajes[p.id] ?? 0,
+            retroalimentacion: feedback,
+          })
+        )
+      );
       setSubmissions(prev => prev.map((s, i) =>
         i === submissionActual ? { ...s, estado: 'Calificada' } : s
       ));

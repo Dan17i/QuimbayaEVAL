@@ -1,5 +1,6 @@
 import api from './api';
 import { ApiResponse } from './authService';
+import { UserDTO } from './usersService';
 
 export interface Curso {
   id: number;
@@ -46,5 +47,18 @@ export const cursosService = {
 
   async delete(id: number): Promise<void> {
     await api.delete(`/cursos/${id}`);
+  },
+
+  async getEstudiantes(cursoId: number): Promise<UserDTO[]> {
+    const { data } = await api.get<ApiResponse<UserDTO[]>>(`/cursos/${cursoId}/estudiantes`);
+    return data.data;
+  },
+
+  async matricularEstudiante(cursoId: number, estudianteId: number): Promise<void> {
+    await api.post(`/cursos/${cursoId}/estudiantes`, { estudianteId });
+  },
+
+  async desmatricularEstudiante(cursoId: number, estudianteId: number): Promise<void> {
+    await api.delete(`/cursos/${cursoId}/estudiantes/${estudianteId}`);
   },
 };

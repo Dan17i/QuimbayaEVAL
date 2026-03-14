@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { isValidEmail } from '../utils/validation';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { PasswordInput } from '../components/PasswordInput';
 
 interface LoginFormData {
   email: string;
@@ -165,24 +166,18 @@ export const LoginPage: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password-estudiante">Contraseña</Label>
-                    <Input
+                    <PasswordInput
                       id="password-estudiante"
-                      type="password"
                       placeholder="••••••••"
                       {...register('password', {
                         required: 'La contraseña es requerida',
-                        minLength: {
-                          value: 3,
-                          message: 'La contraseña debe tener al menos 3 caracteres'
-                        }
+                        minLength: { value: 3, message: 'La contraseña debe tener al menos 3 caracteres' }
                       })}
                       aria-invalid={errors.password ? 'true' : 'false'}
                       aria-describedby={errors.password ? 'password-error' : undefined}
                     />
                     {errors.password && (
-                      <p id="password-error" className="text-sm text-red-600" role="alert">
-                        {errors.password.message}
-                      </p>
+                      <p id="password-error" className="text-sm text-red-600" role="alert">{errors.password.message}</p>
                     )}
                   </div>
                 </TabsContent>
@@ -197,9 +192,7 @@ export const LoginPage: React.FC = () => {
                       {...register('email', {
                         required: 'El email es requerido',
                         validate: (value) => {
-                          if (value && !isValidEmail(value)) {
-                            return 'Email inválido';
-                          }
+                          if (value && !isValidEmail(value)) return 'Email inválido';
                           return true;
                         },
                       })}
@@ -207,31 +200,23 @@ export const LoginPage: React.FC = () => {
                       aria-describedby={errors.email ? 'email-error' : undefined}
                     />
                     {errors.email && (
-                      <p id="email-error" className="text-sm text-red-600" role="alert">
-                        {errors.email.message}
-                      </p>
+                      <p id="email-error" className="text-sm text-red-600" role="alert">{errors.email.message}</p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password-maestro">Contraseña</Label>
-                    <Input
+                    <PasswordInput
                       id="password-maestro"
-                      type="password"
                       placeholder="••••••••"
                       {...register('password', {
                         required: 'La contraseña es requerida',
-                        minLength: {
-                          value: 3,
-                          message: 'La contraseña debe tener al menos 3 caracteres'
-                        }
+                        minLength: { value: 3, message: 'La contraseña debe tener al menos 3 caracteres' }
                       })}
                       aria-invalid={errors.password ? 'true' : 'false'}
                       aria-describedby={errors.password ? 'password-error' : undefined}
                     />
                     {errors.password && (
-                      <p id="password-error" className="text-sm text-red-600" role="alert">
-                        {errors.password.message}
-                      </p>
+                      <p id="password-error" className="text-sm text-red-600" role="alert">{errors.password.message}</p>
                     )}
                   </div>
                 </TabsContent>
@@ -246,9 +231,7 @@ export const LoginPage: React.FC = () => {
                       {...register('email', {
                         required: 'El email es requerido',
                         validate: (value) => {
-                          if (value && !isValidEmail(value)) {
-                            return 'Email inválido';
-                          }
+                          if (value && !isValidEmail(value)) return 'Email inválido';
                           return true;
                         },
                       })}
@@ -256,23 +239,17 @@ export const LoginPage: React.FC = () => {
                       aria-describedby={errors.email ? 'email-error' : undefined}
                     />
                     {errors.email && (
-                      <p id="email-error" className="text-sm text-red-600" role="alert">
-                        {errors.email.message}
-                      </p>
+                      <p id="email-error" className="text-sm text-red-600" role="alert">{errors.email.message}</p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password-coordinador">Contraseña</Label>
-                    <Input
+                    <PasswordInput
                       id="password-coordinador"
-                      type="password"
                       placeholder="••••••••"
                       {...register('password', {
                         required: 'La contraseña es requerida',
-                        minLength: {
-                          value: 3,
-                          message: 'La contraseña debe tener al menos 3 caracteres'
-                        }
+                        minLength: { value: 3, message: 'La contraseña debe tener al menos 3 caracteres' }
                       })}
                       aria-invalid={errors.password ? 'true' : 'false'}
                       aria-describedby={errors.password ? 'password-error' : undefined}

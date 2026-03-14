@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { PasswordInput } from '../components/PasswordInput';
 import { BookOpen, User } from 'lucide-react';
 import { usersService, UserProfile } from '../services/usersService';
 import { useAuth } from '../contexts/AuthContext';
@@ -195,15 +196,15 @@ export const PerfilPage: React.FC = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="p-actual">Contraseña Actual</Label>
-                  <Input id="p-actual" type="password" value={passActual} onChange={field(setPassActual)} />
+                  <PasswordInput id="p-actual" value={passActual} onChange={field(setPassActual)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="p-nueva">Nueva Contraseña</Label>
-                  <Input id="p-nueva" type="password" placeholder="Mínimo 8 caracteres" value={passNueva} onChange={field(setPassNueva)} />
+                  <PasswordInput id="p-nueva" placeholder="Mínimo 8 caracteres" value={passNueva} onChange={field(setPassNueva)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="p-confirm">Confirmar Nueva Contraseña</Label>
-                  <Input id="p-confirm" type="password" value={passConfirm} onChange={field(setPassConfirm)} />
+                  <PasswordInput id="p-confirm" value={passConfirm} onChange={field(setPassConfirm)} />
                 </div>
                 {passNueva && passConfirm && passNueva !== passConfirm && (
                   <p className="text-xs text-red-500">Las contraseñas no coinciden</p>

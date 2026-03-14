@@ -14,6 +14,7 @@ import { SearchInput } from '../components/SearchInput';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Badge } from '../components/Badge';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { PasswordInput } from '../components/PasswordInput';
 import { ROUTES } from '../constants/routes';
 import { formatDate } from '../utils/date';
 import { toast } from 'sonner';
@@ -390,7 +391,7 @@ export const UsuariosPage: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="nuevo-password">Contraseña Temporal</Label>
-                    <Input id="nuevo-password" type="password" placeholder="Mínimo 8 caracteres" value={nuevoPassword} onChange={e => setNuevoPassword(e.target.value)} />
+                    <PasswordInput id="nuevo-password" placeholder="Mínimo 8 caracteres" value={nuevoPassword} onChange={e => setNuevoPassword(e.target.value)} />
                   </div>
                 </div>
                 <DialogFooter>

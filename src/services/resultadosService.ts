@@ -19,9 +19,11 @@ export interface ResultadoDetalle {
   estudianteEmail: string;
   evaluacionNombre: string;
   cursoNombre: string;
+  profesorNombre: string;
   puntuacionTotal: number;
   puntuacionMaxima: number;
   porcentaje: number;
+  notaEscala: number;
   createdAt: string;
 }
 
@@ -29,6 +31,7 @@ export interface ResumenCurso {
   evaluacionId: number;
   evaluacionNombre: string;
   promedioGrupo: number;
+  promedioEscala: number;
   totalEstudiantes: number;
   aprobados: number;
   reprobados: number;

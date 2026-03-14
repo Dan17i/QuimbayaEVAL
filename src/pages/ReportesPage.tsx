@@ -86,7 +86,7 @@ export const ReportesPage: React.FC = () => {
   // Promedio general del grupo (de resumenGrupo)
   const promedioGeneral = useMemo(() => {
     if (resumenGrupo.length === 0) return null;
-    const sum = resumenGrupo.reduce((acc, r) => acc + r.promedioGrupo, 0);
+    const sum = resumenGrupo.reduce((acc, r) => acc + r.promedioEscala, 0);
     return (sum / resumenGrupo.length).toFixed(1);
   }, [resumenGrupo]);
 
@@ -175,7 +175,7 @@ export const ReportesPage: React.FC = () => {
             pdf.rect(14, y - 4, pageWidth - 28, 7, 'F');
           }
           pdf.text(r.evaluacionNombre.slice(0, 40), 16, y);
-          pdf.text(`${r.promedioGrupo.toFixed(1)}%`, 102, y);
+          pdf.text(`${r.promedioEscala.toFixed(1)}`, 102, y);
           pdf.text(String(r.aprobados), 130, y);
           pdf.text(String(r.reprobados), 157, y);
           y += 7;
@@ -196,10 +196,10 @@ export const ReportesPage: React.FC = () => {
 
       if (notasEstudiantes.length > 0) {
         const wsNotas = XLSX.utils.aoa_to_sheet([
-          ['Estudiante', 'Email', 'Evaluación', 'Curso', 'Nota', 'Máximo', 'Porcentaje'],
+          ['Estudiante', 'Email', 'Evaluación', 'Curso', 'Nota (Escala)', 'Puntuación', 'Máximo', 'Porcentaje'],
           ...notasEstudiantes.map(n => [
             n.estudianteNombre, n.estudianteEmail, n.evaluacionNombre,
-            n.cursoNombre, n.puntuacionTotal, n.puntuacionMaxima, `${n.porcentaje.toFixed(1)}%`,
+            n.cursoNombre, n.notaEscala.toFixed(1), n.puntuacionTotal, n.puntuacionMaxima, `${n.porcentaje.toFixed(1)}%`,
           ]),
         ]);
         XLSX.utils.book_append_sheet(wb, wsNotas, 'Notas Estudiantes');
@@ -207,9 +207,9 @@ export const ReportesPage: React.FC = () => {
 
       if (resumenGrupo.length > 0) {
         const wsResumen = XLSX.utils.aoa_to_sheet([
-          ['Evaluación', 'Promedio Grupo (%)', 'Total Estudiantes', 'Aprobados', 'Reprobados'],
+          ['Evaluación', 'Promedio (Escala)', 'Total Estudiantes', 'Aprobados', 'Reprobados'],
           ...resumenGrupo.map(r => [
-            r.evaluacionNombre, r.promedioGrupo.toFixed(1),
+            r.evaluacionNombre, r.promedioEscala.toFixed(1),
             r.totalEstudiantes, r.aprobados, r.reprobados,
           ]),
         ]);
@@ -350,7 +350,11 @@ export const ReportesPage: React.FC = () => {
                       <Card>
                         <CardHeader>
                           <CardTitle>Notas por Estudiante</CardTitle>
-                          <CardDescription>{cursoActual?.codigo} — {notasEstudiantes.length} registros</CardDescription>
+                          <CardDescription>
+                            {cursoActual?.codigo}
+                            {notasEstudiantes[0]?.profesorNombre && ` — Docente: ${notasEstudiantes[0].profesorNombre}`}
+                            {` — ${notasEstudiantes.length} registros`}
+                          </CardDescription>
                         </CardHeader>
                         <CardContent>
                           <div className="overflow-x-auto -mx-6">
@@ -361,8 +365,7 @@ export const ReportesPage: React.FC = () => {
                                     <TableHead>Estudiante</TableHead>
                                     <TableHead>Evaluación</TableHead>
                                     <TableHead>Nota</TableHead>
-                                    <TableHead>Porcentaje</TableHead>
-                                  </TableRow>
+                                    <TableHead>Porcentaje</TableHead>                                  </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                   {notasEstudiantes.map(n => (
@@ -375,8 +378,7 @@ export const ReportesPage: React.FC = () => {
                                       </TableCell>
                                       <TableCell>{n.evaluacionNombre}</TableCell>
                                       <TableCell>
-                                        <span className="font-medium">{n.puntuacionTotal}</span>
-                                        <span className="text-gray-400">/{n.puntuacionMaxima}</span>
+                                        <span className="font-medium">{n.notaEscala.toFixed(1)}</span>
                                       </TableCell>
                                       <TableCell>
                                         <span className={n.porcentaje >= 60 ? 'text-green-600' : 'text-red-600'}>
@@ -441,7 +443,7 @@ export const ReportesPage: React.FC = () => {
                                 <XAxis dataKey="evaluacionNombre" tick={{ fontSize: 11 }} />
                                 <YAxis domain={[0, 100]} unit="%" />
                                 <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
-                                <Bar dataKey="promedioGrupo" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Promedio" />
+                                <Bar dataKey="promedioEscala" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Promedio" />
                               </BarChart>
                             </ResponsiveContainer>
                           </CardContent>
@@ -470,8 +472,8 @@ export const ReportesPage: React.FC = () => {
                                       <TableRow key={r.evaluacionId}>
                                         <TableCell>{r.evaluacionNombre}</TableCell>
                                         <TableCell>
-                                          <span className={r.promedioGrupo >= 60 ? 'text-green-600' : 'text-red-600'}>
-                                            {r.promedioGrupo.toFixed(1)}%
+                                          <span className={r.promedioEscala >= 3 ? 'text-green-600' : 'text-red-600'}>
+                                            {r.promedioEscala.toFixed(1)}
                                           </span>
                                         </TableCell>
                                         <TableCell>{r.totalEstudiantes}</TableCell>

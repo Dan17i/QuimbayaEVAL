@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps & { children: React.ReactNode
   const { user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated || !user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
@@ -79,7 +79,8 @@ function AppRouter() {
     <Suspense fallback={<LoadingSpinner size="lg" text="Cargando..." />}>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />} />
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" replace />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />} />
 
       {/* Protected Routes */}
       <Route

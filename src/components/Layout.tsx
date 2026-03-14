@@ -43,6 +43,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
           { icon: Home, label: 'Dashboard', href: '/dashboard' },
           { icon: BarChart3, label: 'Reportes', href: '/reportes' },
           { icon: Users, label: 'Usuarios', href: '/usuarios' },
+          { icon: BookOpen, label: 'Cursos', href: '/cursos' },
           { icon: MessageSquare, label: 'PQRS', href: '/pqrs' },
         ];
       default:

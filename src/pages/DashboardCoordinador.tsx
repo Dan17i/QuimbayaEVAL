@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Users, BarChart3, TrendingUp, FileDown, AlertTriangle } from 'lucide-react';
+import { Users, BarChart3, TrendingUp, FileDown, AlertTriangle, BookOpen } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useCursos } from '../hooks/useCursos';
@@ -146,6 +146,15 @@ export const DashboardCoordinador: React.FC = () => {
                 </div>
                 <CardTitle>Gestión de Usuarios</CardTitle>
                 <CardDescription>Crear, editar roles y activar/bloquear cuentas</CardDescription>
+              </CardHeader>
+            </Card>
+            <Card className="hover:shadow-lg hover:border-indigo-300 transition-all cursor-pointer" onClick={() => navigate('/cursos')}>
+              <CardHeader>
+                <div className="bg-indigo-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
+                  <BookOpen className="w-6 h-6 text-indigo-600" />
+                </div>
+                <CardTitle>Gestión de Cursos</CardTitle>
+                <CardDescription>Crea cursos, asigna docentes y matricula estudiantes</CardDescription>
               </CardHeader>
             </Card>
             <Card className="hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer" onClick={() => navigate('/pqrs')}>

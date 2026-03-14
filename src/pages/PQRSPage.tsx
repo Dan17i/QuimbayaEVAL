@@ -21,6 +21,7 @@ import { formatDateTime } from '../utils/date';
 import { ROUTES } from '../constants/routes';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
+import { useAuth } from '../contexts/AuthContext';
 
 interface PQRSFormData {
   tipo: TipoPQRS;
@@ -30,6 +31,8 @@ interface PQRSFormData {
 }
 
 export const PQRSPage: React.FC = () => {
+  const { user } = useAuth();
+  const puedeCrear = user?.role === 'estudiante' || user?.role === 'maestro';
   const { tickets, loading, error, getByEstado, refetch } = usePQRS();
   const { cursos, loading: loadingCursos } = useCursos();
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('Todos');
@@ -194,15 +197,20 @@ export const PQRSPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2>PQRS - Peticiones, Quejas, Reclamos y Sugerencias</h2>
-              <p className="text-gray-600 mt-2">Canal de comunicación con el equipo académico</p>
+              <p className="text-gray-600 mt-2">
+                {puedeCrear
+                  ? 'Canal de comunicación con el equipo académico'
+                  : 'Gestión y seguimiento de solicitudes de la comunidad académica'}
+              </p>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2 w-full sm:w-auto">
-                  <Plus className="w-4 h-4" />
-                  Nueva Solicitud
-                </Button>
-              </DialogTrigger>
+            {puedeCrear && (
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2 w-full sm:w-auto">
+                    <Plus className="w-4 h-4" />
+                    Nueva Solicitud
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Nueva Solicitud PQRS</DialogTitle>
@@ -312,6 +320,7 @@ export const PQRSPage: React.FC = () => {
                 </form>
               </DialogContent>
             </Dialog>
+            )}
           </div>
 
           <Tabs defaultValue="mis-tickets">

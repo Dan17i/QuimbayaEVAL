@@ -35,6 +35,15 @@ export const DashboardEstudiante: React.FC = () => {
     [submissions]
   );
 
+  // Evaluaciones abiertas por curso
+  const evalsPorCurso = useMemo(() => {
+    const map: Record<string, number> = {};
+    evaluacionesAbiertas.forEach(e => {
+      if (e.curso) map[e.curso] = (map[e.curso] ?? 0) + 1;
+    });
+    return map;
+  }, [evaluacionesAbiertas]);
+
   const estadisticas = useMemo<Estadistica[]>(() => [
     { label: 'Cursos Inscritos', value: String(cursos.length), icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
     { label: 'Evaluaciones Abiertas', value: String(evaluacionesAbiertas.length), icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50' },
@@ -66,7 +75,7 @@ export const DashboardEstudiante: React.FC = () => {
         <div className="space-y-8">
           <div>
             <h2>Mi Panel de Estudiante</h2>
-            <p className="text-gray-600 mt-2">Revisa tus evaluaciones pendientes y progreso académico</p>
+            <p className="text-gray-600 mt-2">Revisa tus cursos, evaluaciones pendientes y progreso académico</p>
           </div>
 
           {/* Stats Grid */}
@@ -78,96 +87,132 @@ export const DashboardEstudiante: React.FC = () => {
             )}
           </div>
 
-          {/* Evaluaciones Abiertas */}
-          <Card className="border-l-4 border-l-orange-500 shadow-lg bg-gradient-to-r from-orange-50 to-white">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <div className="bg-orange-100 p-2 rounded-full">
-                  <AlertCircle className="w-5 h-5 text-orange-600" />
-                </div>
-                <CardTitle className="text-orange-900">Evaluaciones Abiertas - Requieren tu Atención</CardTitle>
+          {/* Mis Cursos — sección prominente */}
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Mis Cursos</h3>
+                <p className="text-sm text-gray-500">Cursos en los que estás inscrito este período</p>
               </div>
-              <CardDescription>Completa estas evaluaciones antes de la fecha límite</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <p className="text-gray-500 text-sm">Cargando...</p>
-              ) : evaluacionesAbiertas.length === 0 ? (
-                <EmptyState icon={CheckCircle} title="Sin evaluaciones pendientes" description="No tienes evaluaciones abiertas en este momento." />
-              ) : (
-                <div className="space-y-4">
-                  {evaluacionesAbiertas.map((evaluacion) => (
-                    <article key={evaluacion.id} className="bg-white p-6 border border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                        <div className="flex-1 space-y-4">
-                          <div className="flex flex-wrap items-center gap-3">
-                            <h3 className="text-gray-900">{evaluacion.name}</h3>
-                            <span className="inline-flex px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs">
-                              {evaluacion.tipo}
-                            </span>
-                          </div>
-                          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                            <div className="flex flex-col">
-                              <dt className="text-gray-600">Curso</dt>
-                              <dd className="text-gray-900 mt-1">{evaluacion.curso}</dd>
-                            </div>
-                            {evaluacion.profesor && (
-                              <div className="flex flex-col">
-                                <dt className="text-gray-600">Profesor</dt>
-                                <dd className="text-gray-900 mt-1">{evaluacion.profesor}</dd>
-                              </div>
-                            )}
-                            <div className="flex flex-col">
-                              <dt className="text-gray-600">Fecha límite</dt>
-                              <dd className="text-orange-700 mt-1">{formatDateTime(evaluacion.deadline)}</dd>
-                            </div>
-                            {evaluacion.duracion && (
-                              <div className="flex flex-col">
-                                <dt className="text-gray-600">Duración</dt>
-                                <dd className="text-gray-900 mt-1">{evaluacion.duracion}</dd>
-                              </div>
-                            )}
-                          </dl>
+              <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.MIS_CURSOS)}>
+                Ver todos
+              </Button>
+            </div>
+
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="h-36 bg-gray-100 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            ) : cursos.length === 0 ? (
+              <EmptyState icon={BookOpen} title="Sin cursos inscritos" description="No estás inscrito en ningún curso todavía." />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {cursos.map((curso) => {
+                  const evalsAbiertas = evalsPorCurso[curso.nombre] ?? 0;
+                  return (
+                    <article
+                      key={curso.id}
+                      className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all flex flex-col gap-3"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="bg-blue-50 p-2 rounded-lg flex-shrink-0">
+                          <BookOpen className="w-5 h-5 text-blue-600" />
                         </div>
+                        {evalsAbiertas > 0 && (
+                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+                            {evalsAbiertas} eval. abierta{evalsAbiertas > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-mono text-gray-400 mb-1">{curso.codigo}</p>
+                        <h4 className="font-semibold text-gray-900 leading-tight">{curso.nombre}</h4>
+                        {curso.descripcion && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{curso.descripcion}</p>
+                        )}
+                      </div>
+                      {evalsAbiertas > 0 && (
                         <Button
-                          className="w-full lg:w-auto flex-shrink-0 bg-orange-600 hover:bg-orange-700"
+                          size="sm"
+                          variant="outline"
+                          className="mt-auto text-orange-600 border-orange-200 hover:bg-orange-50"
                           onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}
                         >
-                          Iniciar Evaluación
+                          Ver evaluaciones
                         </Button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Cursos Activos */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Mis Cursos Activos</CardTitle>
-              <CardDescription>Cursos en los que estás inscrito</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <p className="text-gray-500 text-sm">Cargando...</p>
-              ) : cursos.length === 0 ? (
-                <EmptyState icon={BookOpen} title="Sin cursos" description="No estás inscrito en ningún curso." />
-              ) : (
-                <div className="space-y-4">
-                  {cursos.slice(0, 4).map((curso) => (
-                    <div key={curso.id} className="p-4 border border-gray-200 rounded-lg">
-                      <h3 className="text-gray-900">{curso.codigo} - {curso.nombre}</h3>
-                      {curso.descripcion && (
-                        <p className="text-sm text-gray-600 mt-1">{curso.descripcion}</p>
                       )}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* Evaluaciones Abiertas */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="bg-orange-100 p-2 rounded-full">
+                <AlertCircle className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-orange-900">Evaluaciones Abiertas</h3>
+                <p className="text-sm text-gray-500">Completa estas evaluaciones antes de la fecha límite</p>
+              </div>
+            </div>
+
+            {loading ? (
+              <p className="text-gray-500 text-sm">Cargando...</p>
+            ) : evaluacionesAbiertas.length === 0 ? (
+              <EmptyState icon={CheckCircle} title="Sin evaluaciones pendientes" description="No tienes evaluaciones abiertas en este momento." />
+            ) : (
+              <div className="space-y-4">
+                {evaluacionesAbiertas.map((evaluacion) => (
+                  <article key={evaluacion.id} className="bg-white p-6 border border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                      <div className="flex-1 space-y-4">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h4 className="text-gray-900 font-medium">{evaluacion.name}</h4>
+                          <span className="inline-flex px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs">
+                            {evaluacion.tipo}
+                          </span>
+                        </div>
+                        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                          <div className="flex flex-col">
+                            <dt className="text-gray-600">Curso</dt>
+                            <dd className="text-gray-900 mt-1">{evaluacion.curso}</dd>
+                          </div>
+                          {evaluacion.profesor && (
+                            <div className="flex flex-col">
+                              <dt className="text-gray-600">Profesor</dt>
+                              <dd className="text-gray-900 mt-1">{evaluacion.profesor}</dd>
+                            </div>
+                          )}
+                          <div className="flex flex-col">
+                            <dt className="text-gray-600">Fecha límite</dt>
+                            <dd className="text-orange-700 mt-1">{formatDateTime(evaluacion.deadline)}</dd>
+                          </div>
+                          {evaluacion.duracion && (
+                            <div className="flex flex-col">
+                              <dt className="text-gray-600">Duración</dt>
+                              <dd className="text-gray-900 mt-1">{evaluacion.duracion}</dd>
+                            </div>
+                          )}
+                        </dl>
+                      </div>
+                      <Button
+                        className="w-full lg:w-auto flex-shrink-0 bg-orange-600 hover:bg-orange-700"
+                        onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}
+                      >
+                        Iniciar Evaluación
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

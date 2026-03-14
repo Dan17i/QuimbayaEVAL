@@ -133,16 +133,40 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
       </header>
 
       <div className="flex">
-        {/* Sidebar - Aplicando principio de Semejanza (Gestalt) - Oculto en móvil */}
-        <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-65px)] lg:min-h-[calc(100vh-73px)] sticky top-[65px] lg:top-[73px]">
-          <nav className="p-3 lg:p-4 space-y-1" aria-label="Navegación principal">
+        {/* Sidebar */}
+        <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-65px)] lg:min-h-[calc(100vh-73px)] sticky top-[65px] lg:top-[73px]">
+          {/* Avatar + nombre del usuario */}
+          <div
+            className="flex items-center gap-3 px-4 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+            onClick={() => navigate('/perfil')}
+            title="Ver mi perfil"
+          >
+            {user?.fotoUrl ? (
+              <img
+                src={user.fotoUrl}
+                alt={user.name}
+                className="w-10 h-10 rounded-full object-cover border-2 border-blue-100 flex-shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 select-none">
+                {user?.name?.trim().split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
+              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+            </div>
+          </div>
+
+          {/* Nav links — ocupa el espacio disponible */}
+          <nav className="flex-1 p-3 lg:p-4 space-y-1 overflow-y-auto" aria-label="Navegación principal">
             {navigationItems.map((item) => (
               <button
                 key={item.href}
                 onClick={() => navigate(item.href)}
                 className={`w-full flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg transition-all duration-200 ${
-                  location.pathname === item.href 
-                    ? 'bg-blue-600 text-white shadow-md' 
+                  location.pathname === item.href
+                    ? 'bg-blue-600 text-white shadow-md'
                     : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                 } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
                 aria-current={location.pathname === item.href ? 'page' : undefined}
@@ -152,6 +176,17 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
               </button>
             ))}
           </nav>
+
+          {/* Cerrar sesión al pie */}
+          <div className="p-3 lg:p-4 border-t border-gray-100">
+            <button
+              onClick={logout}
+              className="w-full flex items-center gap-3 px-3 lg:px-4 py-2.5 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+            >
+              <LogOut className="w-5 h-5 flex-shrink-0" />
+              <span className="text-sm">Cerrar sesión</span>
+            </button>
+          </div>
         </aside>
 
         {/* Main Content - Aplicando sistema de espaciado 8pt */}

@@ -83,22 +83,33 @@ export const DashboardEstudiante: React.FC = () => {
 
           {/* ── Banner de bienvenida ── */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 p-6 text-white shadow-lg">
-            {/* Círculo decorativo de fondo */}
             <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10" />
             <div className="pointer-events-none absolute -bottom-8 right-16 h-32 w-32 rounded-full bg-white/5" />
 
             <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <p className="text-blue-200 text-sm">{saludo},</p>
-                <h2 className="text-2xl font-bold mt-0.5">{firstName} 👋</h2>
-                <p className="text-blue-100 text-sm mt-1">
-                  Aquí está tu resumen académico de hoy
-                </p>
+              {/* Avatar + saludo */}
+              <div className="flex items-center gap-4">
+                {user?.fotoUrl ? (
+                  <img
+                    src={user.fotoUrl}
+                    alt={user.name}
+                    className="w-14 h-14 rounded-full object-cover border-2 border-white/40 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center text-white text-xl font-bold flex-shrink-0 select-none">
+                    {user?.name?.trim().split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <p className="text-blue-200 text-sm">{saludo},</p>
+                  <h2 className="text-2xl font-bold leading-tight">{firstName} 👋</h2>
+                  <p className="text-blue-100 text-sm mt-0.5">Aquí está tu resumen académico</p>
+                </div>
               </div>
 
-              {/* Mini stats en el banner */}
+              {/* Mini stats */}
               <div className="flex gap-3 flex-shrink-0">
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center min-w-[72px]">
+                <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center min-w-[68px]">
                   {loading ? (
                     <div className="h-6 w-8 bg-white/30 rounded animate-pulse mx-auto mb-1" />
                   ) : (
@@ -106,7 +117,7 @@ export const DashboardEstudiante: React.FC = () => {
                   )}
                   <p className="text-blue-100 text-xs mt-1">Cursos</p>
                 </div>
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center min-w-[72px]">
+                <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center min-w-[68px]">
                   {loading ? (
                     <div className="h-6 w-8 bg-white/30 rounded animate-pulse mx-auto mb-1" />
                   ) : (
@@ -114,7 +125,7 @@ export const DashboardEstudiante: React.FC = () => {
                   )}
                   <p className="text-blue-100 text-xs mt-1">Abiertas</p>
                 </div>
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center min-w-[72px]">
+                <div className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 text-center min-w-[68px]">
                   {loading ? (
                     <div className="h-6 w-8 bg-white/30 rounded animate-pulse mx-auto mb-1" />
                   ) : (

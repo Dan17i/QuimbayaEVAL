@@ -303,24 +303,7 @@ export const LoginPage: React.FC = () => {
               </form>
             </Tabs>
 
-            {/* Mensaje informativo */}
-            <div className="mt-4 sm:mt-6 space-y-3">
-              <Alert className="bg-blue-50 border-blue-200">
-                <AlertDescription className="text-xs sm:text-sm text-gray-700">
-                  <strong className="text-blue-700">Credenciales de prueba:</strong>
-                  <ul className="mt-2 space-y-1 list-disc list-inside">
-                    <li>Estudiante: estudiante@universidad.edu / password123</li>
-                    <li>Maestro: maestro@universidad.edu / password123</li>
-                  </ul>
-                </AlertDescription>
-              </Alert>
-              
-              <Alert className="bg-amber-50 border-amber-200">
-                <AlertDescription className="text-xs sm:text-sm text-gray-700">
-                  <strong className="text-amber-700">Nota:</strong> Asegúrate de que el backend esté corriendo en http://localhost:8080
-                </AlertDescription>
-              </Alert>
-            </div>
+
           </CardContent>
         </Card>
 

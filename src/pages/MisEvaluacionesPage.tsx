@@ -222,7 +222,7 @@ export const MisEvaluacionesPage: React.FC = () => {
                               )}
                             </div>
                           </div>
-                          <Button variant="outline" className="ml-4 flex items-center gap-2">
+                          <Button variant="outline" className="ml-4 flex items-center gap-2" onClick={() => navigate(`${ROUTES.MIS_EVALUACIONES}/${evaluacion.id}`)}>
                             <Eye className="w-4 h-4" />
                             Ver Detalles
                           </Button>

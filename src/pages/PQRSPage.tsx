@@ -43,9 +43,10 @@ export const PQRSPage: React.FC = () => {
     reset,
     setValue,
     watch,
-  } = useForm<PQRSFormData>();
-
-  const tipoSeleccionado = watch('tipo');
+    trigger,
+  } = useForm<PQRSFormData>({
+    mode: 'onChange',
+  });
 
   const ticketsActivos = useMemo(() => {
     const filtrados = tickets.filter(t => t.estado !== 'Resuelta');
@@ -155,7 +156,7 @@ export const PQRSPage: React.FC = () => {
       <CardContent className="pt-6">
         <h3 className="mb-4">Categorías</h3>
         <div className="space-y-2">
-          {['Todos', 'Pendiente', 'En Proceso', 'Resuelto'].map((categoria) => (
+          {['Todos', 'Pendiente', 'En Proceso', 'Resuelta'].map((categoria) => (
             <button
               key={categoria}
               onClick={() => setCategoriaFiltro(categoria)}
@@ -173,7 +174,7 @@ export const PQRSPage: React.FC = () => {
         <div className="mt-8 p-4 bg-blue-50 rounded-lg">
           <h4 className="text-sm text-blue-900 mb-2">PQRS</h4>
           <ul className="text-xs text-gray-600 space-y-1">
-            <li><strong>Pregunta:</strong> Consultas generales</li>
+            <li><strong>Petición:</strong> Consultas generales</li>
             <li><strong>Queja:</strong> Insatisfacción con el servicio</li>
             <li><strong>Reclamo:</strong> Solicitud de corrección</li>
             <li><strong>Sugerencia:</strong> Propuestas de mejora</li>
@@ -190,14 +191,14 @@ export const PQRSPage: React.FC = () => {
         sidebar={sidebar}
       >
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2>PQRS - Peticiones, Quejas, Reclamos y Sugerencias</h2>
               <p className="text-gray-600 mt-2">Canal de comunicación con el equipo académico</p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
+                <Button className="flex items-center gap-2 w-full sm:w-auto">
                   <Plus className="w-4 h-4" />
                   Nueva Solicitud
                 </Button>
@@ -212,7 +213,8 @@ export const PQRSPage: React.FC = () => {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
                   <div className="space-y-2">
                     <Label htmlFor="tipo">Tipo de Solicitud *</Label>
-                    <Select onValueChange={(value) => setValue('tipo', value as TipoPQRS)}>
+                    <input type="hidden" {...register('tipo', { required: 'Selecciona el tipo de solicitud' })} />
+                    <Select onValueChange={(value) => { setValue('tipo', value as TipoPQRS, { shouldValidate: true }); }}>
                       <SelectTrigger id="tipo">
                         <SelectValue placeholder="Selecciona el tipo" />
                       </SelectTrigger>
@@ -338,7 +340,7 @@ export const PQRSPage: React.FC = () => {
                               <StatusBadge estado={ticket.estado} />
                             </div>
                             <p className="text-sm text-gray-600">
-                              {ticket.curso} • {formatDateTime(ticket.fecha)}
+                              {ticket.curso} • {formatDateTime(ticket.fechaCreacion)}
                             </p>
                           </div>
                         </div>
@@ -386,7 +388,7 @@ export const PQRSPage: React.FC = () => {
                               <StatusBadge estado={ticket.estado} />
                             </div>
                             <p className="text-sm text-gray-600">
-                              {ticket.curso} • {formatDateTime(ticket.fecha)}
+                              {ticket.curso} • {formatDateTime(ticket.fechaCreacion)}
                             </p>
                           </div>
                         </div>

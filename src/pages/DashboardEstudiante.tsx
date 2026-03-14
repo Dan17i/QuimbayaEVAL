@@ -2,19 +2,23 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { FileText, Clock, CheckCircle, AlertCircle, BookOpen, TrendingUp } from 'lucide-react';
-import { StatCard } from '../components/StatCard';
+import { BookOpen, ChevronRight, AlertCircle, CheckCircle, Clock, FileText } from 'lucide-react';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useCursos } from '../hooks/useCursos';
 import { useSubmissions } from '../hooks/useSubmissions';
 import { useAuth } from '../contexts/AuthContext';
-import { formatDateTime } from '../utils/date';
 import { ROUTES } from '../constants/routes';
-import { StatCardSkeleton } from '../components/SkeletonLoader';
 import { EmptyState } from '../components/EmptyState';
-import { Estadistica } from '../types';
+
+// Colores por índice para dar variedad visual a las tarjetas
+const CARD_COLORS = [
+  { border: 'border-blue-400',   bg: 'bg-blue-50',   icon: 'bg-blue-100 text-blue-600',   badge: 'bg-orange-100 text-orange-700', btn: 'text-blue-700 border-blue-200 hover:bg-blue-100' },
+  { border: 'border-green-400',  bg: 'bg-green-50',  icon: 'bg-green-100 text-green-600',  badge: 'bg-orange-100 text-orange-700', btn: 'text-green-700 border-green-200 hover:bg-green-100' },
+  { border: 'border-purple-400', bg: 'bg-purple-50', icon: 'bg-purple-100 text-purple-600', badge: 'bg-orange-100 text-orange-700', btn: 'text-purple-700 border-purple-200 hover:bg-purple-100' },
+  { border: 'border-teal-400',   bg: 'bg-teal-50',   icon: 'bg-teal-100 text-teal-600',   badge: 'bg-orange-100 text-orange-700', btn: 'text-teal-700 border-teal-200 hover:bg-teal-100' },
+];
 
 export const DashboardEstudiante: React.FC = () => {
   const navigate = useNavigate();
@@ -25,33 +29,31 @@ export const DashboardEstudiante: React.FC = () => {
   const { cursos, loading: loadingCursos, error: errorCursos, refetch: refetchCursos } = useCursos();
   const { submissions, loading: loadingSubs } = useSubmissions(estudianteId);
 
-  const evaluacionesAbiertas = useMemo(() =>
-    evaluaciones.filter(e => e.estado === 'Activa'),
-    [evaluaciones]
-  );
+  const loading = loadingEvals || loadingCursos || loadingSubs;
+
+  // Evaluaciones abiertas agrupadas por cursoId
+  const evalAbiertasPorCurso = useMemo(() => {
+    const map: Record<number, number> = {};
+    evaluaciones.filter(e => e.estado === 'Activa').forEach(e => {
+      map[e.cursoId] = (map[e.cursoId] ?? 0) + 1;
+    });
+    return map;
+  }, [evaluaciones]);
 
   const completadas = useMemo(() =>
-    submissions.filter(s => s.estado === 'Calificada' || s.estado === 'Enviada'),
+    submissions.filter(s => s.estado === 'Calificada' || s.estado === 'Enviada').length,
     [submissions]
   );
 
-  // Evaluaciones abiertas por curso
-  const evalsPorCurso = useMemo(() => {
-    const map: Record<string, number> = {};
-    evaluacionesAbiertas.forEach(e => {
-      if (e.curso) map[e.curso] = (map[e.curso] ?? 0) + 1;
-    });
-    return map;
-  }, [evaluacionesAbiertas]);
+  // Saludo según hora del día
+  const saludo = useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Buenos días';
+    if (h < 18) return 'Buenas tardes';
+    return 'Buenas noches';
+  }, []);
 
-  const estadisticas = useMemo<Estadistica[]>(() => [
-    { label: 'Cursos Inscritos', value: String(cursos.length), icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Evaluaciones Abiertas', value: String(evaluacionesAbiertas.length), icon: Clock, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Completadas', value: String(completadas.length), icon: CheckCircle, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Total Evaluaciones', value: String(evaluaciones.length), icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-50' },
-  ], [cursos, evaluacionesAbiertas, completadas, evaluaciones]);
-
-  const loading = loadingEvals || loadingCursos || loadingSubs;
+  const firstName = user?.name?.split(' ')[0] ?? 'Estudiante';
 
   if (errorEvals || errorCursos) {
     return (
@@ -60,7 +62,7 @@ export const DashboardEstudiante: React.FC = () => {
           <EmptyState
             icon={AlertCircle}
             title="Error al cargar datos"
-            description={errorEvals || errorCursos || 'No se pudieron cargar los datos del dashboard.'}
+            description={errorEvals || errorCursos || 'No se pudieron cargar los datos.'}
             actionLabel="Reintentar"
             onAction={() => { refetchEvals(); refetchCursos(); }}
           />
@@ -73,76 +75,75 @@ export const DashboardEstudiante: React.FC = () => {
     <ProtectedRoute allowedRoles={['estudiante']}>
       <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
         <div className="space-y-8">
-          <div>
-            <h2>Mi Panel de Estudiante</h2>
-            <p className="text-gray-600 mt-2">Revisa tus cursos, evaluaciones pendientes y progreso académico</p>
+
+          {/* Bienvenida */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl p-6 text-white shadow-md">
+            <p className="text-blue-100 text-sm mb-1">{saludo},</p>
+            <h2 className="text-2xl font-bold">{firstName} 👋</h2>
+            <p className="text-blue-100 mt-2 text-sm">
+              Tienes <span className="font-semibold text-white">{cursos.length}</span> curso{cursos.length !== 1 ? 's' : ''} inscritos
+              {' '}y <span className="font-semibold text-white">{Object.values(evalAbiertasPorCurso).reduce((a, b) => a + b, 0)}</span> evaluación{Object.values(evalAbiertasPorCurso).reduce((a, b) => a + b, 0) !== 1 ? 'es' : ''} abierta{Object.values(evalAbiertasPorCurso).reduce((a, b) => a + b, 0) !== 1 ? 's' : ''} pendiente{Object.values(evalAbiertasPorCurso).reduce((a, b) => a + b, 0) !== 1 ? 's' : ''}.
+            </p>
+            <div className="flex gap-4 mt-4 text-sm">
+              <div className="bg-white/20 rounded-lg px-3 py-2 text-center">
+                <p className="font-bold text-lg leading-none">{completadas}</p>
+                <p className="text-blue-100 text-xs mt-0.5">Completadas</p>
+              </div>
+              <div className="bg-white/20 rounded-lg px-3 py-2 text-center">
+                <p className="font-bold text-lg leading-none">{evaluaciones.length}</p>
+                <p className="text-blue-100 text-xs mt-0.5">Total evals.</p>
+              </div>
+            </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            {loading ? (
-              Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
-            ) : (
-              estadisticas.map((stat) => <StatCard key={stat.label} stat={stat} />)
-            )}
-          </div>
-
-          {/* Mis Cursos — sección prominente */}
+          {/* Mis Cursos */}
           <section>
             <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Mis Cursos</h3>
-                <p className="text-sm text-gray-500">Cursos en los que estás inscrito este período</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => navigate(ROUTES.MIS_CURSOS)}>
-                Ver todos
+              <h3 className="text-lg font-semibold text-gray-900">Mis Cursos</h3>
+              <Button variant="ghost" size="sm" className="text-blue-600 gap-1" onClick={() => navigate(ROUTES.MIS_CURSOS)}>
+                Ver todos <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
 
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-36 bg-gray-100 rounded-lg animate-pulse" />
+                  <div key={i} className="h-44 bg-gray-100 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : cursos.length === 0 ? (
-              <EmptyState icon={BookOpen} title="Sin cursos inscritos" description="No estás inscrito en ningún curso todavía." />
+              <EmptyState icon={BookOpen} title="Sin cursos inscritos" description="Aún no estás inscrito en ningún curso." />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {cursos.map((curso) => {
-                  const evalsAbiertas = evalsPorCurso[curso.nombre] ?? 0;
+                {cursos.map((curso, idx) => {
+                  const color = CARD_COLORS[idx % CARD_COLORS.length];
+                  const evalsAbiertas = evalAbiertasPorCurso[curso.id] ?? 0;
                   return (
                     <article
                       key={curso.id}
-                      className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md hover:border-blue-300 transition-all flex flex-col gap-3"
+                      className={`border-l-4 ${color.border} ${color.bg} rounded-xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col gap-3 cursor-pointer`}
+                      onClick={() => navigate(`${ROUTES.MIS_EVALUACIONES}?cursoId=${curso.id}`)}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div className="bg-blue-50 p-2 rounded-lg flex-shrink-0">
-                          <BookOpen className="w-5 h-5 text-blue-600" />
+                        <div className={`p-2 rounded-lg ${color.icon}`}>
+                          <BookOpen className="w-5 h-5" />
                         </div>
                         {evalsAbiertas > 0 && (
-                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
-                            {evalsAbiertas} eval. abierta{evalsAbiertas > 1 ? 's' : ''}
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${color.badge}`}>
+                            {evalsAbiertas} abierta{evalsAbiertas > 1 ? 's' : ''}
                           </span>
                         )}
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-xs font-mono text-gray-400 mb-1">{curso.codigo}</p>
                         <h4 className="font-semibold text-gray-900 leading-tight">{curso.nombre}</h4>
                         {curso.descripcion && (
                           <p className="text-xs text-gray-500 mt-1 line-clamp-2">{curso.descripcion}</p>
                         )}
                       </div>
-                      {evalsAbiertas > 0 && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="mt-auto text-orange-600 border-orange-200 hover:bg-orange-50"
-                          onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}
-                        >
-                          Ver evaluaciones
-                        </Button>
-                      )}
+                      <div className={`flex items-center gap-1 text-xs font-medium ${color.btn.split(' ')[0]}`}>
+                        Ver evaluaciones <ChevronRight className="w-3 h-3" />
+                      </div>
                     </article>
                   );
                 })}
@@ -150,100 +151,40 @@ export const DashboardEstudiante: React.FC = () => {
             )}
           </section>
 
-          {/* Evaluaciones Abiertas */}
+          {/* Accesos rápidos */}
           <section>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="bg-orange-100 p-2 rounded-full">
-                <AlertCircle className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-orange-900">Evaluaciones Abiertas</h3>
-                <p className="text-sm text-gray-500">Completa estas evaluaciones antes de la fecha límite</p>
-              </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Accesos Rápidos</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer" onClick={() => navigate(`${ROUTES.MIS_EVALUACIONES}?tab=abiertas`)}>
+                <CardHeader>
+                  <div className="bg-orange-50 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
+                    <Clock className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <CardTitle className="text-base">Evaluaciones Abiertas</CardTitle>
+                  <CardDescription>Pendientes de presentar</CardDescription>
+                </CardHeader>
+              </Card>
+              <Card className="hover:shadow-lg hover:border-green-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.HISTORIAL)}>
+                <CardHeader>
+                  <div className="bg-green-50 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  <CardTitle className="text-base">Historial</CardTitle>
+                  <CardDescription>Calificaciones y feedback</CardDescription>
+                </CardHeader>
+              </Card>
+              <Card className="hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}>
+                <CardHeader>
+                  <div className="bg-blue-50 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <CardTitle className="text-base">Mis Evaluaciones</CardTitle>
+                  <CardDescription>Todas las evaluaciones</CardDescription>
+                </CardHeader>
+              </Card>
             </div>
-
-            {loading ? (
-              <p className="text-gray-500 text-sm">Cargando...</p>
-            ) : evaluacionesAbiertas.length === 0 ? (
-              <EmptyState icon={CheckCircle} title="Sin evaluaciones pendientes" description="No tienes evaluaciones abiertas en este momento." />
-            ) : (
-              <div className="space-y-4">
-                {evaluacionesAbiertas.map((evaluacion) => (
-                  <article key={evaluacion.id} className="bg-white p-6 border border-orange-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                      <div className="flex-1 space-y-4">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <h4 className="text-gray-900 font-medium">{evaluacion.name}</h4>
-                          <span className="inline-flex px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs">
-                            {evaluacion.tipo}
-                          </span>
-                        </div>
-                        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                          <div className="flex flex-col">
-                            <dt className="text-gray-600">Curso</dt>
-                            <dd className="text-gray-900 mt-1">{evaluacion.curso}</dd>
-                          </div>
-                          {evaluacion.profesor && (
-                            <div className="flex flex-col">
-                              <dt className="text-gray-600">Profesor</dt>
-                              <dd className="text-gray-900 mt-1">{evaluacion.profesor}</dd>
-                            </div>
-                          )}
-                          <div className="flex flex-col">
-                            <dt className="text-gray-600">Fecha límite</dt>
-                            <dd className="text-orange-700 mt-1">{formatDateTime(evaluacion.deadline)}</dd>
-                          </div>
-                          {evaluacion.duracion && (
-                            <div className="flex flex-col">
-                              <dt className="text-gray-600">Duración</dt>
-                              <dd className="text-gray-900 mt-1">{evaluacion.duracion}</dd>
-                            </div>
-                          )}
-                        </dl>
-                      </div>
-                      <Button
-                        className="w-full lg:w-auto flex-shrink-0 bg-orange-600 hover:bg-orange-700"
-                        onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}
-                      >
-                        Iniciar Evaluación
-                      </Button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
           </section>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}>
-              <CardHeader>
-                <div className="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <FileText className="w-6 h-6 text-blue-600" />
-                </div>
-                <CardTitle>Mis Evaluaciones</CardTitle>
-                <CardDescription>Ver todas las evaluaciones por curso</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="hover:shadow-lg hover:border-green-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.HISTORIAL)}>
-              <CardHeader>
-                <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                </div>
-                <CardTitle>Historial</CardTitle>
-                <CardDescription>Revisa tus calificaciones y feedback</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.MIS_CURSOS)}>
-              <CardHeader>
-                <div className="bg-purple-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <BookOpen className="w-6 h-6 text-purple-600" />
-                </div>
-                <CardTitle>Mis Cursos</CardTitle>
-                <CardDescription>Explora materiales y recursos de aprendizaje</CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
         </div>
       </Layout>
     </ProtectedRoute>

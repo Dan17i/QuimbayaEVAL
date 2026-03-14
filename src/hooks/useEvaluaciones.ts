@@ -27,6 +27,7 @@ export const useEvaluaciones = (filters?: EvaluacionFilters) => {
         id: e.id,
         name: e.nombre,
         curso: cursoMap.get(e.cursoId) ?? String(e.cursoId),
+        cursoId: e.cursoId,
         deadline: e.deadline ?? e.createdAt,
         estado: e.estado,
         tipo: e.tipo,

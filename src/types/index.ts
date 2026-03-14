@@ -10,7 +10,8 @@ export type TipoPQRS = 'Petición' | 'Queja' | 'Reclamo' | 'Sugerencia';
 export interface Evaluacion {
   id: number;
   name: string;
-  curso: string;
+  curso: string;       // nombre/codigo del curso (para mostrar)
+  cursoId: number;     // id del curso (para filtrar)
   profesor?: string;
   deadline: string;
   estado: EstadoEvaluacion;

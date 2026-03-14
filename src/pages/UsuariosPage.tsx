@@ -16,6 +16,7 @@ import { Badge } from '../components/Badge';
 import { ROUTES } from '../constants/routes';
 import { formatDate } from '../utils/date';
 import { toast } from 'sonner';
+import { authService } from '../services/authService';
 
 interface Usuario {
   id: number;
@@ -30,6 +31,11 @@ export const UsuariosPage: React.FC = () => {
   const [filterRol, setFilterRol] = useState<string>('all');
   const [filterEstado, setFilterEstado] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [nuevoNombre, setNuevoNombre] = useState('');
+  const [nuevoEmail, setNuevoEmail] = useState('');
+  const [nuevoRol, setNuevoRol] = useState<Usuario['rol'] | ''>('');
+  const [nuevoPassword, setNuevoPassword] = useState('');
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -43,13 +49,50 @@ export const UsuariosPage: React.FC = () => {
     onConfirm: () => {},
   });
 
-  const usuarios: Usuario[] = [
+  const [usuarios, setUsuarios] = useState<Usuario[]>([
     { id: 1, nombre: 'Juan García', email: 'juan.garcia@universidad.edu', rol: 'Maestro', estado: 'Activo', ultimoAcceso: '2025-10-16T14:30:00Z' },
     { id: 2, nombre: 'Ana López', email: 'ana.lopez@universidad.edu', rol: 'Estudiante', estado: 'Activo', ultimoAcceso: '2025-10-16T15:45:00Z' },
     { id: 3, nombre: 'Carlos Méndez', email: 'carlos.mendez@universidad.edu', rol: 'Coordinador', estado: 'Activo', ultimoAcceso: '2025-10-16T10:20:00Z' },
     { id: 4, nombre: 'María Torres', email: 'maria.torres@universidad.edu', rol: 'Maestro', estado: 'Activo', ultimoAcceso: '2025-10-15T16:10:00Z' },
     { id: 5, nombre: 'Pedro Ruiz', email: 'pedro.ruiz@universidad.edu', rol: 'Estudiante', estado: 'Bloqueado', ultimoAcceso: '2025-10-10T09:30:00Z' },
-  ];
+  ]);
+
+  const [saving, setSaving] = useState(false);
+
+  const handleCrearUsuario = async () => {
+    if (!nuevoNombre.trim() || !nuevoEmail.trim() || !nuevoRol || !nuevoPassword.trim()) {
+      toast.error('Campos incompletos', { description: 'Por favor completa todos los campos' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const creado = await authService.register({
+        name: nuevoNombre.trim(),
+        email: nuevoEmail.trim(),
+        password: nuevoPassword.trim(),
+        role: nuevoRol.toLowerCase(),
+      });
+      const nuevo: Usuario = {
+        id: creado.id,
+        nombre: creado.name,
+        email: creado.email,
+        rol: nuevoRol as Usuario['rol'],
+        estado: 'Activo',
+        ultimoAcceso: new Date().toISOString(),
+      };
+      setUsuarios(prev => [...prev, nuevo]);
+      setDialogOpen(false);
+      setNuevoNombre('');
+      setNuevoEmail('');
+      setNuevoRol('');
+      setNuevoPassword('');
+      toast.success('Usuario creado', { description: `${nuevo.nombre} ha sido creado exitosamente` });
+    } catch {
+      // errores manejados por interceptor
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const usuariosFiltrados = useMemo(() => {
     let filtrados = usuarios;
@@ -271,7 +314,7 @@ export const UsuariosPage: React.FC = () => {
               <h2>Gestión de Usuarios</h2>
               <p className="text-gray-600 mt-2">Administra cuentas, roles y permisos del sistema</p>
             </div>
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="flex items-center gap-2 w-full sm:w-auto">
                   <Plus className="w-4 h-4" />
@@ -288,34 +331,34 @@ export const UsuariosPage: React.FC = () => {
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
                     <Label htmlFor="nuevo-nombre">Nombre Completo</Label>
-                    <Input id="nuevo-nombre" placeholder="Ej: Juan Pérez" />
+                    <Input id="nuevo-nombre" placeholder="Ej: Juan Pérez" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="nuevo-email">Correo Electrónico</Label>
-                    <Input id="nuevo-email" type="email" placeholder="juan.perez@universidad.edu" />
+                    <Input id="nuevo-email" type="email" placeholder="juan.perez@universidad.edu" value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="nuevo-rol">Rol</Label>
-                    <Select>
+                    <Select value={nuevoRol} onValueChange={v => setNuevoRol(v as Usuario['rol'])}>
                       <SelectTrigger id="nuevo-rol">
                         <SelectValue placeholder="Selecciona un rol" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="estudiante">Estudiante</SelectItem>
-                        <SelectItem value="maestro">Maestro</SelectItem>
-                        <SelectItem value="coordinador">Coordinador</SelectItem>
+                        <SelectItem value="Estudiante">Estudiante</SelectItem>
+                        <SelectItem value="Maestro">Maestro</SelectItem>
+                        <SelectItem value="Coordinador">Coordinador</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="nuevo-password">Contraseña Temporal</Label>
-                    <Input id="nuevo-password" type="password" placeholder="Mínimo 8 caracteres" />
+                    <Input id="nuevo-password" type="password" placeholder="Mínimo 8 caracteres" value={nuevoPassword} onChange={e => setNuevoPassword(e.target.value)} />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline">Cancelar</Button>
-                  <Button onClick={() => toast.success('Usuario creado', { description: 'El nuevo usuario ha sido creado exitosamente' })}>
-                    Crear Usuario
+                  <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleCrearUsuario} disabled={saving}>
+                    {saving ? 'Creando...' : 'Crear Usuario'}
                   </Button>
                 </DialogFooter>
               </DialogContent>

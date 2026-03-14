@@ -167,7 +167,7 @@ export const MisEvaluacionesPage: React.FC = () => {
                           </div>
                           <Button 
                             className="ml-4 flex items-center gap-2" 
-                            onClick={() => navigate(ROUTES.REALIZAR_EVALUACION)}
+                            onClick={() => navigate(`${ROUTES.REALIZAR_EVALUACION}?id=${evaluacion.id}`)}
                           >
                             <Play className="w-4 h-4" />
                             Iniciar Evaluación

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -7,16 +7,18 @@ import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
-import { Plus, MoreVertical, Edit, Lock, Unlock, Trash2, Shield, Users } from 'lucide-react';
+import { Plus, MoreVertical, Edit, Lock, Unlock, Trash2, Shield, Users, RefreshCw } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { DataTable, Column } from '../components/DataTable';
 import { SearchInput } from '../components/SearchInput';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Badge } from '../components/Badge';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ROUTES } from '../constants/routes';
 import { formatDate } from '../utils/date';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
+import { usersService, UserDTO } from '../services/usersService';
 
 interface Usuario {
   id: number;
@@ -25,6 +27,23 @@ interface Usuario {
   rol: 'Maestro' | 'Estudiante' | 'Coordinador';
   estado: 'Activo' | 'Bloqueado';
   ultimoAcceso: string;
+}
+
+const rolMap: Record<string, Usuario['rol']> = {
+  maestro: 'Maestro',
+  estudiante: 'Estudiante',
+  coordinador: 'Coordinador',
+};
+
+function dtoToUsuario(u: UserDTO): Usuario {
+  return {
+    id: u.id,
+    nombre: u.name,
+    email: u.email,
+    rol: rolMap[u.role?.toLowerCase()] ?? 'Estudiante',
+    estado: 'Activo',
+    ultimoAcceso: new Date().toISOString(),
+  };
 }
 
 export const UsuariosPage: React.FC = () => {
@@ -36,6 +55,9 @@ export const UsuariosPage: React.FC = () => {
   const [nuevoEmail, setNuevoEmail] = useState('');
   const [nuevoRol, setNuevoRol] = useState<Usuario['rol'] | ''>('');
   const [nuevoPassword, setNuevoPassword] = useState('');
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -49,15 +71,19 @@ export const UsuariosPage: React.FC = () => {
     onConfirm: () => {},
   });
 
-  const [usuarios, setUsuarios] = useState<Usuario[]>([
-    { id: 1, nombre: 'Juan García', email: 'juan.garcia@universidad.edu', rol: 'Maestro', estado: 'Activo', ultimoAcceso: '2025-10-16T14:30:00Z' },
-    { id: 2, nombre: 'Ana López', email: 'ana.lopez@universidad.edu', rol: 'Estudiante', estado: 'Activo', ultimoAcceso: '2025-10-16T15:45:00Z' },
-    { id: 3, nombre: 'Carlos Méndez', email: 'carlos.mendez@universidad.edu', rol: 'Coordinador', estado: 'Activo', ultimoAcceso: '2025-10-16T10:20:00Z' },
-    { id: 4, nombre: 'María Torres', email: 'maria.torres@universidad.edu', rol: 'Maestro', estado: 'Activo', ultimoAcceso: '2025-10-15T16:10:00Z' },
-    { id: 5, nombre: 'Pedro Ruiz', email: 'pedro.ruiz@universidad.edu', rol: 'Estudiante', estado: 'Bloqueado', ultimoAcceso: '2025-10-10T09:30:00Z' },
-  ]);
+  const cargarUsuarios = async () => {
+    setLoading(true);
+    try {
+      const data = await usersService.getAll();
+      setUsuarios(data.map(dtoToUsuario));
+    } catch {
+      // manejado por interceptor
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const [saving, setSaving] = useState(false);
+  useEffect(() => { cargarUsuarios(); }, []);
 
   const handleCrearUsuario = async () => {
     if (!nuevoNombre.trim() || !nuevoEmail.trim() || !nuevoRol || !nuevoPassword.trim()) {
@@ -142,8 +168,12 @@ export const UsuariosPage: React.FC = () => {
       title: '¿Bloquear usuario?',
       description: `¿Estás seguro de que deseas bloquear a ${usuario.nombre}? No podrá acceder al sistema hasta que sea desbloqueado.`,
       variant: 'destructive',
-      onConfirm: () => {
-        toast.success('Usuario bloqueado', { description: `${usuario.nombre} ha sido bloqueado exitosamente` });
+      onConfirm: async () => {
+        try {
+          await usersService.updateStatus(usuario.id, 'bloqueado');
+          setUsuarios(prev => prev.map(u => u.id === usuario.id ? { ...u, estado: 'Bloqueado' } : u));
+          toast.success('Usuario bloqueado', { description: `${usuario.nombre} ha sido bloqueado` });
+        } catch { /* interceptor */ }
       },
     });
   };
@@ -153,8 +183,12 @@ export const UsuariosPage: React.FC = () => {
       open: true,
       title: '¿Desbloquear usuario?',
       description: `¿Estás seguro de que deseas desbloquear a ${usuario.nombre}?`,
-      onConfirm: () => {
-        toast.success('Usuario desbloqueado', { description: `${usuario.nombre} ha sido desbloqueado exitosamente` });
+      onConfirm: async () => {
+        try {
+          await usersService.updateStatus(usuario.id, 'activo');
+          setUsuarios(prev => prev.map(u => u.id === usuario.id ? { ...u, estado: 'Activo' } : u));
+          toast.success('Usuario desbloqueado', { description: `${usuario.nombre} ha sido desbloqueado` });
+        } catch { /* interceptor */ }
       },
     });
   };
@@ -165,8 +199,12 @@ export const UsuariosPage: React.FC = () => {
       title: '¿Eliminar usuario?',
       description: `¿Estás seguro de que deseas eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.`,
       variant: 'destructive',
-      onConfirm: () => {
-        toast.success('Usuario eliminado', { description: `${usuario.nombre} ha sido eliminado exitosamente` });
+      onConfirm: async () => {
+        try {
+          await usersService.delete(usuario.id);
+          setUsuarios(prev => prev.filter(u => u.id !== usuario.id));
+          toast.success('Usuario eliminado', { description: `${usuario.nombre} ha sido eliminado` });
+        } catch { /* interceptor */ }
       },
     });
   };
@@ -369,23 +407,33 @@ export const UsuariosPage: React.FC = () => {
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <CardTitle>Lista de Usuarios</CardTitle>
-                <div className="w-full sm:w-80">
-                  <SearchInput
-                    placeholder="Buscar por nombre o correo..."
-                    onSearch={setSearchQuery}
-                    debounceMs={300}
-                  />
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <div className="w-full sm:w-80">
+                    <SearchInput
+                      placeholder="Buscar por nombre o correo..."
+                      onSearch={setSearchQuery}
+                      debounceMs={300}
+                    />
+                  </div>
+                  <Button variant="outline" size="icon" onClick={cargarUsuarios} title="Recargar lista">
+                    <RefreshCw className="w-4 h-4" />
+                  </Button>
+                </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <DataTable
-                data={usuariosFiltrados}
-                columns={columns}
-                keyExtractor={(usuario) => usuario.id}
-                emptyMessage="No se encontraron usuarios"
-                emptyIcon={Users}
-              />
+              {loading ? (
+                <LoadingSpinner size="lg" text="Cargando usuarios..." />
+              ) : (
+                <DataTable
+                  data={usuariosFiltrados}
+                  columns={columns}
+                  keyExtractor={(usuario) => usuario.id}
+                  emptyMessage="No se encontraron usuarios"
+                  emptyIcon={Users}
+                />
+              )}
             </CardContent>
           </Card>
 

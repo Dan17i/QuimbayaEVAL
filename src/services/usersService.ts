@@ -18,4 +18,12 @@ export const usersService = {
     const { data } = await api.get<ApiResponse<UserDTO[]>>('/users');
     return data.data;
   },
+
+  async updateStatus(id: number, status: 'activo' | 'bloqueado'): Promise<void> {
+    await api.patch(`/users/${id}/status`, { status });
+  },
+
+  async delete(id: number): Promise<void> {
+    await api.delete(`/users/${id}`);
+  },
 };

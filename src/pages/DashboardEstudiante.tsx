@@ -2,21 +2,42 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
-import { BookOpen, ChevronRight, AlertCircle, MessageSquare } from 'lucide-react';
+import {
+  BookOpen, ChevronRight, AlertCircle, MessageSquare,
+  Calculator, Code2, FlaskConical, Database, Globe,
+  Music, Palette, Dumbbell, Landmark, Microscope,
+} from 'lucide-react';
 import { useCursos } from '../hooks/useCursos';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { EmptyState } from '../components/EmptyState';
 
-const CARD_ACCENT = [
-  'border-l-blue-500',
-  'border-l-emerald-500',
-  'border-l-violet-500',
-  'border-l-amber-500',
-  'border-l-rose-500',
-  'border-l-teal-500',
+// Colores de acento por índice
+const CARD_COLORS = [
+  { border: 'border-blue-400',   bg: 'bg-blue-50',    icon: 'text-blue-600',   iconBg: 'bg-blue-100'   },
+  { border: 'border-emerald-400',bg: 'bg-emerald-50', icon: 'text-emerald-600',iconBg: 'bg-emerald-100'},
+  { border: 'border-violet-400', bg: 'bg-violet-50',  icon: 'text-violet-600', iconBg: 'bg-violet-100' },
+  { border: 'border-amber-400',  bg: 'bg-amber-50',   icon: 'text-amber-600',  iconBg: 'bg-amber-100'  },
+  { border: 'border-rose-400',   bg: 'bg-rose-50',    icon: 'text-rose-600',   iconBg: 'bg-rose-100'   },
+  { border: 'border-teal-400',   bg: 'bg-teal-50',    icon: 'text-teal-600',   iconBg: 'bg-teal-100'   },
 ];
+
+// Icono según prefijo del código del curso
+function iconoPorCodigo(codigo: string) {
+  const c = codigo.toUpperCase();
+  if (c.startsWith('MAT') || c.startsWith('CALC') || c.startsWith('EST')) return Calculator;
+  if (c.startsWith('PROG') || c.startsWith('SIS') || c.startsWith('BD') || c.startsWith('WEB')) return Code2;
+  if (c.startsWith('FIS') || c.startsWith('QUI') || c.startsWith('BIO')) return FlaskConical;
+  if (c.startsWith('DB') || c.startsWith('DAT')) return Database;
+  if (c.startsWith('ING') || c.startsWith('LEN') || c.startsWith('ESP')) return Globe;
+  if (c.startsWith('MUS') || c.startsWith('ART')) return Music;
+  if (c.startsWith('DIS') || c.startsWith('GRA')) return Palette;
+  if (c.startsWith('EDF') || c.startsWith('DEP')) return Dumbbell;
+  if (c.startsWith('HIS') || c.startsWith('SOC') || c.startsWith('POL')) return Landmark;
+  if (c.startsWith('MED') || c.startsWith('SAL')) return Microscope;
+  return BookOpen;
+}
 
 export const DashboardEstudiante: React.FC = () => {
   const navigate = useNavigate();
@@ -41,79 +62,84 @@ export const DashboardEstudiante: React.FC = () => {
   }, []);
 
   const firstName = user?.name?.split(' ')[0] ?? 'Estudiante';
+  const totalPendientes = Object.values(evalAbiertasPorCurso).reduce((a, b) => a + b, 0);
 
   return (
     <ProtectedRoute allowedRoles={['estudiante']}>
       <Layout breadcrumbs={[{ label: 'Inicio' }]}>
-        <div className="max-w-3xl mx-auto space-y-8 py-2">
+        <div className="max-w-4xl mx-auto py-2 space-y-6">
 
           {/* Saludo */}
-          <div>
-            <p className="text-sm text-gray-500">{saludo},</p>
-            <h1 className="text-3xl font-bold text-gray-900 mt-1">
-              Bienvenido, {firstName} 👋
-            </h1>
-            <p className="text-gray-500 mt-2 text-sm">
-              Selecciona un curso para ver tus actividades y evaluaciones pendientes.
-            </p>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-sm text-gray-400">{saludo},</p>
+              <h1 className="text-2xl font-bold text-gray-900 mt-0.5">
+                Bienvenido, {firstName} 👋
+              </h1>
+              <p className="text-gray-500 mt-1 text-sm">
+                Tienes <span className="font-semibold text-gray-700">{cursos.length}</span> curso{cursos.length !== 1 ? 's' : ''} activos
+                {totalPendientes > 0 && (
+                  <> y <span className="font-semibold text-orange-600">{totalPendientes} evaluación{totalPendientes !== 1 ? 'es' : ''} pendiente{totalPendientes !== 1 ? 's' : ''}</span></>
+                )}
+              </p>
+            </div>
           </div>
 
-          {/* Cursos */}
+          {/* Grid de cursos */}
           {error ? (
-            <EmptyState
-              icon={AlertCircle}
-              title="Error al cargar cursos"
-              description={error}
-              actionLabel="Reintentar"
-              onAction={refetch}
-            />
+            <EmptyState icon={AlertCircle} title="Error al cargar cursos" description={error} actionLabel="Reintentar" onAction={refetch} />
           ) : loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-36 bg-gray-100 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : cursos.length === 0 ? (
-            <EmptyState
-              icon={BookOpen}
-              title="Sin cursos inscritos"
-              description="Aún no estás inscrito en ningún curso. Contacta a tu coordinador."
-            />
+            <EmptyState icon={BookOpen} title="Sin cursos inscritos" description="Aún no estás inscrito en ningún curso. Contacta a tu coordinador." />
           ) : (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {cursos.map((curso, idx) => {
                 const abiertas = evalAbiertasPorCurso[curso.id] ?? 0;
+                const c = CARD_COLORS[idx % CARD_COLORS.length];
+                const Icono = iconoPorCodigo(curso.codigo);
                 return (
                   <button
                     key={curso.id}
                     onClick={() => navigate(`${ROUTES.MIS_CURSOS}/${curso.id}`)}
                     className={`
-                      w-full text-left border-l-4 ${CARD_ACCENT[idx % CARD_ACCENT.length]}
-                      bg-white rounded-xl px-5 py-4 shadow-sm
-                      hover:shadow-md hover:-translate-y-0.5
-                      transition-all duration-150 group
-                      flex items-center justify-between gap-4
+                      text-left border-t-4 ${c.border} ${c.bg}
+                      rounded-2xl p-5 shadow-sm
+                      hover:shadow-lg hover:-translate-y-1
+                      active:scale-95
+                      transition-all duration-200 group
+                      flex flex-col gap-3
                     `}
                   >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="bg-gray-50 p-2.5 rounded-lg flex-shrink-0">
-                        <BookOpen className="w-5 h-5 text-gray-500" />
+                    {/* Icono + badge */}
+                    <div className="flex items-start justify-between">
+                      <div className={`p-2 rounded-xl ${c.iconBg}`}>
+                        <Icono className={`w-5 h-5 ${c.icon}`} />
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-mono text-gray-400 leading-none mb-1">{curso.codigo}</p>
-                        <p className="font-semibold text-gray-900 leading-snug truncate">{curso.nombre}</p>
-                        {curso.descripcion && (
-                          <p className="text-xs text-gray-500 mt-0.5 truncate">{curso.descripcion}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
                       {abiertas > 0 && (
-                        <span className="text-xs bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
+                        <span className="flex items-center gap-1 text-xs bg-orange-500 text-white px-2.5 py-1 rounded-full font-bold shadow-sm">
                           {abiertas} pendiente{abiertas > 1 ? 's' : ''}
                         </span>
                       )}
-                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors" />
+                    </div>
+
+                    {/* Texto */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-mono text-gray-400 leading-none mb-1 uppercase tracking-wide">{curso.codigo}</p>
+                      <p className="font-semibold text-gray-900 leading-snug line-clamp-2">{curso.nombre}</p>
+                      {curso.descripcion && (
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">{curso.descripcion}</p>
+                      )}
+                    </div>
+
+                    {/* CTA */}
+                    <div className={`flex items-center gap-1 text-xs font-semibold ${c.icon} mt-auto`}>
+                      Ir al curso
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </button>
                 );
@@ -121,22 +147,23 @@ export const DashboardEstudiante: React.FC = () => {
             </div>
           )}
 
-          {/* Acceso rápido a PQRS — siempre visible */}
-          <div className="border-t border-gray-100 pt-4">
+          {/* PQRS — sección administrativa claramente separada */}
+          <div className="pt-2">
+            <p className="text-xs text-gray-400 uppercase tracking-widest mb-3 font-medium">Gestión</p>
             <button
               onClick={() => navigate(ROUTES.PQRS)}
-              className="w-full flex items-center justify-between gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group"
+              className="w-full flex items-center justify-between gap-4 bg-white border border-dashed border-gray-300 rounded-xl px-5 py-3.5 hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
             >
               <div className="flex items-center gap-3">
-                <div className="bg-blue-50 p-2.5 rounded-lg">
-                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <MessageSquare className="w-4 h-4 text-blue-600" />
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-gray-900">Mis PQRS</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Ver estado de tus solicitudes y respuestas</p>
+                  <p className="text-sm font-semibold text-gray-700">Mis PQRS</p>
+                  <p className="text-xs text-gray-400">Peticiones, quejas, reclamos y sugerencias</p>
                 </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 flex-shrink-0" />
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
             </button>
           </div>
 

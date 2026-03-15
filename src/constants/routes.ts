@@ -18,6 +18,8 @@ export const ROUTES = {
   CREAR_EVALUACION: '/evaluaciones/nueva',
   CALIFICAR: '/calificar',
   REPORTES: '/reportes',
+  MIS_CURSOS_MAESTRO: '/mis-cursos-maestro',
+  CURSO_MAESTRO_DETALLE: '/mis-cursos-maestro/:id',
   
   // Rutas de Coordinador
   USUARIOS: '/usuarios',

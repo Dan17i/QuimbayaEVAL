@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -7,12 +8,27 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Plus, Trash2, GripVertical, Save, Eye, Send, AlertCircle } from 'lucide-react';
 import { Switch } from '../components/ui/switch';
 import { Alert, AlertDescription } from '../components/ui/alert';
+import { cursosService, Curso } from '../services/cursosService';
+import { useAuth } from '../contexts/AuthContext';
 
 export const CrearEvaluacionPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
+  const preselectedCursoId = searchParams.get('cursoId');
+
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [selectedCursoId, setSelectedCursoId] = useState<string>(preselectedCursoId ?? '');
+
+  useEffect(() => {
+    if (!user?.id) return;
+    cursosService.getByProfesor(user.id)
+      .then(setCursos)
+      .catch(() => {});
+  }, [user?.id]);
+
   const [preguntas, setPreguntas] = useState([
     { id: 1, tipo: 'multiple', enunciado: '', opciones: ['', '', '', ''], respuestaCorrecta: 0, puntaje: 1 },
   ]);
@@ -82,7 +98,10 @@ export const CrearEvaluacionPage: React.FC = () => {
       <Layout
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Evaluaciones', href: '/evaluaciones' },
+          ...(preselectedCursoId
+            ? [{ label: cursos.find(c => c.id === Number(preselectedCursoId))?.nombre ?? 'Curso', href: `/mis-cursos-maestro/${preselectedCursoId}` }]
+            : [{ label: 'Evaluaciones', href: '/evaluaciones' }]
+          ),
           { label: 'Nueva Evaluación' },
         ]}
         sidebar={sidebar}
@@ -128,14 +147,16 @@ export const CrearEvaluacionPage: React.FC = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="curso">Curso *</Label>
-                  <Select>
+                  <Select value={selectedCursoId} onValueChange={setSelectedCursoId}>
                     <SelectTrigger id="curso">
                       <SelectValue placeholder="Selecciona un curso" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="MAT-301">MAT-301 - Cálculo Integral</SelectItem>
-                      <SelectItem value="MAT-205">MAT-205 - Álgebra Lineal</SelectItem>
-                      <SelectItem value="FIS-301">FIS-301 - Física III</SelectItem>
+                      {cursos.map(c => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {c.codigo} — {c.nombre}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

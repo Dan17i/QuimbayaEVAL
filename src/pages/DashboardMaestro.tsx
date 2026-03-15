@@ -1,148 +1,183 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { FileText, ClipboardList, BarChart3, Plus, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { StatCard } from '../components/StatCard';
-import { useEvaluaciones } from '../hooks/useEvaluaciones';
-import { useCursos } from '../hooks/useCursos';
+import {
+  BookOpen, ChevronRight, AlertCircle,
+  Calculator, Code2, FlaskConical, Database, Globe,
+  Music, Palette, Dumbbell, Landmark, Microscope, ClipboardList,
+} from 'lucide-react';
+import { cursosService, Curso } from '../services/cursosService';
+import { evaluacionesService } from '../services/evaluacionesService';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
-import { formatDate } from '../utils/date';
-import { EstadoEvaluacion, Estadistica } from '../types';
-import { StatCardSkeleton } from '../components/SkeletonLoader';
-import { MessageSquare, Users } from 'lucide-react';
+import { EmptyState } from '../components/EmptyState';
+import { toast } from 'sonner';
+
+const CARD_COLORS = [
+  { border: 'border-blue-400',    bg: 'bg-blue-50',    icon: 'text-blue-600',    iconBg: 'bg-blue-100'    },
+  { border: 'border-emerald-400', bg: 'bg-emerald-50', icon: 'text-emerald-600', iconBg: 'bg-emerald-100' },
+  { border: 'border-violet-400',  bg: 'bg-violet-50',  icon: 'text-violet-600',  iconBg: 'bg-violet-100'  },
+  { border: 'border-amber-400',   bg: 'bg-amber-50',   icon: 'text-amber-600',   iconBg: 'bg-amber-100'   },
+  { border: 'border-rose-400',    bg: 'bg-rose-50',    icon: 'text-rose-600',    iconBg: 'bg-rose-100'    },
+  { border: 'border-teal-400',    bg: 'bg-teal-50',    icon: 'text-teal-600',    iconBg: 'bg-teal-100'    },
+];
+
+function iconoPorCodigo(codigo: string) {
+  const c = codigo.toUpperCase();
+  if (c.startsWith('MAT') || c.startsWith('CALC') || c.startsWith('EST')) return Calculator;
+  if (c.startsWith('BD') || c.startsWith('DAT') || c.startsWith('DB'))   return Database;
+  if (c.startsWith('PROG') || c.startsWith('SIS') || c.startsWith('WEB') || c.startsWith('INF')) return Code2;
+  if (c.startsWith('FIS') || c.startsWith('QUI') || c.startsWith('BIO')) return FlaskConical;
+  if (c.startsWith('ING') || c.startsWith('LEN') || c.startsWith('ESP')) return Globe;
+  if (c.startsWith('MUS') || c.startsWith('ART'))  return Music;
+  if (c.startsWith('DIS') || c.startsWith('GRA'))  return Palette;
+  if (c.startsWith('EDF') || c.startsWith('DEP'))  return Dumbbell;
+  if (c.startsWith('HIS') || c.startsWith('SOC') || c.startsWith('POL')) return Landmark;
+  if (c.startsWith('MED') || c.startsWith('SAL'))  return Microscope;
+  return BookOpen;
+}
 
 export const DashboardMaestro: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { evaluaciones, evaluacionesRecientes, loading: loadingEvals } = useEvaluaciones();
-  const { cursos, loading: loadingCursos } = useCursos();
 
-  const loading = loadingEvals || loadingCursos;
+  const [cursos, setCursos] = useState<Curso[]>([]);
+  const [pendientesPorCurso, setPendientesPorCurso] = useState<Record<number, number>>({});
+  const [loading, setLoading] = useState(true);
 
-  const evaluacionesActivas = useMemo(() =>
-    evaluaciones.filter(e => e.estado === 'Activa'), [evaluaciones]
-  );
+  useEffect(() => {
+    if (!user?.id) return;
+    const load = async () => {
+      try {
+        setLoading(true);
+        const misCursos = await cursosService.getByProfesor(user.id);
+        setCursos(misCursos);
 
-  const porCalificar = useMemo(() =>
-    evaluaciones.filter(e => e.estado === 'Cerrada'), [evaluaciones]
-  );
-
-  const estadisticas = useMemo<Estadistica[]>(() => [
-    { label: 'Evaluaciones Activas', value: String(evaluacionesActivas.length), icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Por Calificar', value: String(porCalificar.length), icon: ClipboardList, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Mis Cursos', value: String(cursos.length), icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Total Evaluaciones', value: String(evaluaciones.length), icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-50' },
-  ], [evaluacionesActivas, porCalificar, cursos, evaluaciones]);
-
-  const getEstadoBadge = (estado: EstadoEvaluacion) => {
-    const badges = {
-      'Activa': <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs"><Clock className="w-3 h-3" /> Activa</span>,
-      'Cerrada': <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs"><CheckCircle className="w-3 h-3" /> Cerrada</span>,
-      'Programada': <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs"><Clock className="w-3 h-3" /> Programada</span>,
-      'Borrador': <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-xs"><AlertCircle className="w-3 h-3" /> Borrador</span>,
+        // Para cada curso, contar evaluaciones cerradas (por calificar)
+        const counts: Record<number, number> = {};
+        await Promise.all(
+          misCursos.map(async (curso) => {
+            try {
+              const evals = await evaluacionesService.getByCurso(curso.id);
+              counts[curso.id] = evals.filter(e => e.estado === 'Cerrada').length;
+            } catch {
+              counts[curso.id] = 0;
+            }
+          })
+        );
+        setPendientesPorCurso(counts);
+      } catch (err) {
+        toast.error('Error al cargar tus cursos');
+      } finally {
+        setLoading(false);
+      }
     };
-    return badges[estado as keyof typeof badges];
-  };
+    load();
+  }, [user?.id]);
+
+  const saludo = useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Buenos días';
+    if (h < 18) return 'Buenas tardes';
+    return 'Buenas noches';
+  }, []);
+
+  const firstName = user?.name?.split(' ')[0] ?? 'Profesor';
+  const totalPendientes = Object.values(pendientesPorCurso).reduce((a, b) => a + b, 0);
 
   return (
     <ProtectedRoute allowedRoles={['maestro']}>
-      <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
-        <div className="space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <h2>Bienvenido, {user?.name || 'Profesor'}</h2>
-              <p className="text-gray-600 mt-2">Resumen de tus evaluaciones y actividad reciente</p>
-            </div>
-            <Button className="flex items-center gap-2 w-full sm:w-auto" onClick={() => navigate(ROUTES.CREAR_EVALUACION)}>
-              <Plus className="w-4 h-4" />
-              Nueva Evaluación
-            </Button>
-          </div>
+      <Layout breadcrumbs={[{ label: 'Inicio' }]}>
+        <div className="max-w-4xl mx-auto py-2 space-y-6">
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            {loading ? (
-              Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
-            ) : (
-              estadisticas.map((stat) => <StatCard key={stat.label} stat={stat} />)
-            )}
-          </div>
-
-          {/* Evaluaciones Recientes */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Evaluaciones Recientes</CardTitle>
-              <CardDescription>Gestiona tus evaluaciones activas y próximas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <p className="text-gray-500 text-sm">Cargando...</p>
-              ) : evaluacionesRecientes.length === 0 ? (
-                <p className="text-gray-500 text-sm">No hay evaluaciones aún.</p>
-              ) : (
-                <div className="space-y-4">
-                  {evaluacionesRecientes.map((evaluacion) => (
-                    <div key={evaluacion.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-gray-900 truncate">{evaluacion.name}</h3>
-                          {getEstadoBadge(evaluacion.estado)}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-gray-600">
-                          <span>Curso: {evaluacion.curso}</span>
-                          <span className="hidden sm:inline">•</span>
-                          <span>Límite: {formatDate(evaluacion.deadline)}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {evaluacion.estado === 'Borrador' && (
-                          <Button variant="outline" size="sm">Editar</Button>
-                        )}
-                        {evaluacion.estado === 'Cerrada' && (
-                          <Button size="sm" onClick={() => navigate(ROUTES.CALIFICAR)}>Calificar</Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          {/* Saludo */}
+          <div>
+            <p className="text-sm text-gray-400">{saludo},</p>
+            <h1 className="text-2xl font-bold text-gray-900 mt-0.5">
+              Bienvenido, {firstName} 👋
+            </h1>
+            <p className="text-gray-500 mt-3 text-sm">
+              Tienes <span className="font-semibold text-gray-700">{cursos.length}</span> curso{cursos.length !== 1 ? 's' : ''} asignado{cursos.length !== 1 ? 's' : ''}
+              {totalPendientes > 0 && (
+                <> y <span className="font-semibold text-orange-600">{totalPendientes} evaluación{totalPendientes !== 1 ? 'es' : ''} por calificar</span></>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.CREAR_EVALUACION)}>
-              <CardHeader>
-                <div className="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <FileText className="w-6 h-6 text-blue-600" />
-                </div>
-                <CardTitle>Crear Evaluación</CardTitle>
-                <CardDescription>Inicia una nueva evaluación desde cero</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.CALIFICAR)}>
-              <CardHeader>
-                <div className="bg-orange-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <ClipboardList className="w-6 h-6 text-orange-600" />
-                </div>
-                <CardTitle>Calificar</CardTitle>
-                <CardDescription>Revisa y califica las evaluaciones pendientes</CardDescription>
-              </CardHeader>
-            </Card>
-            <Card className="hover:shadow-lg hover:border-green-300 transition-all cursor-pointer" onClick={() => navigate(ROUTES.REPORTES)}>
-              <CardHeader>
-                <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <BarChart3 className="w-6 h-6 text-green-600" />
-                </div>
-                <CardTitle>Ver Reportes</CardTitle>
-                <CardDescription>Analiza el desempeño de tus estudiantes</CardDescription>
-              </CardHeader>
-            </Card>
+            </p>
           </div>
+
+          {/* Grid de cursos */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-40 bg-gray-100 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : cursos.length === 0 ? (
+            <EmptyState
+              icon={BookOpen}
+              title="Sin cursos asignados"
+              description="Aún no tienes cursos asignados. Contacta al coordinador."
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cursos.map((curso, idx) => {
+                const porCalificar = pendientesPorCurso[curso.id] ?? 0;
+                const c = CARD_COLORS[idx % CARD_COLORS.length];
+                const Icono = iconoPorCodigo(curso.codigo);
+                const esUltimaImpar = cursos.length % 3 === 1 && idx === cursos.length - 1;
+                return (
+                  <button
+                    key={curso.id}
+                    onClick={() => navigate(`/mis-cursos-maestro/${curso.id}`)}
+                    className={`
+                      text-left border-t-4 ${c.border} ${c.bg}
+                      rounded-2xl p-5 shadow-sm
+                      hover:shadow-lg hover:-translate-y-1
+                      active:scale-95
+                      transition-all duration-200 group
+                      flex flex-col gap-4
+                      ${esUltimaImpar ? 'sm:col-start-1 lg:col-start-2' : ''}
+                    `}
+                  >
+                    {/* Icono + badge */}
+                    <div className="flex items-start justify-between">
+                      <div className={`p-3 rounded-xl ${c.iconBg}`}>
+                        <Icono className={`w-6 h-6 ${c.icon}`} />
+                      </div>
+                      {porCalificar > 0 && (
+                        <span className="flex items-center gap-1 text-xs bg-orange-500 text-white px-3 py-1.5 rounded-full font-bold shadow-md">
+                          <ClipboardList className="w-3 h-3" />
+                          {porCalificar} por calificar
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Texto */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-mono text-gray-400 leading-none mb-2 uppercase tracking-wide">{curso.codigo}</p>
+                      <p className="font-semibold text-gray-900 leading-snug line-clamp-2">{curso.nombre}</p>
+                      {curso.descripcion && (
+                        <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">{curso.descripcion}</p>
+                      )}
+                    </div>
+
+                    {/* CTA */}
+                    <div className={`
+                      flex items-center justify-center gap-2
+                      text-xs font-semibold ${c.icon}
+                      border-2 ${c.border} rounded-xl
+                      py-2.5 px-4
+                      group-hover:bg-white/70 transition-colors
+                    `}>
+                      Gestionar curso
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
         </div>
       </Layout>
     </ProtectedRoute>

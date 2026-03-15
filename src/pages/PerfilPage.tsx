@@ -123,12 +123,12 @@ export const PerfilPage: React.FC = () => {
             {/* Encabezado */}
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-4">
                   {perfil.fotoUrl ? (
                     <img src={perfil.fotoUrl} alt="Foto de perfil"
-                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-200" />
+                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 flex-shrink-0" />
                   ) : (
-                    <Iniciales name={perfil.name} />
+                    <div className="flex-shrink-0"><Iniciales name={perfil.name} /></div>
                   )}
                   <div>
                     <h2 className="text-xl">{perfil.name}</h2>

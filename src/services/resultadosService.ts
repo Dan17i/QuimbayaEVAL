@@ -15,17 +15,23 @@ export interface Resultado {
 export interface ResultadoDetalle {
   id: number;
   submissionId: number;
+  estudianteId?: number;
   estudianteNombre: string;
   estudianteEmail: string;
+  documentoEstudiante?: string; // ID o código del estudiante (para procesos administrativos)
+  evaluacionId?: number;
   evaluacionNombre: string;
+  cursoId?: number;
   cursoNombre: string;
+  profesorId?: number;
   profesorNombre: string;
   puntuacionTotal: number;
   puntuacionMaxima: number;
   porcentaje: number;
   notaEscala: number;
   estadoAprobacion: 'Aprobado' | 'Reprobado';
-  createdAt: string;
+  createdAt: string; // Fecha de entrega de la evaluación
+  fechaEntrega?: string; // Fecha de entrega formateada
 }
 
 export interface ResumenCurso {

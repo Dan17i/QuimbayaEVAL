@@ -22,6 +22,7 @@ const PQRSPage = lazy(() => import('./pages/PQRSPage').then(module => ({ default
 const MisCursosPage = lazy(() => import('./pages/MisCursosPage').then(module => ({ default: module.MisCursosPage })));
 const CursoDetallePage = lazy(() => import('./pages/CursoDetallePage').then(module => ({ default: module.CursoDetallePage })));
 const RealizarEvaluacionPage = lazy(() => import('./pages/RealizarEvaluacionPage').then(module => ({ default: module.RealizarEvaluacionPage })));
+const CursoMaestroPage = lazy(() => import('./pages/CursoMaestroPage').then(module => ({ default: module.CursoMaestroPage })));
 
 /**
  * Componente ProtectedRoute para validar autenticación y roles
@@ -109,6 +110,14 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['maestro']}>
             <CrearEvaluacionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mis-cursos-maestro/:id"
+        element={
+          <ProtectedRoute allowedRoles={['maestro']}>
+            <CursoMaestroPage />
           </ProtectedRoute>
         }
       />

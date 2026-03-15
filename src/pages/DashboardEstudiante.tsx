@@ -27,9 +27,9 @@ const CARD_COLORS = [
 function iconoPorCodigo(codigo: string) {
   const c = codigo.toUpperCase();
   if (c.startsWith('MAT') || c.startsWith('CALC') || c.startsWith('EST')) return Calculator;
-  if (c.startsWith('PROG') || c.startsWith('SIS') || c.startsWith('BD') || c.startsWith('WEB')) return Code2;
+  if (c.startsWith('BD') || c.startsWith('DAT') || c.startsWith('DB')) return Database;
+  if (c.startsWith('PROG') || c.startsWith('SIS') || c.startsWith('WEB') || c.startsWith('INF')) return Code2;
   if (c.startsWith('FIS') || c.startsWith('QUI') || c.startsWith('BIO')) return FlaskConical;
-  if (c.startsWith('DB') || c.startsWith('DAT')) return Database;
   if (c.startsWith('ING') || c.startsWith('LEN') || c.startsWith('ESP')) return Globe;
   if (c.startsWith('MUS') || c.startsWith('ART')) return Music;
   if (c.startsWith('DIS') || c.startsWith('GRA')) return Palette;
@@ -102,6 +102,8 @@ export const DashboardEstudiante: React.FC = () => {
                 const abiertas = evalAbiertasPorCurso[curso.id] ?? 0;
                 const c = CARD_COLORS[idx % CARD_COLORS.length];
                 const Icono = iconoPorCodigo(curso.codigo);
+                // Si es la última tarjeta y el total es impar en un grid de 3, centrarla
+                const esUltimaImpar = cursos.length % 3 === 1 && idx === cursos.length - 1;
                 return (
                   <button
                     key={curso.id}
@@ -113,6 +115,7 @@ export const DashboardEstudiante: React.FC = () => {
                       active:scale-95
                       transition-all duration-200 group
                       flex flex-col gap-3
+                      ${esUltimaImpar ? 'sm:col-start-1 lg:col-start-2' : ''}
                     `}
                   >
                     {/* Icono + badge */}
@@ -136,8 +139,14 @@ export const DashboardEstudiante: React.FC = () => {
                       )}
                     </div>
 
-                    {/* CTA */}
-                    <div className={`flex items-center gap-1 text-xs font-semibold ${c.icon} mt-auto`}>
+                    {/* CTA con más área de clic */}
+                    <div className={`
+                      flex items-center justify-center gap-1.5
+                      text-xs font-semibold ${c.icon}
+                      border ${c.border} rounded-lg
+                      py-2 px-3 mt-1
+                      group-hover:bg-white/60 transition-colors
+                    `}>
                       Ir al curso
                       <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </div>

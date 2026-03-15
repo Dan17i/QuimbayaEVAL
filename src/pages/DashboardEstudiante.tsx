@@ -76,7 +76,7 @@ export const DashboardEstudiante: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-900 mt-0.5">
                 Bienvenido, {firstName} 👋
               </h1>
-              <p className="text-gray-500 mt-1 text-sm">
+              <p className="text-gray-500 mt-3 text-sm">
                 Tienes <span className="font-semibold text-gray-700">{cursos.length}</span> curso{cursos.length !== 1 ? 's' : ''} activos
                 {totalPendientes > 0 && (
                   <> y <span className="font-semibold text-orange-600">{totalPendientes} evaluación{totalPendientes !== 1 ? 'es' : ''} pendiente{totalPendientes !== 1 ? 's' : ''}</span></>
@@ -114,17 +114,17 @@ export const DashboardEstudiante: React.FC = () => {
                       hover:shadow-lg hover:-translate-y-1
                       active:scale-95
                       transition-all duration-200 group
-                      flex flex-col gap-3
+                      flex flex-col gap-4
                       ${esUltimaImpar ? 'sm:col-start-1 lg:col-start-2' : ''}
                     `}
                   >
                     {/* Icono + badge */}
                     <div className="flex items-start justify-between">
-                      <div className={`p-2 rounded-xl ${c.iconBg}`}>
-                        <Icono className={`w-5 h-5 ${c.icon}`} />
+                      <div className={`p-3 rounded-xl ${c.iconBg}`}>
+                        <Icono className={`w-6 h-6 ${c.icon}`} />
                       </div>
                       {abiertas > 0 && (
-                        <span className="flex items-center gap-1 text-xs bg-orange-500 text-white px-2.5 py-1 rounded-full font-bold shadow-sm">
+                        <span className="flex items-center gap-1 text-xs bg-orange-500 text-white px-3 py-1.5 rounded-full font-bold shadow-md">
                           {abiertas} pendiente{abiertas > 1 ? 's' : ''}
                         </span>
                       )}
@@ -132,23 +132,23 @@ export const DashboardEstudiante: React.FC = () => {
 
                     {/* Texto */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-mono text-gray-400 leading-none mb-1 uppercase tracking-wide">{curso.codigo}</p>
+                      <p className="text-[10px] font-mono text-gray-400 leading-none mb-2 uppercase tracking-wide">{curso.codigo}</p>
                       <p className="font-semibold text-gray-900 leading-snug line-clamp-2">{curso.nombre}</p>
                       {curso.descripcion && (
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2 leading-relaxed">{curso.descripcion}</p>
+                        <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">{curso.descripcion}</p>
                       )}
                     </div>
 
-                    {/* CTA con más área de clic */}
+                    {/* CTA con padding generoso */}
                     <div className={`
-                      flex items-center justify-center gap-1.5
+                      flex items-center justify-center gap-2
                       text-xs font-semibold ${c.icon}
-                      border ${c.border} rounded-lg
-                      py-2 px-3 mt-1
-                      group-hover:bg-white/60 transition-colors
+                      border-2 ${c.border} rounded-xl
+                      py-2.5 px-4
+                      group-hover:bg-white/70 transition-colors
                     `}>
                       Ir al curso
-                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   </button>
                 );

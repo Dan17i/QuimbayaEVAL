@@ -58,22 +58,15 @@ export const pqrsService = {
       const { data } = await api.post<ApiResponse<PQRS>>('/pqrs', pqrs);
       return data.data;
     } catch (err: any) {
-      // Log detallado para diagnóstico
-      console.group('[pqrsService.create] Error');
-      console.log('Status:', err?.response?.status);
-      console.log('Body:', err?.response?.data);
-      console.log('Message:', err?.message);
-      console.groupEnd();
+      const msg: string = err?.response?.data?.message ?? '';
 
-      // Si el backend devolvió el objeto creado dentro del error (serialización parcial)
-      const responseData = err?.response?.data;
-      if (responseData && typeof responseData === 'object' && 'id' in responseData) {
-        return responseData as PQRS;
+      // El backend creó la PQRS pero falla al leer la clave generada (KeyHolder bug).
+      // El mensaje contiene el objeto completo — extraemos el id.
+      const idMatch = msg.match(/id=(\d+)/);
+      if (idMatch) {
+        return { id: Number(idMatch[1]) } as PQRS;
       }
-      // Si data.data existe (wrapper ApiResponse)
-      if (responseData?.data && typeof responseData.data === 'object' && 'id' in responseData.data) {
-        return responseData.data as PQRS;
-      }
+
       throw err;
     }
   },

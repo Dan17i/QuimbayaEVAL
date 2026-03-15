@@ -29,7 +29,6 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ success: boolean; message: string }>) => {
     if (error.response?.status === 401) {
-      // Token expirado o inválido
       localStorage.removeItem('quimbayaeval_token');
       localStorage.removeItem('quimbayaeval_user');
       window.location.href = '/login';
@@ -37,9 +36,13 @@ api.interceptors.response.use(
         description: 'Por favor, inicia sesión nuevamente',
       });
     } else if (error.response?.data?.message) {
-      toast.error('Error', {
-        description: error.response.data.message,
-      });
+      const msg = error.response.data.message;
+      // Suprimir toast si el mensaje contiene el objeto creado (bug de KeyHolder en backend)
+      // — el servicio lo maneja y muestra confirmación al usuario
+      const isKeyHolderBug = msg.includes('getKey method') && msg.includes('id=');
+      if (!isKeyHolderBug) {
+        toast.error('Error', { description: msg });
+      }
     } else if (error.message === 'Network Error') {
       toast.error('Error de conexión', {
         description: 'No se pudo conectar con el servidor',

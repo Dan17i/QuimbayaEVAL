@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
-import { BookOpen, ChevronRight, AlertCircle } from 'lucide-react';
+import { BookOpen, ChevronRight, AlertCircle, MessageSquare } from 'lucide-react';
 import { useCursos } from '../hooks/useCursos';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useAuth } from '../contexts/AuthContext';
@@ -120,6 +120,25 @@ export const DashboardEstudiante: React.FC = () => {
               })}
             </div>
           )}
+
+          {/* Acceso rápido a PQRS — siempre visible */}
+          <div className="border-t border-gray-100 pt-4">
+            <button
+              onClick={() => navigate(ROUTES.PQRS)}
+              className="w-full flex items-center justify-between gap-4 bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-50 p-2.5 rounded-lg">
+                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold text-gray-900">Mis PQRS</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Ver estado de tus solicitudes y respuestas</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 flex-shrink-0" />
+            </button>
+          </div>
 
         </div>
       </Layout>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
@@ -9,12 +9,13 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import {
-  BookOpen, Clock, CheckCircle, AlertCircle,
-  MessageSquare, Play, FileDown, ChevronLeft,
+  Clock, CheckCircle, AlertCircle,
+  MessageSquare, Play, FileDown, ChevronLeft, Star,
 } from 'lucide-react';
 import { useCursos } from '../hooks/useCursos';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { pqrsService, TipoPQRS } from '../services/pqrsService';
+import { resultadosService, ResultadoDetalle } from '../services/resultadosService';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { formatDateTime } from '../utils/date';
@@ -127,6 +128,24 @@ export const CursoDetallePage: React.FC = () => {
   const evalsAbiertas = useMemo(() => evalsCurso.filter(e => e.estado === 'Activa'), [evalsCurso]);
   const evalsProximas = useMemo(() => evalsCurso.filter(e => e.estado === 'Programada'), [evalsCurso]);
   const evalsCerradas = useMemo(() => evalsCurso.filter(e => e.estado === 'Cerrada'), [evalsCurso]);
+
+  // Resultados del estudiante para este curso
+  const [resultados, setResultados] = useState<ResultadoDetalle[]>([]);
+  const [loadingResultados, setLoadingResultados] = useState(true);
+
+  useEffect(() => {
+    resultadosService.getMisResultados()
+      .then(all => {
+        // Filtramos por nombre de curso (el backend devuelve cursoNombre)
+        if (curso) {
+          setResultados(all.filter(r => r.cursoNombre === curso.nombre));
+        } else {
+          setResultados(all);
+        }
+      })
+      .catch(() => { /* interceptor */ })
+      .finally(() => setLoadingResultados(false));
+  }, [curso]);
 
   // PQRS modal
   const [pqrsOpen, setPqrsOpen] = useState(false);
@@ -331,6 +350,53 @@ export const CursoDetallePage: React.FC = () => {
               </div>
             </section>
           )}
+
+          {/* Mis calificaciones en este curso */}
+          <section>
+            <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <Star className="w-4 h-4 text-yellow-500" />
+              Mis Calificaciones
+            </h2>
+
+            {loadingResultados ? (
+              <div className="space-y-2">{Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-14 bg-gray-100 rounded-lg animate-pulse" />)}</div>
+            ) : resultados.length === 0 ? (
+              <p className="text-sm text-gray-400 py-4 text-center">Aún no tienes evaluaciones calificadas en este curso.</p>
+            ) : (
+              <div className="space-y-2">
+                {resultados.map(r => {
+                  const aprobado = r.estadoAprobacion === 'Aprobado';
+                  return (
+                    <div
+                      key={r.id}
+                      className={`rounded-xl px-4 py-3 border flex items-center justify-between gap-4 ${
+                        aprobado
+                          ? 'bg-green-50 border-green-200'
+                          : 'bg-red-50 border-red-200'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{r.evaluacionNombre}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {r.puntuacionTotal} / {r.puntuacionMaxima} pts · {r.porcentaje.toFixed(1)}%
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-lg font-bold ${aprobado ? 'text-green-700' : 'text-red-600'}`}>
+                          {r.notaEscala.toFixed(1)}
+                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          aprobado ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+                        }`}>
+                          {r.estadoAprobacion}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
         </div>
 

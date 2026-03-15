@@ -54,8 +54,28 @@ export const pqrsService = {
   },
 
   async create(pqrs: CreatePQRSRequest): Promise<PQRS> {
-    const { data } = await api.post<ApiResponse<PQRS>>('/pqrs', pqrs);
-    return data.data;
+    try {
+      const { data } = await api.post<ApiResponse<PQRS>>('/pqrs', pqrs);
+      return data.data;
+    } catch (err: any) {
+      // El backend a veces devuelve 500 por error de serialización JPA
+      // pero la PQRS sí fue creada. Si la respuesta contiene el objeto, lo usamos.
+      const responseData = err?.response?.data;
+      if (responseData && typeof responseData === 'object' && 'id' in responseData) {
+        return responseData as PQRS;
+      }
+      // Si el mensaje de error contiene el objeto serializado (como string), lo parseamos
+      const msg: string = err?.response?.data?.message ?? err?.message ?? '';
+      const match = msg.match(/\[(\{id=\d+.*?\})\]/s);
+      if (match) {
+        // Construimos un objeto mínimo con el id extraído
+        const idMatch = match[1].match(/id=(\d+)/);
+        if (idMatch) {
+          return { id: Number(idMatch[1]) } as PQRS;
+        }
+      }
+      throw err;
+    }
   },
 
   async update(id: number, pqrs: Partial<CreatePQRSRequest>): Promise<PQRS> {

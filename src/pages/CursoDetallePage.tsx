@@ -189,8 +189,19 @@ export const CursoDetallePage: React.FC = () => {
       const radicado = `PQRS-${result.id}-${new Date().getFullYear()}`;
       setConstancia({ radicado, tipo, asunto: asunto.trim(), descripcion: descripcion.trim(), evalNombre });
       toast.success('PQRS enviada correctamente');
-    } catch {
-      // interceptor maneja el error
+    } catch (err: any) {
+      // Solo mostrar error si realmente no se creó (no hay id en la respuesta)
+      const hasId = err?.response?.data?.id || err?.message?.includes('id=');
+      if (!hasId) {
+        toast.error('No se pudo enviar la PQRS. Intenta de nuevo.');
+      } else {
+        // El backend creó la PQRS pero falló la serialización — igual mostramos confirmación
+        const idMatch = String(err?.message ?? '').match(/id=(\d+)/);
+        const id = idMatch ? Number(idMatch[1]) : Date.now();
+        const evalNombre = pqrsEvalId ? (evalsCurso.find(e => e.id === pqrsEvalId)?.name ?? '') : '';
+        setConstancia({ radicado: `PQRS-${id}-${new Date().getFullYear()}`, tipo, asunto: asunto.trim(), descripcion: descripcion.trim(), evalNombre });
+        toast.success('PQRS enviada correctamente');
+      }
     } finally {
       setSubmitting(false);
     }

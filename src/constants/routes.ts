@@ -8,6 +8,7 @@ export const ROUTES = {
   
   // Rutas de Estudiante
   MIS_CURSOS: '/mis-cursos',
+  CURSO_DETALLE: '/mis-cursos/:id',
   MIS_EVALUACIONES: '/mis-evaluaciones',
   REALIZAR_EVALUACION: '/realizar-evaluacion',
   HISTORIAL: '/historial',

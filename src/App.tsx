@@ -20,6 +20,7 @@ const CursosAdminPage = lazy(() => import('./pages/CursosAdminPage').then(module
 const PerfilPage = lazy(() => import('./pages/PerfilPage').then(module => ({ default: module.PerfilPage })));
 const PQRSPage = lazy(() => import('./pages/PQRSPage').then(module => ({ default: module.PQRSPage })));
 const MisCursosPage = lazy(() => import('./pages/MisCursosPage').then(module => ({ default: module.MisCursosPage })));
+const CursoDetallePage = lazy(() => import('./pages/CursoDetallePage').then(module => ({ default: module.CursoDetallePage })));
 const RealizarEvaluacionPage = lazy(() => import('./pages/RealizarEvaluacionPage').then(module => ({ default: module.RealizarEvaluacionPage })));
 
 /**
@@ -134,6 +135,14 @@ function AppRouter() {
         element={
           <ProtectedRoute allowedRoles={['estudiante']}>
             <MisCursosPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mis-cursos/:id"
+        element={
+          <ProtectedRoute allowedRoles={['estudiante']}>
+            <CursoDetallePage />
           </ProtectedRoute>
         }
       />

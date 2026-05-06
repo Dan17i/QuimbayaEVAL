@@ -1,18 +1,14 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "composite": true,
     "module": "ESNext",
-    "moduleResolution": "node",
-    "target": "ES2020",
-    "lib": ["ES2020"],
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "lib": ["ES2022"],
     "types": ["node"],
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "outDir": "dist"
+    "skipLibCheck": true
   },
-  "include": ["**/*.ts", "**/*.tsx", "vite.config.ts", "node/**/*.ts"],
-  "exclude": ["node_modules", "dist", "build"]
+  "include": ["vite.config.ts"]
 }

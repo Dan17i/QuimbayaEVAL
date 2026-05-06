@@ -716,7 +716,7 @@ export const PQRSPage: React.FC = () => {
             {puedeCrear && (
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="flex items-center gap-2 w-full sm:w-auto bg-white text-orange-600 hover:bg-orange-50 border border-white/40 font-semibold shadow-sm">
+                  <Button className="flex items-center gap-2 w-full sm:w-auto bg-white text-orange-700 hover:bg-orange-50 border-2 border-white font-semibold shadow-sm">
                     <Plus className="w-4 h-4" />
                     Nueva Solicitud
                   </Button>

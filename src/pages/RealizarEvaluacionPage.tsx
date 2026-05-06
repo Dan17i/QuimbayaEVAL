@@ -13,7 +13,7 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EmptyState } from '../components/EmptyState';
 import {
   Clock, ChevronLeft, ChevronRight, CheckCircle,
-  AlertTriangle, Save, FileText, Send,
+  AlertTriangle, FileText, Send,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { evaluacionesService, Evaluacion } from '../services/evaluacionesService';
@@ -60,13 +60,19 @@ export const RealizarEvaluacionPage: React.FC = () => {
         setPreguntas(pqs);
         setTiempoRestante((ev.duracionMinutos ?? 60) * 60);
 
-        // Restaurar borrador guardado localmente
+        // Restaurar borrador — se muestra después de que loading termine
         if (user?.id) {
           const saved = localStorage.getItem(draftKey(ev.id, user.id));
           if (saved) {
             try {
               setRespuestas(JSON.parse(saved));
-              toast.info('Borrador restaurado', { description: 'Se recuperaron tus respuestas anteriores' });
+              // Diferir el toast para que aparezca cuando la UI ya está visible
+              setTimeout(() => {
+                toast.info('Borrador restaurado', {
+                  description: 'Se recuperaron tus respuestas anteriores',
+                  duration: 3000,
+                });
+              }, 400);
             } catch { /* borrador corrupto, ignorar */ }
           }
         }
@@ -199,16 +205,13 @@ export const RealizarEvaluacionPage: React.FC = () => {
                 <h1 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{evaluacion.nombre}</h1>
               </div>
               <div className="flex items-center gap-3">
-                {/* Indicador de guardado */}
-                <div className="flex items-center gap-1.5 text-xs min-w-[90px]">
-                  {guardadoEstado === 'saving' && (
-                    <><Save className="w-3.5 h-3.5 text-gray-400 animate-pulse" /><span className="text-gray-400">Guardando...</span></>
-                  )}
+                {/* Indicador de guardado — reserva espacio fijo para evitar layout shift */}
+                <div className="flex items-center gap-1.5 text-xs w-[88px] justify-end" aria-live="polite" aria-atomic="true">
                   {guardadoEstado === 'saved' && (
-                    <><CheckCircle className="w-3.5 h-3.5 text-green-500" /><span className="text-green-600 font-medium">Guardado</span></>
+                    <><CheckCircle className="w-3.5 h-3.5 text-green-600 flex-shrink-0" /><span className="text-green-700 font-medium">Guardado</span></>
                   )}
                   {guardadoEstado === 'error' && (
-                    <><AlertTriangle className="w-3.5 h-3.5 text-red-500" /><span className="text-red-500">Sin guardar</span></>
+                    <><AlertTriangle className="w-3.5 h-3.5 text-red-600 flex-shrink-0" /><span className="text-red-700 font-medium">Sin guardar</span></>
                   )}
                 </div>
 
@@ -369,12 +372,12 @@ export const RealizarEvaluacionPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Botón finalizar móvil (siempre visible en mobile) */}
+          {/* Botón finalizar móvil — área táctil mínima 48px (Apple HIG / Material) */}
           <div className="sm:hidden">
             <Button
               onClick={() => setConfirmarFinalizar(true)}
               disabled={submitting}
-              className="w-full bg-green-600 hover:bg-green-700 py-3 text-base"
+              className="w-full bg-green-600 hover:bg-green-700 min-h-[48px] text-base font-semibold"
             >
               <Send className="w-5 h-5 mr-2" />
               Finalizar y Enviar Evaluación

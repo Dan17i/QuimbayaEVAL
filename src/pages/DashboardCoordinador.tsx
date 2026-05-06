@@ -239,14 +239,35 @@ export const DashboardCoordinador: React.FC = () => {
                   <CardContent>
                     <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
-                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                        <Pie
+                          data={pieData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={52}
+                          outerRadius={80}
+                          dataKey="value"
+                          paddingAngle={3}
+                        >
                           {pieData.map((_, i) => (
                             <Cell key={i} fill={PIE_COLORS[i]} />
                           ))}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip formatter={(value, name) => [`${value} estudiantes`, name]} />
+                        <Legend
+                          iconType="circle"
+                          iconSize={10}
+                          formatter={(value, entry: any) => (
+                            <span className="text-xs text-gray-700">
+                              {value} ({entry.payload.value})
+                            </span>
+                          )}
+                        />
                       </PieChart>
                     </ResponsiveContainer>
+                    {/* Valor central — aprovecha el espacio del donut */}
+                    <p className="text-center text-xs text-gray-500 -mt-2">
+                      {metricas?.pctAprobacion}% aprobación
+                    </p>
                   </CardContent>
                 </Card>
 

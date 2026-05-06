@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { Button } from './ui/button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './ui/breadcrumb';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from './ui/sheet';
-import { Home, LogOut, BookOpen, Users, BarChart3, MessageSquare, FileText, ClipboardList, Menu } from 'lucide-react';
+import { Home, LogOut, BookOpen, Users, BarChart3, MessageSquare, FileText, ClipboardList, Menu, Sun, Moon } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }) => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,9 +54,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header - Aplicando principio de Proximidad (Gestalt) - Optimizado para móvil */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 shadow-sm">
         <div className="px-3 sm:px-4 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
           {/* Menú móvil y Logo */}
           <div className="flex items-center gap-2 sm:gap-3">
@@ -113,18 +115,35 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
             </div>
           </div>
           {/* Información de usuario agrupada - Responsivo */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="text-right hidden md:block cursor-pointer hover:opacity-75 transition-opacity"
               onClick={() => navigate('/perfil')} title="Ver mi perfil">
-              <p className="text-sm text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+              <p className="text-sm text-gray-900 dark:text-gray-100">{user?.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+
+            {/* Toggle día/noche */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+              className="h-8 w-8 sm:h-10 sm:w-10 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-gray-600" />
+              )}
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={logout}
               aria-label="Cerrar sesión"
-              className="h-8 w-8 sm:h-10 sm:w-10 hover:bg-red-50 hover:text-red-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="h-8 w-8 sm:h-10 sm:w-10 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
@@ -134,10 +153,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-65px)] lg:min-h-[calc(100vh-73px)] sticky top-[65px] lg:top-[73px]">
+        <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 min-h-[calc(100vh-65px)] lg:min-h-[calc(100vh-73px)] sticky top-[65px] lg:top-[73px]">
           {/* Avatar + nombre del usuario */}
           <div
-            className="flex items-center gap-3 px-4 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 px-4 py-4 border-b border-gray-100 dark:border-gray-800 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             onClick={() => navigate('/perfil')}
             title="Ver mi perfil"
           >
@@ -153,8 +172,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{user?.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role}</p>
             </div>
           </div>
 
@@ -167,7 +186,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
                 className={`w-full flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-lg transition-all duration-200 ${
                   location.pathname === item.href
                     ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-700 dark:hover:text-blue-400'
                 } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
                 aria-current={location.pathname === item.href ? 'page' : undefined}
               >
@@ -178,10 +197,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
           </nav>
 
           {/* Cerrar sesión al pie */}
-          <div className="p-3 lg:p-4 border-t border-gray-100">
+          <div className="p-3 lg:p-4 border-t border-gray-100 dark:border-gray-800">
             <button
               onClick={logout}
-              className="w-full flex items-center gap-3 px-3 lg:px-4 py-2.5 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+              className="w-full flex items-center gap-3 px-3 lg:px-4 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
             >
               <LogOut className="w-5 h-5 flex-shrink-0" />
               <span className="text-sm">Cerrar sesión</span>
@@ -192,7 +211,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, breadcrumbs, sidebar }
         {/* Main Content - Aplicando sistema de espaciado 8pt */}
         <main className="flex-1" role="main">
           {breadcrumbs && breadcrumbs.length > 0 && (
-            <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+            <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 sm:px-6 lg:px-8 py-4">
               <Breadcrumb>
                 <BreadcrumbList>
                   {breadcrumbs.map((crumb, index) => (

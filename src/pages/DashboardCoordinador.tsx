@@ -1,30 +1,98 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Users, BarChart3, TrendingUp, FileDown, AlertTriangle, BookOpen } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  Users, BarChart3, TrendingUp, FileDown, BookOpen,
+  AlertTriangle, CheckCircle, MessageSquare, TrendingDown,
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell, Legend,
+} from 'recharts';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useCursos } from '../hooks/useCursos';
+import { resultadosService, ResultadoDetalle } from '../services/resultadosService';
 import { StatCardSkeleton } from '../components/SkeletonLoader';
+import { useAuth } from '../contexts/AuthContext';
+
+// Colores semánticos para la gráfica de torta
+const PIE_COLORS = ['#22c55e', '#ef4444']; // verde aprobados, rojo reprobados
 
 export const DashboardCoordinador: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
   const { evaluaciones, loading: loadingEvals } = useEvaluaciones();
   const { cursos, loading: loadingCursos } = useCursos();
 
+  const [resultados, setResultados] = useState<ResultadoDetalle[]>([]);
+  const [loadingResultados, setLoadingResultados] = useState(false);
+
   const loading = loadingEvals || loadingCursos;
 
-  // Construir datos de gráfica a partir de cursos reales
-  const desempenoPorCurso = useMemo(() =>
+  // Cargar resultados de todos los cursos para analítica global
+  useEffect(() => {
+    if (cursos.length === 0) return;
+    const cargar = async () => {
+      setLoadingResultados(true);
+      try {
+        const todos = await Promise.all(
+          cursos.map(c => resultadosService.getByCurso(c.id).catch(() => [] as ResultadoDetalle[]))
+        );
+        setResultados(todos.flat());
+      } finally {
+        setLoadingResultados(false);
+      }
+    };
+    cargar();
+  }, [cursos.length]);
+
+  // ── Métricas globales ────────────────────────────────────────────
+  const metricas = useMemo(() => {
+    const total = resultados.length;
+    if (total === 0) return null;
+    const aprobados = resultados.filter(r => r.estadoAprobacion === 'Aprobado').length;
+    const reprobados = total - aprobados;
+    const notas = resultados.map(r => r.notaEscala ?? r.porcentaje / 20);
+    const promedio = notas.reduce((a, b) => a + b, 0) / notas.length;
+    return {
+      total,
+      aprobados,
+      reprobados,
+      pctAprobacion: ((aprobados / total) * 100).toFixed(0),
+      promedio: promedio.toFixed(2),
+    };
+  }, [resultados]);
+
+  // ── Evaluaciones por curso (gráfica de barras) ───────────────────
+  const evalsPorCurso = useMemo(() =>
     cursos.slice(0, 8).map(c => ({
       curso: c.codigo,
-      evaluaciones: evaluaciones.filter(e => e.curso === c.codigo).length,
-    })),
+      evaluaciones: evaluaciones.filter(e => e.cursoId === c.id).length,
+    })).filter(d => d.evaluaciones > 0),
     [cursos, evaluaciones]
   );
+
+  // ── Aprobación por curso (gráfica de barras apiladas) ────────────
+  const aprobacionPorCurso = useMemo(() => {
+    return cursos.slice(0, 8).map(c => {
+      const res = resultados.filter(r => r.cursoId === c.id || r.cursoNombre === c.nombre);
+      const aprobados = res.filter(r => r.estadoAprobacion === 'Aprobado').length;
+      const reprobados = res.filter(r => r.estadoAprobacion === 'Reprobado').length;
+      return { curso: c.codigo, aprobados, reprobados };
+    }).filter(d => d.aprobados + d.reprobados > 0);
+  }, [cursos, resultados]);
+
+  // ── Torta global aprobados/reprobados ────────────────────────────
+  const pieData = metricas
+    ? [
+        { name: 'Aprobados', value: metricas.aprobados },
+        { name: 'Reprobados', value: metricas.reprobados },
+      ]
+    : [];
 
   const evaluacionesActivas = useMemo(() =>
     evaluaciones.filter(e => e.estado === 'Activa'), [evaluaciones]
@@ -34,71 +102,78 @@ export const DashboardCoordinador: React.FC = () => {
     <ProtectedRoute allowedRoles={['coordinador']}>
       <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
         <div className="space-y-8">
-          <div className="flex items-center justify-between">
+
+          {/* Header — verde (gestión/asistencia según marco) */}
+          <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div>
-              <h2>Panel de Coordinación</h2>
-              <p className="text-gray-600 mt-2">Indicadores institucionales y reportes analíticos</p>
+              <h2 className="text-white text-xl font-bold">Panel de Coordinación</h2>
+              <p className="text-emerald-100 text-sm mt-0.5">Indicadores institucionales y reportes analíticos</p>
             </div>
-            <Button className="flex items-center gap-2" onClick={() => navigate('/reportes')}>
-              <FileDown className="w-4 h-4" />
+            <Button
+              className="bg-white text-emerald-700 hover:bg-emerald-50 font-semibold shadow-sm w-full sm:w-auto"
+              onClick={() => navigate('/reportes')}
+            >
+              <FileDown className="w-4 h-4 mr-2" />
               Exportar Reporte
             </Button>
           </div>
 
-          {/* KPIs */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {/* KPIs operativos */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {loading ? (
               Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
             ) : (
               <>
                 <Card>
-                  <CardContent className="pt-6 pb-6">
-                    <div className="flex items-start justify-between gap-3">
+                  <CardContent className="pt-5 pb-5">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm text-gray-600">Total Cursos</p>
-                        <p className="text-3xl mt-2">{cursos.length}</p>
+                        <p className="text-xs text-gray-500">Total Cursos</p>
+                        <p className="text-3xl font-bold mt-1 text-gray-900">{cursos.length}</p>
                       </div>
-                      <div className="bg-blue-50 p-3 rounded-lg">
-                        <BarChart3 className="w-6 h-6 text-blue-600" />
+                      <div className="bg-blue-50 p-2.5 rounded-lg">
+                        <BookOpen className="w-5 h-5 text-blue-600" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-6 pb-6">
-                    <div className="flex items-start justify-between gap-3">
+                  <CardContent className="pt-5 pb-5">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm text-gray-600">Evaluaciones Activas</p>
-                        <p className="text-3xl mt-2">{evaluacionesActivas.length}</p>
+                        <p className="text-xs text-gray-500">Evaluaciones Activas</p>
+                        <p className="text-3xl font-bold mt-1 text-gray-900">{evaluacionesActivas.length}</p>
                       </div>
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <TrendingUp className="w-6 h-6 text-green-600" />
+                      <div className="bg-green-50 p-2.5 rounded-lg">
+                        <TrendingUp className="w-5 h-5 text-green-600" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-6 pb-6">
-                    <div className="flex items-start justify-between gap-3">
+                  <CardContent className="pt-5 pb-5">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm text-gray-600">Total Evaluaciones</p>
-                        <p className="text-3xl mt-2">{evaluaciones.length}</p>
+                        <p className="text-xs text-gray-500">Total Evaluaciones</p>
+                        <p className="text-3xl font-bold mt-1 text-gray-900">{evaluaciones.length}</p>
                       </div>
-                      <div className="bg-purple-50 p-3 rounded-lg">
-                        <Users className="w-6 h-6 text-purple-600" />
+                      <div className="bg-purple-50 p-2.5 rounded-lg">
+                        <BarChart3 className="w-5 h-5 text-purple-600" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardContent className="pt-6 pb-6">
-                    <div className="flex items-start justify-between gap-3">
+                  <CardContent className="pt-5 pb-5">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm text-gray-600">Cerradas</p>
-                        <p className="text-3xl mt-2">{evaluaciones.filter(e => e.estado === 'Cerrada').length}</p>
+                        <p className="text-xs text-gray-500">Por Calificar</p>
+                        <p className="text-3xl font-bold mt-1 text-gray-900">
+                          {evaluaciones.filter(e => e.estado === 'Cerrada').length}
+                        </p>
                       </div>
-                      <div className="bg-orange-50 p-3 rounded-lg">
-                        <AlertTriangle className="w-6 h-6 text-orange-600" />
+                      <div className="bg-orange-50 p-2.5 rounded-lg">
+                        <AlertTriangle className="w-5 h-5 text-orange-600" />
                       </div>
                     </div>
                   </CardContent>
@@ -107,66 +182,161 @@ export const DashboardCoordinador: React.FC = () => {
             )}
           </div>
 
-          {/* Gráfica evaluaciones por curso */}
-          {!loading && desempenoPorCurso.length > 0 && (
+          {/* Analítica global de desempeño */}
+          {loadingResultados ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-28 bg-gray-100 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          ) : metricas && (
+            <>
+              {/* KPIs de desempeño */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                  Desempeño institucional
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <Card className="border-green-200">
+                    <CardContent className="pt-4 pb-4 text-center">
+                      <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-green-700">{metricas.pctAprobacion}%</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Tasa de aprobación</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-blue-200">
+                    <CardContent className="pt-4 pb-4 text-center">
+                      <TrendingUp className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-blue-700">{metricas.promedio}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Promedio institucional</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-emerald-200">
+                    <CardContent className="pt-4 pb-4 text-center">
+                      <Users className="w-6 h-6 text-emerald-600 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-emerald-700">{metricas.aprobados}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Estudiantes aprobados</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-red-200">
+                    <CardContent className="pt-4 pb-4 text-center">
+                      <TrendingDown className="w-6 h-6 text-red-500 mx-auto mb-1" />
+                      <p className="text-2xl font-bold text-red-600">{metricas.reprobados}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Estudiantes reprobados</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Gráficas */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Torta aprobados/reprobados */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Aprobación global</CardTitle>
+                    <CardDescription>Distribución institucional</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                          {pieData.map((_, i) => (
+                            <Cell key={i} fill={PIE_COLORS[i]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Barras aprobación por curso */}
+                {aprobacionPorCurso.length > 0 && (
+                  <Card className="lg:col-span-2">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">Aprobación por curso</CardTitle>
+                      <CardDescription>Aprobados vs reprobados por materia</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={aprobacionPorCurso}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="curso" tick={{ fontSize: 11 }} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="aprobados" name="Aprobados" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="reprobados" name="Reprobados" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Evaluaciones por curso */}
+          {!loading && evalsPorCurso.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Evaluaciones por Curso</CardTitle>
+                <CardTitle>Actividad evaluativa por curso</CardTitle>
                 <CardDescription>Cantidad de evaluaciones registradas por materia</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={desempenoPorCurso}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={evalsPorCurso}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="curso" />
                     <YAxis allowDecimals={false} />
                     <Tooltip />
-                    <Bar dataKey="evaluaciones" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="evaluaciones" name="Evaluaciones" fill="#3b82f6" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
           )}
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Accesos rápidos */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer" onClick={() => navigate('/reportes')}>
               <CardHeader>
-                <div className="bg-blue-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <BarChart3 className="w-6 h-6 text-blue-600" />
+                <div className="bg-blue-50 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
+                  <BarChart3 className="w-5 h-5 text-blue-600" />
                 </div>
-                <CardTitle>Reportes Avanzados</CardTitle>
-                <CardDescription>Consulta KPIs, filtra por curso y exporta a PDF/XLSX</CardDescription>
+                <CardTitle className="text-base">Reportes</CardTitle>
+                <CardDescription>KPIs y exportación PDF/XLSX</CardDescription>
               </CardHeader>
             </Card>
             <Card className="hover:shadow-lg hover:border-green-300 transition-all cursor-pointer" onClick={() => navigate('/usuarios')}>
               <CardHeader>
-                <div className="bg-green-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <Users className="w-6 h-6 text-green-600" />
+                <div className="bg-green-50 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
+                  <Users className="w-5 h-5 text-green-600" />
                 </div>
-                <CardTitle>Gestión de Usuarios</CardTitle>
-                <CardDescription>Crear, editar roles y activar/bloquear cuentas</CardDescription>
+                <CardTitle className="text-base">Usuarios</CardTitle>
+                <CardDescription>Roles, cuentas y permisos</CardDescription>
               </CardHeader>
             </Card>
             <Card className="hover:shadow-lg hover:border-indigo-300 transition-all cursor-pointer" onClick={() => navigate('/cursos')}>
               <CardHeader>
-                <div className="bg-indigo-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <BookOpen className="w-6 h-6 text-indigo-600" />
+                <div className="bg-indigo-50 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
+                  <BookOpen className="w-5 h-5 text-indigo-600" />
                 </div>
-                <CardTitle>Gestión de Cursos</CardTitle>
-                <CardDescription>Crea cursos, asigna docentes y matricula estudiantes</CardDescription>
+                <CardTitle className="text-base">Cursos</CardTitle>
+                <CardDescription>Docentes y matrículas</CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer" onClick={() => navigate('/pqrs')}>
+            <Card className="hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer" onClick={() => navigate('/pqrs')}>
               <CardHeader>
-                <div className="bg-purple-50 w-12 h-12 rounded-lg flex items-center justify-center mb-3">
-                  <FileDown className="w-6 h-6 text-purple-600" />
+                <div className="bg-orange-50 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
+                  <MessageSquare className="w-5 h-5 text-orange-600" />
                 </div>
-                <CardTitle>PQRS</CardTitle>
-                <CardDescription>Gestiona peticiones, quejas y reclamos</CardDescription>
+                <CardTitle className="text-base">PQRS</CardTitle>
+                <CardDescription>Peticiones y reclamos</CardDescription>
               </CardHeader>
             </Card>
           </div>
+
         </div>
       </Layout>
     </ProtectedRoute>

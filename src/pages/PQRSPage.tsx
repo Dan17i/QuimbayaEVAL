@@ -681,8 +681,8 @@ export const PQRSPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-          <h4 className="text-sm text-blue-900 mb-2">PQRS</h4>
+        <div className="mt-8 p-4 bg-orange-50 rounded-lg border border-orange-200">
+          <h4 className="text-sm text-orange-900 mb-2 font-semibold">Tipos de PQRS</h4>
           <ul className="text-xs text-gray-600 space-y-1">
             <li><strong>Petición:</strong> Consultas generales</li>
             <li><strong>Queja:</strong> Insatisfacción con el servicio</li>
@@ -701,10 +701,11 @@ export const PQRSPage: React.FC = () => {
         sidebar={sidebar}
       >
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {/* Banner naranja — PQRS/Foros (neuropsicología: fomenta comunicación) */}
+          <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div>
-              <h2>PQRS - Peticiones, Quejas, Reclamos y Sugerencias</h2>
-              <p className="text-gray-600 mt-2">
+              <h2 className="text-white text-xl font-bold">PQRS</h2>
+              <p className="text-orange-100 text-sm mt-0.5">
                 {esCoordinador
                   ? 'Gestión y seguimiento de solicitudes de la comunidad académica'
                   : 'Canal de comunicación con el equipo académico'}
@@ -715,7 +716,7 @@ export const PQRSPage: React.FC = () => {
             {puedeCrear && (
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="flex items-center gap-2 w-full sm:w-auto">
+                  <Button className="flex items-center gap-2 w-full sm:w-auto bg-white text-orange-600 hover:bg-orange-50 border border-white/40 font-semibold shadow-sm">
                     <Plus className="w-4 h-4" />
                     Nueva Solicitud
                   </Button>

@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 /**
  * Hook para manejar evaluaciones — mapea datos del backend al formato de la UI
  */
-export const useEvaluaciones = (filters?: EvaluacionFilters) => {
+export const useEvaluaciones = (filters?: EvaluacionFilters, activas?: boolean) => {
   const [evaluaciones, setEvaluaciones] = useState<Evaluacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +17,7 @@ export const useEvaluaciones = (filters?: EvaluacionFilters) => {
       setLoading(true);
       setError(null);
       const [rawEvals, cursos] = await Promise.all([
-        evaluacionesService.getAll(filters),
+        activas ? evaluacionesService.getActivas() : evaluacionesService.getAll(filters),
         cursosService.getAll(),
       ]);
 
@@ -47,7 +47,7 @@ export const useEvaluaciones = (filters?: EvaluacionFilters) => {
 
   useEffect(() => {
     fetchEvaluaciones();
-  }, [JSON.stringify(filters)]);
+  }, [JSON.stringify(filters), activas]);
 
   const evaluacionesAbiertas = useMemo(() => 
     evaluaciones.filter(e => e.estado === 'Activa'), 

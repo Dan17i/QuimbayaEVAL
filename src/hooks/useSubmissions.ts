@@ -13,7 +13,7 @@ export const useSubmissions = (estudianteId?: number) => {
       setError(null);
       const data = estudianteId
         ? await submissionsService.getByEstudiante(estudianteId)
-        : await submissionsService.getAll();
+        : await submissionsService.getMisSubmissions();
       setSubmissions(data);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar submissions';

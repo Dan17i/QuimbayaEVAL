@@ -24,7 +24,8 @@ export interface CreatePQRSRequest {
   tipo: TipoPQRS;
   asunto: string;
   descripcion: string;
-  cursoId?: number;
+  cursoId: number;
+  destinatario: 'maestro' | 'coordinador';
 }
 
 export interface ResponderPQRSRequest {
@@ -83,5 +84,15 @@ export const pqrsService = {
 
   async delete(id: number): Promise<void> {
     await api.delete(`/pqrs/${id}`);
+  },
+
+  async cambiarEstado(id: number, estado: EstadoPQRS): Promise<PQRS> {
+    try {
+      const { data } = await api.put<ApiResponse<PQRS>>(`/pqrs/${id}/estado`, { estado });
+      return data.data;
+    } catch (err: any) {
+      const msg: string = err?.response?.data?.message ?? 'Error al cambiar el estado';
+      throw new Error(msg);
+    }
   },
 };

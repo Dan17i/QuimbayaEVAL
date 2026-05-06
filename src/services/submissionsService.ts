@@ -19,7 +19,6 @@ export interface Submission {
 
 export interface CreateSubmissionRequest {
   evaluacionId: number;
-  estudianteId: number;
   respuestasJson: string;
   estado: EstadoSubmission;
   intentoNumero: number;
@@ -28,6 +27,11 @@ export interface CreateSubmissionRequest {
 export const submissionsService = {
   async getAll(): Promise<Submission[]> {
     const { data } = await api.get<ApiResponse<Submission[]>>('/submissions');
+    return data.data;
+  },
+
+  async getMisSubmissions(): Promise<Submission[]> {
+    const { data } = await api.get<ApiResponse<Submission[]>>('/submissions/mis-submissions');
     return data.data;
   },
 

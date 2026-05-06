@@ -17,6 +17,9 @@ import { EmptyState } from '../components/EmptyState';
 export const MisEvaluacionesPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  // Activas: desde el endpoint filtrado por matrícula
+  const { evaluaciones: evaluacionesActivasRaw } = useEvaluaciones(undefined, true);
+  // Programadas y cerradas: desde getAll
   const { evaluaciones, getByEstado } = useEvaluaciones();
   const { cursos } = useCursos();
 
@@ -29,32 +32,32 @@ export const MisEvaluacionesPage: React.FC = () => {
     if (cursoId) setCursoFiltro(cursoId);
   }, [searchParams]);
 
-  const evaluacionesAbiertas = useMemo(() => 
-    getByEstado('Activa').filter(e => 
+  const evaluacionesAbiertas = useMemo(() =>
+    evaluacionesActivasRaw.filter(e =>
       cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro
-    ), 
+    ),
+    [evaluacionesActivasRaw, cursoFiltro]
+  );
+
+  const evaluacionesProximas = useMemo(() =>
+    getByEstado('Programada').filter(e =>
+      cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro
+    ),
     [getByEstado, cursoFiltro]
   );
 
-  const evaluacionesProximas = useMemo(() => 
-    getByEstado('Programada').filter(e => 
+  const evaluacionesCerradas = useMemo(() =>
+    getByEstado('Cerrada').filter(e =>
       cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro
-    ), 
+    ),
     [getByEstado, cursoFiltro]
   );
 
-  const evaluacionesCerradas = useMemo(() => 
-    getByEstado('Cerrada').filter(e => 
-      cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro
-    ), 
-    [getByEstado, cursoFiltro]
-  );
-
-  // Cursos que tienen al menos una evaluación
+  // Cursos que tienen al menos una evaluación (activas + el resto)
   const cursosConEvals = useMemo(() => {
-    const ids = new Set(evaluaciones.map(e => e.cursoId));
+    const ids = new Set([...evaluaciones, ...evaluacionesActivasRaw].map(e => e.cursoId));
     return cursos.filter(c => ids.has(c.id));
-  }, [evaluaciones, cursos]);
+  }, [evaluaciones, evaluacionesActivasRaw, cursos]);
 
   const cursoActivo = cursoFiltro !== 'Todos'
     ? cursos.find(c => String(c.id) === cursoFiltro)

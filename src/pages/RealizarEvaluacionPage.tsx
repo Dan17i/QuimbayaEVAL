@@ -94,7 +94,6 @@ export const RealizarEvaluacionPage: React.FC = () => {
     try {
       await submissionsService.create({
         evaluacionId: evaluacion.id,
-        estudianteId: Number(user.id),
         respuestasJson: JSON.stringify(respuestas),
         estado: 'Enviada',
         intentoNumero: 1,

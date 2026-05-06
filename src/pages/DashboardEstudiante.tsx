@@ -43,16 +43,16 @@ export const DashboardEstudiante: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { evaluaciones } = useEvaluaciones();
+  const { evaluaciones: evaluacionesActivas } = useEvaluaciones(undefined, true);
   const { cursos, loading, error, refetch } = useCursos();
 
   const evalAbiertasPorCurso = useMemo(() => {
     const map: Record<number, number> = {};
-    evaluaciones.filter(e => e.estado === 'Activa').forEach(e => {
+    evaluacionesActivas.forEach(e => {
       map[e.cursoId] = (map[e.cursoId] ?? 0) + 1;
     });
     return map;
-  }, [evaluaciones]);
+  }, [evaluacionesActivas]);
 
   const saludo = useMemo(() => {
     const h = new Date().getHours();

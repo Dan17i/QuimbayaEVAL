@@ -119,12 +119,12 @@ export const DashboardCoordinador: React.FC = () => {
   return (
     <ProtectedRoute allowedRoles={['coordinador']}>
       <Layout breadcrumbs={[{ label: 'Dashboard' }]}>
-        <div className="space-y-8">
+        <div className="p-6 md:p-10 space-y-8 w-full">
 
           {/* Header — verde (gestión/asistencia según marco) */}
-          <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div>
-              <h2 className="text-white text-xl font-bold">Panel de Coordinación</h2>
+              <h2 className="text-gray-900 dark:text-white text-xl font-bold">Panel de Coordinación</h2>
               <p className="text-emerald-100 text-sm mt-0.5">Indicadores institucionales y reportes analíticos</p>
             </div>
             <Button
@@ -136,8 +136,8 @@ export const DashboardCoordinador: React.FC = () => {
             </Button>
           </div>
 
-          {/* KPIs operativos — grid-cols-4 forzado para peso visual igual */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+           {/* KPIs operativos — grid-cols-4 forzado para peso visual igual */}
+           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 justify-evenly">
             {loading ? (
               Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
             ) : (
@@ -209,12 +209,12 @@ export const DashboardCoordinador: React.FC = () => {
             </div>
           ) : metricas && (
             <>
-              {/* KPIs de desempeño */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wide mb-3 mt-2">
-                  Desempeño institucional
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                 {/* KPIs de desempeño */}
+               <div>
+                 <h3 className="text-sm font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wide mb-3 mt-2">
+                   Desempeño institucional
+                 </h3>
+                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-evenly">
                   <Card className="border-green-200 dark:border-green-900/50">
                     <CardContent className="pt-5 pb-5 text-center">
                       <CheckCircle className="w-6 h-6 text-green-500 dark:text-green-400 mx-auto mb-2" />

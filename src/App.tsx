@@ -114,6 +114,14 @@ function AppRouter() {
         }
       />
       <Route
+        path="/evaluaciones/:id/editar"
+        element={
+          <ProtectedRoute allowedRoles={['maestro']}>
+            <CrearEvaluacionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/mis-cursos-maestro/:id"
         element={
           <ProtectedRoute allowedRoles={['maestro']}>

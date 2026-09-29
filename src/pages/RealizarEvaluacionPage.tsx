@@ -112,6 +112,21 @@ export const RealizarEvaluacionPage: React.FC = () => {
     return () => clearInterval(auto);
   }, [loading, evaluacion?.id, user?.id]);
 
+  // ── Prevención de cierre accidental (HCI Heurística #5: Prevenir Errores) ──
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (evaluacion && !submitting) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [evaluacion, submitting]);
+
   // ── Guardar borrador (localStorage + indicador visual) ───────────
   const guardarBorrador = useCallback((resp: Record<number, string>) => {
     if (!evaluacion || !user?.id) return;

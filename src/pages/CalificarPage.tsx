@@ -19,7 +19,8 @@ import { ROUTES } from '../constants/routes';
 export const CalificarPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const evaluacionId = Number(searchParams.get('id'));
+  const rawId = searchParams.get('id') || searchParams.get('evaluacionId');
+  const evaluacionId = rawId ? Number(rawId) : 0;
 
   const [evaluacion, setEvaluacion] = useState<Evaluacion | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);

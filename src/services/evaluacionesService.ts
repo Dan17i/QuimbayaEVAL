@@ -87,4 +87,14 @@ export const evaluacionesService = {
   async delete(id: number): Promise<void> {
     await api.delete(`/evaluaciones/${id}`);
   },
+
+  /**
+   * Publica una evaluación en estado Borrador
+   * @param id ID de la evaluación a publicar
+   * @returns Mensaje de confirmación del backend
+   */
+  async publicar(id: number): Promise<string> {
+    const { data } = await api.post<ApiResponse<string>>(`/evaluaciones/${id}/publicar`);
+    return data.data;
+  },
 };

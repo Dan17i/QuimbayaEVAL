@@ -5,6 +5,23 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.2.0] - 2026-09-29
+
+### 🖱️ HCI & DCU - Bloque 1: Reparación de Botones Inertes y Enlaces Rotos
+- **Activación de Publicación de Evaluaciones:**
+  - Agregado método `publicar(id: number): Promise<string>` en `evaluacionesService.ts` apuntando al endpoint `POST /api/evaluaciones/{id}/publicar`.
+  - Reemplazado toast simulado "Funcionalidad próximamente" en `EvaluacionesPage.tsx` por ejecución real asíncrona contra el backend con feedback reactivo `toast.success` y recarga en tiempo real mediante `refetch()`.
+  - Añadido botón "Publicar" directo en `CursoMaestroPage.tsx` para evaluaciones en estado `Borrador`.
+- **Reparación de Enlaces e Incompatibilidad de Parámetros:**
+  - Corregido el parámetro de navegación de "Calificar" en `CursoMaestroPage.tsx` para estandarizar `?id=${e.id}`.
+  - Saneada la recepción de parámetros en `CalificarPage.tsx` aceptando tanto `id` como `evaluacionId` (`searchParams.get('id') || searchParams.get('evaluacionId')`), previniendo expulsión indebida del docente hacia `/evaluaciones`.
+- **Enrutamiento de Edición de Evaluaciones:**
+  - Registrada la constante `ROUTES.EDITAR_EVALUACION = '/evaluaciones/:id/editar'` en `routes.ts`.
+  - Registrada la ruta protegida `/evaluaciones/:id/editar` en `App.tsx` apuntando a `CrearEvaluacionPage.tsx`.
+  - Conectado el botón inerte "Editar" en `CursoMaestroPage.tsx` a su correspondiente ruta de edición.
+- **Prevención de Pérdida de Datos en Exámenes (HCI Heurística #5):**
+  - Implementado listener `beforeunload` en `RealizarEvaluacionPage.tsx` para alertar al estudiante ante intentos accidentales de cerrar la pestaña, recargar o navegar hacia atrás mientras una evaluación activa no haya sido enviada.
+
 ## [1.1.0] - 2026-09-29
 
 ### 🔧 Correcciones y Estabilización de Tipos (Fase 2)

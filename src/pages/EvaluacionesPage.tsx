@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Plus, Search, Filter, MoreVertical, Edit, Send } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
+import { evaluacionesService } from '../services/evaluacionesService';
 import { StatusBadge } from '../components/StatusBadge';
 import { Badge } from '../components/Badge';
 import { EmptyState } from '../components/EmptyState';
@@ -21,10 +22,21 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export const EvaluacionesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { evaluaciones, loading } = useEvaluaciones();
+  const { evaluaciones, loading, refetch } = useEvaluaciones();
   const [filterCurso, setFilterCurso] = useState<string>('all');
   const [filterEstado, setFilterEstado] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const handlePublicar = async (id: number) => {
+    try {
+      const msg = await evaluacionesService.publicar(id);
+      toast.success(msg || 'Evaluación publicada exitosamente');
+      refetch();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al publicar evaluación';
+      toast.error('Error al publicar evaluación', { description: message });
+    }
+  };
 
   const cursosUnicos = useMemo(() => {
     const set = new Set(evaluaciones.map(e => e.curso));
@@ -149,7 +161,7 @@ export const EvaluacionesPage: React.FC = () => {
                                     <Edit className="w-4 h-4 mr-2" /> Editar
                                   </DropdownMenuItem>
                                   {evaluacion.estado === 'Borrador' && (
-                                    <DropdownMenuItem onClick={() => toast.info('Publicar', { description: 'Funcionalidad próximamente' })}>
+                                    <DropdownMenuItem onClick={() => handlePublicar(evaluacion.id)}>
                                       <Send className="w-4 h-4 mr-2" /> Publicar
                                     </DropdownMenuItem>
                                   )}

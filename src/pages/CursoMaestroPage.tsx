@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import {
   Plus, Clock, CheckCircle, AlertCircle, BarChart3,
   ClipboardList, Users, ChevronRight, BookOpen,
-  FileSpreadsheet, FileText, Filter,
+  FileSpreadsheet, FileText, Filter, Send,
 } from 'lucide-react';
 import { cursosService, Curso } from '../services/cursosService';
 import { evaluacionesService, Evaluacion } from '../services/evaluacionesService';
@@ -53,6 +53,18 @@ export const CursoMaestroPage: React.FC = () => {
       .catch(() => toast.error('No se pudieron cargar las evaluaciones'))
       .finally(() => setLoadingEvals(false));
   }, [cursoId]);
+
+  const handlePublicar = async (evalId: number) => {
+    try {
+      const msg = await evaluacionesService.publicar(evalId);
+      toast.success(msg || 'Evaluación publicada exitosamente');
+      const evals = await evaluacionesService.getByCurso(cursoId);
+      setEvaluaciones(evals);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al publicar evaluación';
+      toast.error('Error al publicar evaluación', { description: message });
+    }
+  };
 
   const handleVerReporte = async () => {
     if (mostrarReporte) { setMostrarReporte(false); return; }
@@ -214,12 +226,19 @@ export const CursoMaestroPage: React.FC = () => {
         </p>
       </div>
       {e.estado === 'Cerrada' && (
-        <Button size="sm" onClick={() => navigate(`${ROUTES.CALIFICAR}?evaluacionId=${e.id}`)}>
+        <Button size="sm" onClick={() => navigate(`${ROUTES.CALIFICAR}?id=${e.id}`)}>
           <ClipboardList className="w-3.5 h-3.5 mr-1.5" /> Calificar
         </Button>
       )}
       {e.estado === 'Borrador' && (
-        <Button size="sm" variant="outline">Editar</Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => navigate(`${ROUTES.EVALUACIONES}/${e.id}/editar`)}>
+            Editar
+          </Button>
+          <Button size="sm" onClick={() => handlePublicar(e.id)}>
+            <Send className="w-3.5 h-3.5 mr-1.5" /> Publicar
+          </Button>
+        </div>
       )}
     </div>
   );

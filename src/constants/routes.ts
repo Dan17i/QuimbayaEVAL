@@ -16,6 +16,7 @@ export const ROUTES = {
   // Rutas de Maestro
   EVALUACIONES: '/evaluaciones',
   CREAR_EVALUACION: '/evaluaciones/nueva',
+  EDITAR_EVALUACION: '/evaluaciones/:id/editar',
   CALIFICAR: '/calificar',
   REPORTES: '/reportes',
   MIS_CURSOS_MAESTRO: '/mis-cursos-maestro',

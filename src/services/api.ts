@@ -36,13 +36,7 @@ api.interceptors.response.use(
         description: 'Por favor, inicia sesión nuevamente',
       });
     } else if (error.response?.data?.message) {
-      const msg = error.response.data.message;
-      // Suprimir toast si el mensaje contiene el objeto creado (bug de KeyHolder en backend)
-      // — el servicio lo maneja y muestra confirmación al usuario
-      const isKeyHolderBug = msg.includes('getKey method') && msg.includes('id=');
-      if (!isKeyHolderBug) {
-        toast.error('Error', { description: msg });
-      }
+      toast.error('Error', { description: error.response.data.message });
     } else if (error.message === 'Network Error') {
       toast.error('Error de conexión', {
         description: 'No se pudo conectar con el servidor',

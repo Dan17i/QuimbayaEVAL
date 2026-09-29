@@ -24,7 +24,7 @@ export const CrearEvaluacionPage: React.FC = () => {
 
   useEffect(() => {
     if (!user?.id) return;
-    cursosService.getByProfesor(user.id)
+    cursosService.getByProfesor(Number(user.id))
       .then(setCursos)
       .catch(() => {});
   }, [user?.id]);

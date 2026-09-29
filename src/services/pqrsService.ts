@@ -25,7 +25,7 @@ export interface CreatePQRSRequest {
   asunto: string;
   descripcion: string;
   cursoId: number;
-  destinatario: 'maestro' | 'coordinador';
+  destinatario?: 'maestro' | 'coordinador';
 }
 
 export interface ResponderPQRSRequest {
@@ -55,21 +55,8 @@ export const pqrsService = {
   },
 
   async create(pqrs: CreatePQRSRequest): Promise<PQRS> {
-    try {
-      const { data } = await api.post<ApiResponse<PQRS>>('/pqrs', pqrs);
-      return data.data;
-    } catch (err: any) {
-      const msg: string = err?.response?.data?.message ?? '';
-
-      // El backend creó la PQRS pero falla al leer la clave generada (KeyHolder bug).
-      // El mensaje contiene el objeto completo — extraemos el id.
-      const idMatch = msg.match(/id=(\d+)/);
-      if (idMatch) {
-        return { id: Number(idMatch[1]) } as PQRS;
-      }
-
-      throw err;
-    }
+    const { data } = await api.post<ApiResponse<PQRS>>('/pqrs', pqrs);
+    return data.data;
   },
 
   async update(id: number, pqrs: Partial<CreatePQRSRequest>): Promise<PQRS> {

@@ -8,7 +8,7 @@ import {
   TableRow,
 } from './ui/table';
 import { Button } from './ui/button';
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, FileText, type LucideIcon } from 'lucide-react';
 import { cn } from './ui/utils';
 import { EmptyState } from './EmptyState';
 import { TableRowSkeleton } from './SkeletonLoader';

@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 import { ROUTES } from '../constants/routes';
 
 // Clave de localStorage para borrador
-const draftKey = (evalId: number, userId: number) => `qeval_draft_${evalId}_${userId}`;
+const draftKey = (evalId: number, userId: number | string) => `qeval_draft_${evalId}_${userId}`;
 
 export const RealizarEvaluacionPage: React.FC = () => {
   const navigate = useNavigate();

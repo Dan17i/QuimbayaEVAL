@@ -5,6 +5,24 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.1.0] - 2026-09-29
+
+### 🔧 Correcciones y Estabilización de Tipos (Fase 2)
+- **Alineación de tipos con React 18:** Ajustados `@types/react` a `^18.3.18` y `@types/react-dom` a `^18.3.5` para garantizar compatibilidad con React 18.2.
+- **Resolución integral de errores TypeScript:**
+  - Corregidos imports faltantes en `DataTable.tsx` (`FileText` y `type LucideIcon`).
+  - Corregidas llamadas con tipos mixtos `string`/`number` en `CrearEvaluacionPage.tsx`, `DashboardMaestro.tsx` y `RealizarEvaluacionPage.tsx`.
+  - Reemplazo de palabra reservada `eval` por `item` y uso de `item.name` en `EjemploUsoServicios.tsx`.
+  - Inclusión de `cursoId` requerido en los objetos de prueba de `mockData.ts`.
+  - Independencia de tipos en `debounce.ts` usando `ReturnType<typeof setTimeout>`.
+- **Limpieza de parches de API:**
+  - Eliminado el parche de supresión de error de `KeyHolder` en `api.ts`.
+  - Eliminada la extracción por regex en `pqrsService.ts` tras la resolución de base en el backend.
+  - Parámetro `destinatario` marcado como opcional en `CreatePQRSRequest`.
+- **Limpieza del repositorio:**
+  - Eliminada la carpeta residual huérfana `backend/` dentro del frontend.
+  - Agregado script `npm run typecheck` (`tsc --noEmit`).
+
 ## [1.0.0] - 2025-02-26
 
 ### 🎉 Lanzamiento Inicial

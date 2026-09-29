@@ -51,7 +51,7 @@ export const DashboardMaestro: React.FC = () => {
     const load = async () => {
       try {
         setLoading(true);
-        const misCursos = await cursosService.getByProfesor(user.id);
+        const misCursos = await cursosService.getByProfesor(Number(user.id));
         setCursos(misCursos);
 
         // Para cada curso, contar evaluaciones cerradas (por calificar)

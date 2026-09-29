@@ -93,11 +93,11 @@ export function EjemploEvaluacionesFiltradas() {
   return (
     <div>
       <h2>Quizzes Activos</h2>
-      {evaluaciones.map(eval => (
-        <div key={eval.id}>
-          <h3>{eval.nombre}</h3>
-          <p>Estado: {eval.estado}</p>
-          <p>Tipo: {eval.tipo}</p>
+      {evaluaciones.map(item => (
+        <div key={item.id}>
+          <h3>{item.name}</h3>
+          <p>Estado: {item.estado}</p>
+          <p>Tipo: {item.tipo}</p>
         </div>
       ))}
     </div>
@@ -176,7 +176,6 @@ export function EjemploEntregarEvaluacion() {
       // Crear submission
       const submission = await submissionsService.create({
         evaluacionId: evaluacionId,
-        estudianteId: Number(user?.id) || 1,
         respuestasJson: JSON.stringify({
           pregunta1: { respuesta: 'Bogotá' },
           pregunta2: { respuesta: 'B' }
@@ -219,10 +218,9 @@ export function EjemploCalificar() {
     try {
       const calificacion = await calificacionesService.create({
         submissionId: submissionId,
+        preguntaId: 1,
         puntuacionObtenida: 8.5,
-        puntuacionMaxima: 10.0,
         retroalimentacion: 'Buen trabajo, pero revisa la pregunta 3',
-        calificadoPorId: Number(user?.id) || 1
       });
 
       alert('Calificación guardada');

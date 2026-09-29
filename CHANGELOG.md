@@ -5,6 +5,27 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.3.0] - 2026-09-29
+
+### 📝 HCI & DCU - Bloque 2: Formulario Completo de Creación y Edición de Evaluaciones
+- **Soporte Bimodal (Creación y Edición):**
+  - Detección reactiva de modo a través de parámetros de ruta (`/evaluaciones/nueva` vs. `/evaluaciones/:id/editar`).
+  - Carga asíncrona de datos de evaluación existente y banco de preguntas (`evaluacionesService.getById` y `preguntasService.getByEvaluacion`).
+  - Mapeo bidireccional y robusto de fechas y formatos de cierre (`deadline`) compatibles con `datetime-local` y `LocalDateTime` de Spring Boot.
+- **Gestión Dinámica e Interactiva de Preguntas:**
+  - Soporte completo y enlazado bidireccionalmente para 4 tipos de preguntas: Opción Múltiple (`seleccion_multiple`), Verdadero/Falso (`verdadero_falso`), Respuesta Corta (`respuesta_corta`) y Pregunta Abierta/Ensayo (`ensayo`).
+  - Selección interactiva de la respuesta correcta mediante radio buttons tanto en opción múltiple como en verdadero/falso.
+  - Reordenamiento visual arriba/abajo (`movePregunta`), duplicación instantánea (`duplicatePregunta`) y eliminación con seguimiento de IDs remotos (`deletedPreguntaIds`) para limpieza garantizada en la base de datos.
+- **Cálculo Automático y Distribución de Puntos (HCI / Heurística #1 & #6):**
+  - Visualización en tiempo real del puntaje acumulado total y cantidad de preguntas formuladas.
+  - Herramienta de distribución equitativa de puntuación con ajuste automático de residuo sobre escala 5.0 pts, escala 100 pts o 1.0 pt por pregunta.
+  - Navegación rápida por índice lateral con desplazamiento suave (`scrollIntoView`) hacia cada tarjeta de pregunta.
+- **Validación Preventiva y Persistencia Integral:**
+  - Validación específica según la acción: diferenciación entre "Guardar Borrador" (validación básica) y "Publicar Ahora" (validación estricta de contenidos, enunciados y respuestas correctas).
+  - Persistencia secuencial garantizada: creación/actualización de la evaluación y sincronización atómica de sus preguntas mediante `preguntasService`.
+- **Modal de Vista Previa del Estudiante:**
+  - Incorporación de diálogo accesible (`Dialog`) para previsualizar exactamente cómo el estudiante visualizará la prueba, opciones, cronómetro y preguntas antes de publicarla.
+
 ## [1.2.0] - 2026-09-29
 
 ### 🖱️ HCI & DCU - Bloque 1: Reparación de Botones Inertes y Enlaces Rotos

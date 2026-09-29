@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../components/ui/dialog';
 import { Plus, Trash2, Users, Edit, BookOpen } from 'lucide-react';
 import { DataTable, Column } from '../components/DataTable';
+import { SearchInput } from '../components/SearchInput';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EmptyState } from '../components/EmptyState';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -45,8 +46,19 @@ export const CursosAdminPage: React.FC = () => {
   const [loadingEsts, setLoadingEsts] = useState(false);
   const [estudianteAgregar, setEstudianteAgregar] = useState('');
 
-  // Confirm eliminar
+  // Búsqueda y paginación
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
+
+  // Confirm eliminar curso
   const [confirmEliminar, setConfirmEliminar] = useState<{ open: boolean; curso: Curso | null }>({ open: false, curso: null });
+
+  // Confirm desmatricular estudiante
+  const [confirmDesmatricular, setConfirmDesmatricular] = useState<{
+    open: boolean;
+    estudiante: UserDTO | null;
+  }>({ open: false, estudiante: null });
 
   const cargarDatos = useCallback(async () => {
     setLoading(true);
@@ -67,6 +79,10 @@ export const CursosAdminPage: React.FC = () => {
   }, []);
 
   useEffect(() => { cargarDatos(); }, [cargarDatos]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   // ── Crear / Editar ──────────────────────────────────────────────────────────
   const abrirCrear = () => {
@@ -159,14 +175,21 @@ export const CursosAdminPage: React.FC = () => {
     }
   };
 
-  const quitarEstudiante = async (estudianteId: number) => {
-    if (!cursoSeleccionado) return;
+  const solicitarDesmatricular = (est: UserDTO) => {
+    setConfirmDesmatricular({ open: true, estudiante: est });
+  };
+
+  const ejecutarDesmatricular = async () => {
+    if (!cursoSeleccionado || !confirmDesmatricular.estudiante) return;
+    const estId = confirmDesmatricular.estudiante.id;
     try {
-      await cursosService.desmatricularEstudiante(cursoSeleccionado.id, estudianteId);
-      setEstudiantesCurso(prev => prev.filter(e => e.id !== estudianteId));
+      await cursosService.desmatricularEstudiante(cursoSeleccionado.id, estId);
+      setEstudiantesCurso(prev => prev.filter(e => e.id !== estId));
       toast.success('Estudiante desmatriculado');
     } catch {
       // manejado por interceptor
+    } finally {
+      setConfirmDesmatricular({ open: false, estudiante: null });
     }
   };
 
@@ -176,6 +199,22 @@ export const CursosAdminPage: React.FC = () => {
 
   const getNombreDocente = (profesorId: number) =>
     docentes.find(d => d.id === profesorId)?.name ?? `ID ${profesorId}`;
+
+  const cursosFiltrados = useMemo(() => {
+    if (!searchQuery.trim()) return cursos;
+    const q = searchQuery.toLowerCase();
+    return cursos.filter(c =>
+      c.nombre.toLowerCase().includes(q) ||
+      c.codigo.toLowerCase().includes(q) ||
+      getNombreDocente(c.profesorId).toLowerCase().includes(q)
+    );
+  }, [cursos, searchQuery, docentes]);
+
+  const totalPages = Math.ceil(cursosFiltrados.length / pageSize) || 1;
+  const cursosPaginados = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return cursosFiltrados.slice(start, start + pageSize);
+  }, [cursosFiltrados, currentPage, pageSize]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const setField = (field: keyof CursoForm) => (ev: any) =>
@@ -227,13 +266,24 @@ export const CursosAdminPage: React.FC = () => {
           </div>
 
           <Card>
-            <CardHeader><CardTitle>Lista de Cursos</CardTitle></CardHeader>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <CardTitle>Lista de Cursos</CardTitle>
+                <div className="w-full sm:w-80">
+                  <SearchInput
+                    placeholder="Buscar por código, nombre o docente..."
+                    onSearch={setSearchQuery}
+                    debounceMs={300}
+                  />
+                </div>
+              </div>
+            </CardHeader>
             <CardContent>
               {loading ? (
                 <LoadingSpinner size="lg" text="Cargando cursos..." />
               ) : (
                 <DataTable
-                  data={cursos}
+                  data={cursosPaginados}
                   columns={columns}
                   keyExtractor={(c) => c.id}
                   emptyMessage="No hay cursos registrados"
@@ -242,6 +292,36 @@ export const CursosAdminPage: React.FC = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* ── Barra de Paginación de Cursos ── */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600">
+            <p>
+              {cursosFiltrados.length === 0
+                ? 'No hay cursos que mostrar'
+                : `Mostrando ${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, cursosFiltrados.length)} de ${cursosFiltrados.length} cursos`}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              >
+                Anterior
+              </Button>
+              <span className="text-xs px-2 font-medium">
+                Pág. {currentPage} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              >
+                Siguiente
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* ── Modal Crear / Editar ── */}
@@ -333,7 +413,8 @@ export const CursosAdminPage: React.FC = () => {
                         <p className="text-gray-500 text-xs">{est.email}</p>
                       </div>
                       <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700"
-                        onClick={() => quitarEstudiante(est.id)}>
+                        title="Desmatricular estudiante"
+                        onClick={() => solicitarDesmatricular(est)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </li>
@@ -347,7 +428,7 @@ export const CursosAdminPage: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        {/* ── Confirm Eliminar ── */}
+        {/* ── Confirm Eliminar Curso ── */}
         <ConfirmDialog
           open={confirmEliminar.open}
           onOpenChange={(open) => setConfirmEliminar(prev => ({ ...prev, open }))}
@@ -355,6 +436,16 @@ export const CursosAdminPage: React.FC = () => {
           description={`¿Seguro que deseas eliminar "${confirmEliminar.curso?.nombre}"? Esta acción no se puede deshacer.`}
           variant="destructive"
           onConfirm={eliminarCurso}
+        />
+
+        {/* ── Confirm Desmatricular Estudiante (HCI Prevenir Errores) ── */}
+        <ConfirmDialog
+          open={confirmDesmatricular.open}
+          onOpenChange={(open) => setConfirmDesmatricular(prev => ({ ...prev, open }))}
+          title="¿Desmatricular estudiante?"
+          description={`¿Seguro que deseas desmatricular a "${confirmDesmatricular.estudiante?.name}" del curso "${cursoSeleccionado?.nombre}"?`}
+          variant="destructive"
+          onConfirm={ejecutarDesmatricular}
         />
       </Layout>
     </ProtectedRoute>

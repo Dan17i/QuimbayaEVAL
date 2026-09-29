@@ -5,6 +5,25 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.4.0] - 2026-09-29
+
+### 👥 HCI & DCU - Bloque 3: Módulo Administrativo de Gestión de Cursos y Usuarios
+- **Activación de Acciones Inertes en Gestión de Usuarios (`UsuariosPage.tsx`):**
+  - Conectadas las acciones "Editar Información" y "Cambiar Rol" en el menú de usuario.
+  - Implementado modal accesible para editar nombre, correo y rol del usuario con persistencia en el backend (`usersService.update`).
+  - Implementado diálogo de cambio rápido de rol entre Estudiante, Maestro y Coordinador con retroalimentación inmediata.
+- **Paginación Funcional en Tablas (`UsuariosPage.tsx` y `CursosAdminPage.tsx`):**
+  - Sustituidos botones inertes permanentemente deshabilitados por paginación interactiva reactiva (`currentPage`, `pageSize = 8`, `totalPages`).
+  - Reseteo automático a página 1 al interactuar con filtros de búsqueda o roles.
+  - Indicador numérico de rango visible ("Mostrando X–Y de Z").
+- **Búsqueda Instantánea de Cursos (`CursosAdminPage.tsx`):**
+  - Integrado componente `SearchInput` con debounce de 300ms para filtrar cursos por código, nombre o docente asignado.
+- **Prevención de Errores en Desmatriculación (HCI Heurística #5):**
+  - Añadido diálogo de confirmación destructiva (`ConfirmDialog`) antes de desmatricular a un estudiante de un curso, evitando desvinculaciones por clics accidentales.
+- **Extensión de API Administrativa en Backend (`quimbayaeval-backend`):**
+  - Implementado endpoint `PUT /api/users/{id}` en `UserController.java` para actualización coordinada de datos de usuario (nombre, email, rol).
+  - Agregado método `update` en `usersService.ts` en el frontend.
+
 ## [1.3.0] - 2026-09-29
 
 ### 📝 HCI & DCU - Bloque 2: Formulario Completo de Creación y Edición de Evaluaciones

@@ -59,6 +59,25 @@ export const UsuariosPage: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Estados para editar usuario
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
+  const [editNombre, setEditNombre] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editRol, setEditRol] = useState<Usuario['rol']>('Estudiante');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // Estados para cambiar rol rápidamente
+  const [cambiarRolDialogOpen, setCambiarRolDialogOpen] = useState(false);
+  const [usuarioRolTarget, setUsuarioRolTarget] = useState<Usuario | null>(null);
+  const [nuevoRolSeleccionado, setNuevoRolSeleccionado] = useState<Usuario['rol']>('Estudiante');
+  const [savingRol, setSavingRol] = useState(false);
+
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -85,6 +104,72 @@ export const UsuariosPage: React.FC = () => {
   };
 
   useEffect(() => { cargarUsuarios(); }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterRol, filterEstado, searchQuery]);
+
+  const abrirEditarUsuario = (usuario: Usuario) => {
+    setUsuarioEditando(usuario);
+    setEditNombre(usuario.nombre);
+    setEditEmail(usuario.email);
+    setEditRol(usuario.rol);
+    setEditDialogOpen(true);
+  };
+
+  const handleGuardarEdicion = async () => {
+    if (!usuarioEditando) return;
+    if (!editNombre.trim() || !editEmail.trim()) {
+      toast.error('Campos incompletos', { description: 'Nombre y correo son requeridos' });
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      await usersService.update(usuarioEditando.id, {
+        name: editNombre.trim(),
+        email: editEmail.trim(),
+        role: editRol.toLowerCase(),
+      });
+      setUsuarios(prev => prev.map(u =>
+        u.id === usuarioEditando.id
+          ? { ...u, nombre: editNombre.trim(), email: editEmail.trim(), rol: editRol }
+          : u
+      ));
+      toast.success('Usuario actualizado', { description: `${editNombre} ha sido modificado exitosamente` });
+      setEditDialogOpen(false);
+    } catch {
+      toast.error('Error al actualizar usuario');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const abrirCambiarRol = (usuario: Usuario) => {
+    setUsuarioRolTarget(usuario);
+    setNuevoRolSeleccionado(usuario.rol);
+    setCambiarRolDialogOpen(true);
+  };
+
+  const handleConfirmarCambioRol = async () => {
+    if (!usuarioRolTarget) return;
+    setSavingRol(true);
+    try {
+      await usersService.update(usuarioRolTarget.id, {
+        role: nuevoRolSeleccionado.toLowerCase(),
+      });
+      setUsuarios(prev => prev.map(u =>
+        u.id === usuarioRolTarget.id ? { ...u, rol: nuevoRolSeleccionado } : u
+      ));
+      toast.success('Rol actualizado', {
+        description: `El rol de ${usuarioRolTarget.nombre} ahora es ${nuevoRolSeleccionado}`,
+      });
+      setCambiarRolDialogOpen(false);
+    } catch {
+      toast.error('Error al actualizar rol');
+    } finally {
+      setSavingRol(false);
+    }
+  };
 
   const handleCrearUsuario = async () => {
     if (!nuevoNombre.trim() || !nuevoEmail.trim() || !nuevoRol || !nuevoPassword.trim()) {
@@ -145,6 +230,12 @@ export const UsuariosPage: React.FC = () => {
 
     return filtrados;
   }, [filterRol, filterEstado, searchQuery]);
+
+  const totalPages = Math.ceil(usuariosFiltrados.length / pageSize) || 1;
+  const usuariosPaginados = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return usuariosFiltrados.slice(start, start + pageSize);
+  }, [usuariosFiltrados, currentPage, pageSize]);
 
   const getEstadoBadge = (estado: 'Activo' | 'Bloqueado') => {
     return estado === 'Activo' ? (
@@ -261,11 +352,11 @@ export const UsuariosPage: React.FC = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => abrirEditarUsuario(usuario)}>
               <Edit className="w-4 h-4 mr-2" />
               Editar Información
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => abrirCambiarRol(usuario)}>
               <Shield className="w-4 h-4 mr-2" />
               Cambiar Rol
             </DropdownMenuItem>
@@ -427,7 +518,7 @@ export const UsuariosPage: React.FC = () => {
                 <LoadingSpinner size="lg" text="Cargando usuarios..." />
               ) : (
                 <DataTable
-                  data={usuariosFiltrados}
+                  data={usuariosPaginados}
                   columns={columns}
                   keyExtractor={(usuario) => usuario.id}
                   emptyMessage="No se encontraron usuarios"
@@ -437,14 +528,121 @@ export const UsuariosPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <p>Mostrando {usuariosFiltrados.length} de {usuarios.length} usuarios</p>
+          {/* ── Barra de Paginación Funcional ── */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600">
+            <p>
+              {usuariosFiltrados.length === 0
+                ? 'No hay usuarios que mostrar'
+                : `Mostrando ${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, usuariosFiltrados.length)} de ${usuariosFiltrados.length} usuarios`}
+            </p>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>Anterior</Button>
-              <Button variant="outline" size="sm" disabled>Siguiente</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              >
+                Anterior
+              </Button>
+              <span className="text-xs px-2 font-medium">
+                Pág. {currentPage} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              >
+                Siguiente
+              </Button>
             </div>
           </div>
         </div>
+
+        {/* ── Modal Editar Información ── */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Información de Usuario</DialogTitle>
+              <DialogDescription>
+                Modifica los datos del usuario en el sistema
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-nombre">Nombre Completo</Label>
+                <Input
+                  id="edit-nombre"
+                  value={editNombre}
+                  onChange={e => setEditNombre(e.target.value)}
+                  placeholder="Nombre del usuario"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Correo Electrónico</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editEmail}
+                  onChange={e => setEditEmail(e.target.value)}
+                  placeholder="correo@universidad.edu"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-rol">Rol</Label>
+                <Select value={editRol} onValueChange={v => setEditRol(v as Usuario['rol'])}>
+                  <SelectTrigger id="edit-rol">
+                    <SelectValue placeholder="Selecciona un rol" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Estudiante">Estudiante</SelectItem>
+                    <SelectItem value="Maestro">Maestro</SelectItem>
+                    <SelectItem value="Coordinador">Coordinador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleGuardarEdicion} disabled={savingEdit}>
+                {savingEdit ? 'Guardando...' : 'Guardar Cambios'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Modal Cambiar Rol Rápido ── */}
+        <Dialog open={cambiarRolDialogOpen} onOpenChange={setCambiarRolDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Cambiar Rol de Usuario</DialogTitle>
+              <DialogDescription>
+                Asigna un nuevo rol para {usuarioRolTarget?.nombre}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="cambiar-rol-select">Nuevo Rol</Label>
+                <Select value={nuevoRolSeleccionado} onValueChange={v => setNuevoRolSeleccionado(v as Usuario['rol'])}>
+                  <SelectTrigger id="cambiar-rol-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Estudiante">Estudiante</SelectItem>
+                    <SelectItem value="Maestro">Maestro</SelectItem>
+                    <SelectItem value="Coordinador">Coordinador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCambiarRolDialogOpen(false)}>Cancelar</Button>
+              <Button onClick={handleConfirmarCambioRol} disabled={savingRol}>
+                {savingRol ? 'Actualizando...' : 'Confirmar Rol'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <ConfirmDialog
           open={confirmDialog.open}

@@ -47,6 +47,11 @@ export const usersService = {
     await api.patch(`/users/${id}/status`, { status });
   },
 
+  async update(id: number, payload: { name?: string; email?: string; role?: string }): Promise<UserDTO> {
+    const { data } = await api.put<ApiResponse<UserDTO>>(`/users/${id}`, payload);
+    return data.data;
+  },
+
   async delete(id: number): Promise<void> {
     await api.delete(`/users/${id}`);
   },

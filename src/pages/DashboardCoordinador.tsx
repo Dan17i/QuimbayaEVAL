@@ -178,16 +178,17 @@ export const DashboardCoordinador: React.FC = () => {
         <div className="p-4 sm:p-6 md:p-10 space-y-8 w-full max-w-7xl mx-auto">
 
           {/* Header Institucional */}
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-gradient-to-r from-emerald-600/10 via-teal-600/10 to-blue-600/10 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
-            <div>
-              <h2 className="text-gray-900 dark:text-white text-xl font-bold">Panel de Coordinación Académica</h2>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">Indicadores institucionales, trazabilidad de evaluaciones y cumplimiento legal SENA</p>
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-gradient-to-r from-emerald-600/10 via-teal-600/10 to-blue-600/10 px-4 sm:px-5 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+            <div className="min-w-0">
+              <h2 className="text-slate-900 dark:text-white text-lg sm:text-xl font-bold leading-tight">Panel de Coordinación Académica</h2>
+              <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-0.5 leading-snug">Indicadores institucionales, trazabilidad de evaluaciones y cumplimiento legal SENA</p>
             </div>
             <Button
-              className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-sm w-full sm:w-auto"
+              size="sm"
+              className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold shadow-sm px-3.5 py-1.5 h-auto rounded-lg text-xs sm:text-sm flex items-center justify-center self-center sm:self-auto w-full sm:w-auto flex-shrink-0"
               onClick={() => navigate('/reportes')}
             >
-              <FileDown className="w-4 h-4 mr-2" />
+              <FileDown className="w-3.5 h-3.5 mr-1.5" />
               Exportar Reporte
             </Button>
           </div>

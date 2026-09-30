@@ -3495,12 +3495,12 @@
 }
 
 .dark {
-  --background: oklch(.145 0 0);
-  --foreground: oklch(.985 0 0);
-  --card: oklch(.145 0 0);
-  --card-foreground: oklch(.985 0 0);
-  --popover: oklch(.145 0 0);
-  --popover-foreground: oklch(.985 0 0);
+  --background: #0f1117;
+  --foreground: rgba(255, 255, 255, 0.95);
+  --card: #1e293b;
+  --card-foreground: #ffffff;
+  --popover: #1e293b;
+  --popover-foreground: #ffffff;
   --primary: oklch(.985 0 0);
   --primary-foreground: oklch(.205 0 0);
   --secondary: oklch(.269 0 0);
@@ -3841,3 +3841,212 @@ html {
     transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1)) rotate(var(--tw-exit-rotate, 0));
   }
 }
+
+/* ==========================================================================
+   QuimbayaEVAL - Dashboard Metrics & Accessibility Contrast (Light / Dark)
+   ========================================================================== */
+
+/* Utility colors */
+.bg-white { background-color: #ffffff !important; }
+.bg-slate-50 { background-color: #f8fafc !important; }
+.bg-slate-100 { background-color: #f1f5f9 !important; }
+.bg-slate-800 { background-color: #1e293b !important; }
+.bg-slate-900 { background-color: #0f172a !important; }
+
+.border-slate-100 { border-color: #f1f5f9 !important; }
+.border-slate-200 { border-color: #e2e8f0 !important; }
+.border-slate-300 { border-color: #cbd5e1 !important; }
+.border-slate-700 { border-color: #334155 !important; }
+.border-slate-800 { border-color: #1e293b !important; }
+
+.text-slate-900 { color: #0f172a !important; }
+.text-slate-800 { color: #1e293b !important; }
+.text-slate-700 { color: #334155 !important; }
+.text-slate-600 { color: #475569 !important; }
+.text-slate-500 { color: #64748b !important; }
+.text-slate-400 { color: #94a3b8 !important; }
+.text-slate-300 { color: #cbd5e1 !important; }
+
+.text-sky-400 { color: #38bdf8 !important; }
+.text-sky-500 { color: #0ea5e9 !important; }
+.text-sky-600 { color: #0284c7 !important; }
+
+.text-emerald-400 { color: #34d399 !important; }
+.text-emerald-600 { color: #059669 !important; }
+.text-emerald-700 { color: #047857 !important; }
+.text-emerald-800 { color: #065f46 !important; }
+
+.text-amber-400 { color: #fbbf24 !important; }
+.text-amber-600 { color: #d97706 !important; }
+.text-amber-700 { color: #b45309 !important; }
+.text-amber-800 { color: #92400e !important; }
+
+.text-red-400 { color: #f87171 !important; }
+.text-red-600 { color: #dc2626 !important; }
+.text-red-700 { color: #b91c1c !important; }
+.text-red-800 { color: #991b1b !important; }
+
+.text-blue-300 { color: #93c5fd !important; }
+.text-blue-700 { color: #1d4ed8 !important; }
+.text-blue-800 { color: #1e40af !important; }
+
+.text-teal-300 { color: #5eead4 !important; }
+.text-teal-700 { color: #0f766e !important; }
+.text-teal-800 { color: #115e59 !important; }
+
+.text-indigo-300 { color: #a5b4fc !important; }
+.text-indigo-700 { color: #4338ca !important; }
+
+.text-rose-300 { color: #fda4af !important; }
+.text-rose-800 { color: #9f1239 !important; }
+
+/* Dark mode variants */
+.dark .dark\:bg-slate-800, :is(.dark .dark\:bg-slate-800) { background-color: #1e293b !important; }
+.dark .dark\:bg-slate-900, :is(.dark .dark\:bg-slate-900) { background-color: #0f172a !important; }
+.dark .dark\:bg-gray-800, :is(.dark .dark\:bg-gray-800) { background-color: #1f2937 !important; }
+.dark .dark\:bg-gray-800\/80, :is(.dark .dark\:bg-gray-800\/80) { background-color: rgba(31, 41, 55, 0.8) !important; }
+.dark .dark\:bg-gray-900, :is(.dark .dark\:bg-gray-900) { background-color: #111827 !important; }
+.dark .dark\:bg-gray-950, :is(.dark .dark\:bg-gray-950) { background-color: #030712 !important; }
+
+.dark .dark\:border-slate-700, :is(.dark .dark\:border-slate-700) { border-color: #334155 !important; }
+.dark .dark\:border-slate-800, :is(.dark .dark\:border-slate-800) { border-color: #1e293b !important; }
+.dark .dark\:border-gray-700, :is(.dark .dark\:border-gray-700) { border-color: #374151 !important; }
+.dark .dark\:border-gray-800, :is(.dark .dark\:border-gray-800) { border-color: #1f2937 !important; }
+
+.dark .dark\:text-white, :is(.dark .dark\:text-white) { color: #ffffff !important; }
+.dark .dark\:text-slate-300, :is(.dark .dark\:text-slate-300) { color: #cbd5e1 !important; }
+.dark .dark\:text-slate-400, :is(.dark .dark\:text-slate-400) { color: #94a3b8 !important; }
+.dark .dark\:text-gray-100, :is(.dark .dark\:text-gray-100) { color: #f3f4f6 !important; }
+.dark .dark\:text-gray-300, :is(.dark .dark\:text-gray-300) { color: #d1d5db !important; }
+.dark .dark\:text-gray-400, :is(.dark .dark\:text-gray-400) { color: #9ca3af !important; }
+
+.dark .dark\:text-sky-400, :is(.dark .dark\:text-sky-400) { color: #38bdf8 !important; }
+.dark .dark\:text-emerald-300, :is(.dark .dark\:text-emerald-300) { color: #6ee7b7 !important; }
+.dark .dark\:text-emerald-400, :is(.dark .dark\:text-emerald-400) { color: #34d399 !important; }
+.dark .dark\:text-amber-300, :is(.dark .dark\:text-amber-300) { color: #fcd34d !important; }
+.dark .dark\:text-amber-400, :is(.dark .dark\:text-amber-400) { color: #fbbf24 !important; }
+.dark .dark\:text-red-300, :is(.dark .dark\:text-red-300) { color: #fca5a5 !important; }
+.dark .dark\:text-red-400, :is(.dark .dark\:text-red-400) { color: #f87171 !important; }
+.dark .dark\:text-blue-300, :is(.dark .dark\:text-blue-300) { color: #93c5fd !important; }
+.dark .dark\:text-teal-300, :is(.dark .dark\:text-teal-300) { color: #5eead4 !important; }
+.dark .dark\:text-indigo-300, :is(.dark .dark\:text-indigo-300) { color: #a5b4fc !important; }
+.dark .dark\:text-rose-300, :is(.dark .dark\:text-rose-300) { color: #fda4af !important; }
+
+/* Icon badge backgrounds in dark mode */
+.dark .dark\:bg-blue-950\/60, :is(.dark .dark\:bg-blue-950\/60) { background-color: rgba(23, 37, 84, 0.6) !important; }
+.dark .dark\:border-blue-800, :is(.dark .dark\:border-blue-800) { border-color: #1e40af !important; }
+.dark .dark\:bg-indigo-950\/60, :is(.dark .dark\:bg-indigo-950\/60) { background-color: rgba(30, 27, 75, 0.6) !important; }
+.dark .dark\:border-indigo-800, :is(.dark .dark\:border-indigo-800) { border-color: #3730a3 !important; }
+.dark .dark\:bg-emerald-950\/60, :is(.dark .dark\:bg-emerald-950\/60) { background-color: rgba(2, 44, 34, 0.6) !important; }
+.dark .dark\:border-emerald-800, :is(.dark .dark\:border-emerald-800) { border-color: #065f46 !important; }
+.dark .dark\:bg-teal-950\/60, :is(.dark .dark\:bg-teal-950\/60) { background-color: rgba(4, 47, 46, 0.6) !important; }
+.dark .dark\:border-teal-800, :is(.dark .dark\:border-teal-800) { border-color: #115e59 !important; }
+.dark .dark\:bg-amber-950\/60, :is(.dark .dark\:bg-amber-950\/60) { background-color: rgba(69, 26, 3, 0.6) !important; }
+.dark .dark\:border-amber-800, :is(.dark .dark\:border-amber-800) { border-color: #92400e !important; }
+.dark .dark\:bg-red-950\/60, :is(.dark .dark\:bg-red-950\/60) { background-color: rgba(69, 10, 10, 0.6) !important; }
+.dark .dark\:border-red-800, :is(.dark .dark\:border-red-800) { border-color: #991b1b !important; }
+
+/* Dedicated Metric Card Styles */
+.coordinador-stat-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.coordinador-stat-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.coordinador-stat-label {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #64748b !important;
+}
+
+.coordinador-stat-value {
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+  font-weight: 800 !important;
+  margin-top: 0.25rem !important;
+  color: #1e293b !important;
+}
+
+/* Modo oscuro (.dark) */
+.dark .coordinador-stat-card,
+:is(.dark .coordinador-stat-card) {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .coordinador-stat-label,
+:is(.dark .coordinador-stat-label) {
+  color: #94a3b8 !important;
+}
+
+.dark .coordinador-stat-value,
+:is(.dark .coordinador-stat-value) {
+  color: #ffffff !important;
+}
+
+/* SLA Status Card Variants - Light Mode */
+.coordinador-stat-card.sla-ok {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+.coordinador-stat-card.sla-ok .coordinador-stat-value {
+  color: #059669 !important;
+}
+
+.coordinador-stat-card.sla-warning {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+.coordinador-stat-card.sla-warning .coordinador-stat-value {
+  color: #d97706 !important;
+}
+
+.coordinador-stat-card.sla-danger {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+}
+.coordinador-stat-card.sla-danger .coordinador-stat-value {
+  color: #dc2626 !important;
+}
+
+/* SLA Status Card Variants - Dark Mode */
+.dark .coordinador-stat-card.sla-ok,
+:is(.dark .coordinador-stat-card.sla-ok) {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+.dark .coordinador-stat-card.sla-ok .coordinador-stat-value,
+:is(.dark .coordinador-stat-card.sla-ok .coordinador-stat-value) {
+  color: #34d399 !important;
+}
+
+.dark .coordinador-stat-card.sla-warning,
+:is(.dark .coordinador-stat-card.sla-warning) {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  border-color: #78350f !important;
+}
+.dark .coordinador-stat-card.sla-warning .coordinador-stat-value,
+:is(.dark .coordinador-stat-card.sla-warning .coordinador-stat-value) {
+  color: #fbbf24 !important;
+}
+
+.dark .coordinador-stat-card.sla-danger,
+:is(.dark .coordinador-stat-card.sla-danger) {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: #7f1d1d !important;
+}
+.dark .coordinador-stat-card.sla-danger .coordinador-stat-value,
+:is(.dark .coordinador-stat-card.sla-danger .coordinador-stat-value) {
+  color: #f87171 !important;
+}
+

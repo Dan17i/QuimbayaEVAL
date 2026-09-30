@@ -4,8 +4,10 @@ import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Clock, CheckCircle, Calendar, Play, Eye, ArrowLeft } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Clock, CheckCircle, Calendar, Play, Eye, ArrowLeft, Search, AlertCircle, FileText } from 'lucide-react';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useCursos } from '../hooks/useCursos';
 import { Badge } from '../components/Badge';
@@ -13,6 +15,7 @@ import { StatusBadge } from '../components/StatusBadge';
 import { formatDateTime, formatDate } from '../utils/date';
 import { ROUTES } from '../constants/routes';
 import { EmptyState } from '../components/EmptyState';
+import { Evaluacion } from '../types';
 
 export const MisEvaluacionesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +28,9 @@ export const MisEvaluacionesPage: React.FC = () => {
 
   // cursoFiltro guarda el cursoId como string, o 'Todos'
   const [cursoFiltro, setCursoFiltro] = useState<string>('Todos');
+  const [busqueda, setBusqueda] = useState<string>('');
+  const [evaluacionDetalle, setEvaluacionDetalle] = useState<Evaluacion | null>(null);
+  const [modalDetalleOpen, setModalDetalleOpen] = useState<boolean>(false);
 
   // Pre-filtrar si viene ?cursoId= en la URL
   useEffect(() => {
@@ -32,25 +38,40 @@ export const MisEvaluacionesPage: React.FC = () => {
     if (cursoId) setCursoFiltro(cursoId);
   }, [searchParams]);
 
+  const abrirDetalles = (ev: Evaluacion) => {
+    setEvaluacionDetalle(ev);
+    setModalDetalleOpen(true);
+  };
+
+  const coincideBusqueda = (e: Evaluacion) => {
+    if (!busqueda.trim()) return true;
+    const q = busqueda.toLowerCase().trim();
+    return (
+      e.name.toLowerCase().includes(q) ||
+      e.curso.toLowerCase().includes(q) ||
+      (e.tipo && e.tipo.toLowerCase().includes(q))
+    );
+  };
+
   const evaluacionesAbiertas = useMemo(() =>
-    evaluacionesActivasRaw.filter(e =>
-      cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro
-    ),
-    [evaluacionesActivasRaw, cursoFiltro]
+    evaluacionesActivasRaw
+      .filter(e => cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro)
+      .filter(coincideBusqueda),
+    [evaluacionesActivasRaw, cursoFiltro, busqueda]
   );
 
   const evaluacionesProximas = useMemo(() =>
-    getByEstado('Programada').filter(e =>
-      cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro
-    ),
-    [getByEstado, cursoFiltro]
+    getByEstado('Programada')
+      .filter(e => cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro)
+      .filter(coincideBusqueda),
+    [getByEstado, cursoFiltro, busqueda]
   );
 
   const evaluacionesCerradas = useMemo(() =>
-    getByEstado('Cerrada').filter(e =>
-      cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro
-    ),
-    [getByEstado, cursoFiltro]
+    getByEstado('Cerrada')
+      .filter(e => cursoFiltro === 'Todos' || String(e.cursoId) === cursoFiltro)
+      .filter(coincideBusqueda),
+    [getByEstado, cursoFiltro, busqueda]
   );
 
   // Cursos que tienen al menos una evaluación (activas + el resto)
@@ -142,6 +163,28 @@ export const MisEvaluacionesPage: React.FC = () => {
             )}
           </div>
 
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar por nombre de evaluación, curso o tipo..."
+                className="pl-9 bg-white"
+              />
+            </div>
+            {busqueda && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setBusqueda('')}
+                className="text-xs text-gray-500 hover:text-gray-900"
+              >
+                Limpiar búsqueda
+              </Button>
+            )}
+          </div>
+
           <Tabs defaultValue="abiertas">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="abiertas" className="flex items-center gap-2">
@@ -163,34 +206,38 @@ export const MisEvaluacionesPage: React.FC = () => {
                 <EmptyState
                   icon={Clock}
                   title="No hay evaluaciones abiertas"
-                  description={`No tienes evaluaciones abiertas${cursoActivo ? ` para ${cursoActivo.nombre}` : ''}`}
+                  description={
+                    busqueda
+                      ? 'No hay evaluaciones abiertas que coincidan con tu búsqueda.'
+                      : `No tienes evaluaciones abiertas${cursoActivo ? ` para ${cursoActivo.nombre}` : ''}`
+                  }
                 />
               ) : (
                 <div className="space-y-4">
                   {evaluacionesAbiertas.map((evaluacion) => (
                     <Card key={evaluacion.id} className="border-orange-200 bg-orange-50/30">
                       <CardContent className="pt-6">
-                        <div className="flex items-start justify-between">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 flex-wrap">
                               <h3 className="text-gray-900">{evaluacion.name}</h3>
                               <Badge variant="warning">{evaluacion.tipo}</Badge>
                               <StatusBadge estado={evaluacion.estado} />
                             </div>
-                            <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-sm">
                               <div>
                                 <span className="text-gray-600">Curso:</span>
-                                <span className="ml-2 text-gray-900">{evaluacion.curso}</span>
+                                <span className="ml-2 text-gray-900 font-medium">{evaluacion.curso}</span>
                               </div>
                               {evaluacion.profesor && (
                                 <div>
-                                  <span className="text-gray-600">Profesor:</span>
+                                  <span className="text-gray-600">Docente:</span>
                                   <span className="ml-2 text-gray-900">{evaluacion.profesor}</span>
                                 </div>
                               )}
                               <div>
                                 <span className="text-gray-600">Fecha límite:</span>
-                                <span className="ml-2 text-orange-600">{formatDateTime(evaluacion.deadline)}</span>
+                                <span className="ml-2 text-orange-600 font-medium">{formatDateTime(evaluacion.deadline)}</span>
                               </div>
                               {evaluacion.duracion && (
                                 <div>
@@ -200,19 +247,31 @@ export const MisEvaluacionesPage: React.FC = () => {
                               )}
                               {evaluacion.intentos && (
                                 <div>
-                                  <span className="text-gray-600">Intentos:</span>
+                                  <span className="text-gray-600">Intentos permitidos:</span>
                                   <span className="ml-2 text-gray-900">{evaluacion.intentos}</span>
                                 </div>
                               )}
                             </div>
                           </div>
-                          <Button 
-                            className="ml-4 flex items-center gap-2" 
-                            onClick={() => navigate(`${ROUTES.REALIZAR_EVALUACION}?id=${evaluacion.id}`)}
-                          >
-                            <Play className="w-4 h-4" />
-                            Iniciar Evaluación
-                          </Button>
+                          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-1.5"
+                              onClick={() => abrirDetalles(evaluacion)}
+                            >
+                              <Eye className="w-4 h-4" />
+                              Detalles
+                            </Button>
+                            <Button 
+                              size="sm"
+                              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white" 
+                              onClick={() => navigate(`${ROUTES.REALIZAR_EVALUACION}?id=${evaluacion.id}`)}
+                            >
+                              <Play className="w-4 h-4" />
+                              Iniciar Evaluación
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -226,34 +285,38 @@ export const MisEvaluacionesPage: React.FC = () => {
                 <EmptyState
                   icon={Calendar}
                   title="No hay evaluaciones próximas"
-                  description={`No tienes evaluaciones programadas${cursoActivo ? ` para ${cursoActivo.nombre}` : ''}`}
+                  description={
+                    busqueda
+                      ? 'No hay evaluaciones programadas que coincidan con tu búsqueda.'
+                      : `No tienes evaluaciones programadas${cursoActivo ? ` para ${cursoActivo.nombre}` : ''}`
+                  }
                 />
               ) : (
                 <div className="space-y-4">
                   {evaluacionesProximas.map((evaluacion) => (
                     <Card key={evaluacion.id}>
                       <CardContent className="pt-6">
-                        <div className="flex items-start justify-between">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 flex-wrap">
                               <h3 className="text-gray-900">{evaluacion.name}</h3>
                               <Badge variant="info">{evaluacion.tipo}</Badge>
                               <StatusBadge estado={evaluacion.estado} />
                             </div>
-                            <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-sm">
                               <div>
                                 <span className="text-gray-600">Curso:</span>
-                                <span className="ml-2 text-gray-900">{evaluacion.curso}</span>
+                                <span className="ml-2 text-gray-900 font-medium">{evaluacion.curso}</span>
                               </div>
                               {evaluacion.profesor && (
                                 <div>
-                                  <span className="text-gray-600">Profesor:</span>
+                                  <span className="text-gray-600">Docente:</span>
                                   <span className="ml-2 text-gray-900">{evaluacion.profesor}</span>
                                 </div>
                               )}
                               <div>
-                                <span className="text-gray-600">Abre el:</span>
-                                <span className="ml-2 text-purple-600">{formatDateTime(evaluacion.deadline)}</span>
+                                <span className="text-gray-600">Apertura programada:</span>
+                                <span className="ml-2 text-purple-600 font-medium">{formatDateTime(evaluacion.deadline)}</span>
                               </div>
                               {evaluacion.duracion && (
                                 <div>
@@ -263,7 +326,12 @@ export const MisEvaluacionesPage: React.FC = () => {
                               )}
                             </div>
                           </div>
-                          <Button variant="outline" className="ml-4 flex items-center gap-2" onClick={() => navigate(`${ROUTES.MIS_EVALUACIONES}/${evaluacion.id}`)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2"
+                            onClick={() => abrirDetalles(evaluacion)}
+                          >
                             <Eye className="w-4 h-4" />
                             Ver Detalles
                           </Button>
@@ -280,28 +348,32 @@ export const MisEvaluacionesPage: React.FC = () => {
                 <EmptyState
                   icon={CheckCircle}
                   title="No hay evaluaciones cerradas"
-                  description={`No tienes evaluaciones cerradas${cursoActivo ? ` para ${cursoActivo.nombre}` : ''}`}
+                  description={
+                    busqueda
+                      ? 'No hay evaluaciones cerradas que coincidan con tu búsqueda.'
+                      : `No tienes evaluaciones cerradas${cursoActivo ? ` para ${cursoActivo.nombre}` : ''}`
+                  }
                 />
               ) : (
                 <div className="space-y-4">
                   {evaluacionesCerradas.map((evaluacion) => (
                     <Card key={evaluacion.id}>
                       <CardContent className="pt-6">
-                        <div className="flex items-start justify-between">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 flex-wrap">
                               <h3 className="text-gray-900">{evaluacion.name}</h3>
                               <Badge variant="success">{evaluacion.tipo}</Badge>
                               <StatusBadge estado={evaluacion.estado} />
                             </div>
-                            <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-sm">
                               <div>
                                 <span className="text-gray-600">Curso:</span>
-                                <span className="ml-2 text-gray-900">{evaluacion.curso}</span>
+                                <span className="ml-2 text-gray-900 font-medium">{evaluacion.curso}</span>
                               </div>
                               {evaluacion.profesor && (
                                 <div>
-                                  <span className="text-gray-600">Profesor:</span>
+                                  <span className="text-gray-600">Docente:</span>
                                   <span className="ml-2 text-gray-900">{evaluacion.profesor}</span>
                                 </div>
                               )}
@@ -311,14 +383,26 @@ export const MisEvaluacionesPage: React.FC = () => {
                               </div>
                             </div>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            className="ml-4 flex items-center gap-2" 
-                            onClick={() => navigate(ROUTES.HISTORIAL)}
-                          >
-                            <Eye className="w-4 h-4" />
-                            Ver Feedback
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-600"
+                              onClick={() => abrirDetalles(evaluacion)}
+                            >
+                              <FileText className="w-4 h-4 mr-1" />
+                              Ficha
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50" 
+                              onClick={() => navigate(`${ROUTES.HISTORIAL}?evaluacionId=${evaluacion.id}`)}
+                            >
+                              <Eye className="w-4 h-4" />
+                              Ver Feedback
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -327,6 +411,108 @@ export const MisEvaluacionesPage: React.FC = () => {
               )}
             </TabsContent>
           </Tabs>
+
+          {/* Modal accesible de detalles de la evaluación */}
+          <Dialog open={modalDetalleOpen} onOpenChange={setModalDetalleOpen}>
+            <DialogContent className="max-w-lg">
+              {evaluacionDetalle && (
+                <>
+                  <DialogHeader>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="info">{evaluacionDetalle.tipo}</Badge>
+                      <StatusBadge estado={evaluacionDetalle.estado} />
+                    </div>
+                    <DialogTitle className="text-xl font-bold text-gray-900">
+                      {evaluacionDetalle.name}
+                    </DialogTitle>
+                    <DialogDescription className="text-sm text-gray-500">
+                      {evaluacionDetalle.curso}
+                      {evaluacionDetalle.profesor && ` • Docente: ${evaluacionDetalle.profesor}`}
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-4 py-2 text-sm">
+                    {evaluacionDetalle.descripcion && (
+                      <div className="p-3 bg-gray-50 rounded-lg text-gray-700 leading-relaxed border border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                          Descripción / Instrucciones
+                        </p>
+                        {evaluacionDetalle.descripcion}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 bg-blue-50/60 p-3.5 rounded-lg border border-blue-100 text-xs">
+                      <div>
+                        <span className="font-semibold text-blue-900 block mb-0.5">
+                          {evaluacionDetalle.estado === 'Programada' ? 'Fecha de Apertura:' : 'Fecha de Cierre:'}
+                        </span>
+                        <span className="text-blue-800 font-medium">
+                          {formatDateTime(evaluacionDetalle.deadline)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-blue-900 block mb-0.5">Tiempo Límite:</span>
+                        <span className="text-blue-800 font-medium">
+                          {evaluacionDetalle.duracion || 'Sin límite'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-blue-900 block mb-0.5">Intentos Permitidos:</span>
+                        <span className="text-blue-800 font-medium">
+                          {evaluacionDetalle.intentos ? `${evaluacionDetalle.intentos} intento(s)` : '1 intento'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-blue-900 block mb-0.5">Modalidad:</span>
+                        <span className="text-blue-800 font-medium">Evaluación en línea</span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-amber-900 text-xs space-y-1">
+                      <p className="font-semibold flex items-center gap-1.5 text-amber-800">
+                        <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                        Recomendaciones para el estudiante:
+                      </p>
+                      <ul className="list-disc list-inside space-y-0.5 text-amber-800 pl-1">
+                        <li>Verifica que dispones de una conexión estable antes de comenzar.</li>
+                        <li>Las respuestas se autoguardan progresivamente en tu dispositivo.</li>
+                        <li>Al agotarse el cronómetro, la prueba se enviará de forma automática.</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button variant="outline" onClick={() => setModalDetalleOpen(false)}>
+                      Cerrar
+                    </Button>
+                    {evaluacionDetalle.estado === 'Activa' && (
+                      <Button
+                        className="gap-2 bg-orange-600 hover:bg-orange-700 text-white"
+                        onClick={() => {
+                          setModalDetalleOpen(false);
+                          navigate(`${ROUTES.REALIZAR_EVALUACION}?id=${evaluacionDetalle.id}`);
+                        }}
+                      >
+                        <Play className="w-4 h-4" /> Iniciar Evaluación Ahora
+                      </Button>
+                    )}
+                    {evaluacionDetalle.estado === 'Cerrada' && (
+                      <Button
+                        variant="outline"
+                        className="gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                        onClick={() => {
+                          setModalDetalleOpen(false);
+                          navigate(`${ROUTES.HISTORIAL}?evaluacionId=${evaluacionDetalle.id}`);
+                        }}
+                      >
+                        <Eye className="w-4 h-4" /> Ver Retroalimentación
+                      </Button>
+                    )}
+                  </DialogFooter>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </Layout>
     </ProtectedRoute>

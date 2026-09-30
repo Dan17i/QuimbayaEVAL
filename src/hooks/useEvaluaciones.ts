@@ -21,11 +21,12 @@ export const useEvaluaciones = (filters?: EvaluacionFilters, activas?: boolean) 
         cursosService.getAll(),
       ]);
 
-      const cursoMap = new Map(cursos.map(c => [c.id, c.codigo]));
+      const cursoMap = new Map(cursos.map(c => [c.id, c.nombre || c.codigo]));
 
       const mapped: Evaluacion[] = rawEvals.map((e: EvaluacionBackend) => ({
         id: e.id,
         name: e.nombre,
+        descripcion: e.descripcion,
         curso: cursoMap.get(e.cursoId) ?? String(e.cursoId),
         cursoId: e.cursoId,
         deadline: e.deadline ?? e.createdAt,

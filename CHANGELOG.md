@@ -5,6 +5,27 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.5.0] - 2026-09-29
+
+### 🎓 HCI & DCU - Bloque 4: Dashboard y Experiencia Completa del Estudiante
+- **Corrección de Enlace Roto y Modal de Ficha Técnica (`MisEvaluacionesPage.tsx`):**
+  - Reemplazado botón inerte/enlace roto a `/mis-evaluaciones/:id` por un diálogo modal accesible (`Dialog`) con detalles completos de la evaluación: curso, docente, estado, fecha de apertura/cierre, tiempo límite, intentos configurados e instrucciones previas con recomendaciones de conectividad y honestidad académica.
+  - Conectado botón de acción contextual según estado: "Iniciar Evaluación Ahora" (para activas), "Ver Retroalimentación" (para cerradas) o "Entendido" (para programadas).
+  - Integrado buscador en tiempo real sobre evaluaciones abiertas, próximas y cerradas.
+  - Vinculado botón "Ver Feedback" con query param (`?evaluacionId=X`) hacia el historial.
+- **Visualización Detallada de Retroalimentación y Respuestas (`HistorialPage.tsx`):**
+  - Incorporado modal interactivo de retroalimentación pedagógica (`Dialog`) que desglosa la entrega del estudiante pregunta por pregunta.
+  - Muestra puntuación obtenida vs valor total de la pregunta, respuesta registrada del estudiante y observaciones cualitativas del docente destacadas con iconos semánticos.
+  - Soporte de apertura automática mediante parámetro `?evaluacionId=` recibido desde la navegación de evaluaciones cerradas.
+  - Añadido buscador en tiempo real por evaluación/curso/docente y filtro interactivo por estado de aprobación (Todos / Aprobado / Reprobado).
+- **Acceso Rápido a Evaluaciones Activas (`DashboardEstudiante.tsx`):**
+  - Añadido banner prioritario interactivo con accesos directos de 1 clic ("Rendir") para las pruebas activas próximas a vencer, minimizando la carga cognitiva y pasos de navegación del estudiante.
+- **Buscador y Filtro de Cursos Pendientes (`MisCursosPage.tsx`):**
+  - Añadido campo de búsqueda en vivo de cursos matriculados.
+  - Añadido filtro por cursos con evaluaciones pendientes y botones de acceso directo hacia las pruebas del curso.
+- **Enriquecimiento del Modelo de Evaluaciones (`useEvaluaciones.ts` e `index.ts`):**
+  - Incorporado soporte para visualización de descripciones de evaluaciones en la interfaz de usuario.
+
 ## [1.4.0] - 2026-09-29
 
 ### 👥 HCI & DCU - Bloque 3: Módulo Administrativo de Gestión de Cursos y Usuarios

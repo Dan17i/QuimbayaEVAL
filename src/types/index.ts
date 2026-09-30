@@ -19,6 +19,7 @@ export interface Evaluacion {
   intentos?: number;
   duracion?: string;
   pendientes?: number;
+  descripcion?: string;
 }
 
 export interface Curso {

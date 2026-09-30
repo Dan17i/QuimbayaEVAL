@@ -2,16 +2,19 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
+import { Button } from '../components/ui/button';
 import {
   BookOpen, ChevronRight, AlertCircle, MessageSquare,
   Calculator, Code2, FlaskConical, Database, Globe,
   Music, Palette, Dumbbell, Landmark, Microscope,
+  Clock, Play, ArrowRight,
 } from 'lucide-react';
 import { useCursos } from '../hooks/useCursos';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { EmptyState } from '../components/EmptyState';
+import { formatDateTime } from '../utils/date';
 
 // Colores de acento por índice
 const CARD_COLORS = [
@@ -84,6 +87,61 @@ export const DashboardEstudiante: React.FC = () => {
               </p>
             </div>
           </div>
+
+          {/* Banner de Evaluaciones Pendientes Prioritarias (HCI: Acceso Rápido) */}
+          {evaluacionesActivas.length > 0 && (
+            <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/50 border border-orange-200 rounded-2xl p-5 shadow-xs space-y-3">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Clock className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-gray-900">
+                      Evaluaciones pendientes de entrega
+                    </h2>
+                    <p className="text-xs text-gray-500">
+                      Tienes {evaluacionesActivas.length} prueba{evaluacionesActivas.length > 1 ? 's' : ''} disponible{evaluacionesActivas.length > 1 ? 's' : ''} para responder ahora
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-orange-700 hover:text-orange-900 hover:bg-orange-100/50 gap-1 font-medium"
+                  onClick={() => navigate(ROUTES.MIS_EVALUACIONES)}
+                >
+                  Ver todas
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                {evaluacionesActivas.slice(0, 2).map((ev) => (
+                  <div
+                    key={ev.id}
+                    className="bg-white rounded-xl p-3.5 border border-orange-200/80 shadow-xs flex items-center justify-between gap-3 hover:border-orange-300 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-gray-900 text-sm truncate">{ev.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{ev.curso}</p>
+                      <p className="text-[11px] text-orange-600 mt-1 font-medium">
+                        Cierre: {formatDateTime(ev.deadline)}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="bg-orange-600 hover:bg-orange-700 text-white text-xs h-8 px-3 gap-1.5 flex-shrink-0"
+                      onClick={() => navigate(`${ROUTES.REALIZAR_EVALUACION}?id=${ev.id}`)}
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      Rendir
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Grid de cursos */}
           {error ? (

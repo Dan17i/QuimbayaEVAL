@@ -5,6 +5,25 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.7.0] - 2026-09-29
+
+### 📊 HCI & DCU - Bloque 6: Reportes Académicos y Analítica Visual Inclusiva
+- **Analítica Gráfica Inclusiva y Accesible (`ReportesPage.tsx`):**
+  - **Selector de Modo de Visualización (HCI):** Incorporado control ergonómico para alternar entre dos modos de análisis:
+    - *Modo Distribución (Aprobados vs Reprobados):* Gráfica de barras dobles con paleta accesible de alto contraste (Azul `#2563eb` y Rojo `#dc2626`) optimizada para usuarios con daltonismo, leyenda explícita y tooltips cuantitativos detallados.
+    - *Modo Calificaciones (Escala SENA 0.0 - 5.0):* Corregido el eje Y (`domain={[0, 5]} unit=" pts"`) que antes operaba en porcentaje ficticio y distorsionado (haciendo que notas de 4.0 se renderizaran diminutas al 4%). Integrada línea de referencia (`ReferenceLine`) en `3.0 pts` con etiqueta destacada de umbral mínimo aprobatorio.
+- **Corrección de Indicadores Clave de Desempeño (KPIs):**
+  - Subsanado bug visual donde la calificación promedio absoluta (ej. `3.8`) se desplegaba con signo de porcentaje erróneo (`3.8%`), transformándolo a notación pedagógica clara (`3.8 / 5.0`) acompañada del subtexto porcentual de rendimiento global equivalente (`76%`).
+  - Agregado KPI de Tasa de Aprobación real del grupo con conteo de evaluaciones superadas y KPI de Riesgo Académico para intervenciones formativas oportunas.
+- **Barra de Búsqueda Reactiva y Paginación Ergonómica en Notas Individuales:**
+  - Integrado campo de búsqueda interactivo con icono `Search` para filtrar instantáneamente por nombre de estudiante, correo, documento o evaluación.
+  - Añadido selector reactivo de estado de aprobación (`Todos`, `Solo Aprobados`, `Solo Reprobados`) con conteos en vivo.
+  - Implementada paginación ergonómica y accesible (8 registros por página) con navegación "Anterior/Siguiente", numeración de páginas y contador de resultados, previniendo sábanas verticales interminables y sobrecarga cognitiva.
+  - Avatar con iniciales, formato monoespaciado para documentos administrativos y micro-barras de progreso de rendimiento individual.
+- **Detalle Cuantitativo Consolidado por Instrumento:**
+  - Incorporada columna de Tasa de Aprobación con micro-barras porcentuales de rendimiento en la tabla de resumen grupal.
+  - Reseteo automático de página al modificar filtros o cambiar de curso.
+
 ## [1.6.0] - 2026-09-29
 
 ### 👨‍🏫 HCI & DCU - Bloque 5: Experiencia del Docente y Calificación Ergonómica

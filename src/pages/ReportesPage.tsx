@@ -3,17 +3,24 @@ import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Switch } from '../components/ui/switch';
-import { FileDown, RefreshCw, Users, BarChart3, TrendingUp, BookOpen, Filter, FileSpreadsheet } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  FileDown, RefreshCw, Users, BarChart3, TrendingUp, BookOpen,
+  Filter, FileSpreadsheet, Search, ChevronLeft, ChevronRight,
+  FileText, AlertTriangle, CheckCircle, XCircle, CheckCircle2,
+} from 'lucide-react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Legend, ReferenceLine,
+} from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { StatCard } from '../components/StatCard';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ROUTES } from '../constants/routes';
 import { Estadistica } from '../types';
-import { FileText, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatNumber } from '../utils/format';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
@@ -55,6 +62,13 @@ export const ReportesPage: React.FC = () => {
   const [filtroCursoId, setFiltroCursoId] = useState<string>('');
   const [filtroReprobados, setFiltroReprobados] = useState<boolean>(false);
   const [filtroEvaluacionId, setFiltroEvaluacionId] = useState<string>('all');
+
+  // Estados de paginación y analítica visual
+  const [busquedaEstudiante, setBusquedaEstudiante] = useState('');
+  const [paginaEstudiantes, setPaginaEstudiantes] = useState(1);
+  const [filtroEstadoEstudiante, setFiltroEstadoEstudiante] = useState<'todos' | 'Aprobado' | 'Reprobado'>('todos');
+  const [modoGrafico, setModoGrafico] = useState<'distribucion' | 'promedios'>('distribucion');
+  const REGISTROS_POR_PAGINA = 8;
 
   // Datos de notas
   const [notasEstudiantes, setNotasEstudiantes] = useState<ResultadoDetalle[]>([]);
@@ -115,6 +129,38 @@ export const ReportesPage: React.FC = () => {
 
   const totalReprobados = useMemo(() =>
     resumenGrupo.reduce((acc, r) => acc + r.reprobados, 0), [resumenGrupo]);
+
+  const totalEstudiantesEvaluados = useMemo(() =>
+    totalAprobados + totalReprobados, [totalAprobados, totalReprobados]);
+
+  // Filtrado reactivo para la tabla de notas individuales
+  const notasTablaFiltradas = useMemo(() => {
+    return notasEstudiantes.filter(n => {
+      const cumpleEstado =
+        filtroEstadoEstudiante === 'todos' || n.estadoAprobacion === filtroEstadoEstudiante;
+      if (!cumpleEstado) return false;
+
+      if (!busquedaEstudiante.trim()) return true;
+      const q = busquedaEstudiante.toLowerCase().trim();
+      return (
+        n.estudianteNombre.toLowerCase().includes(q) ||
+        n.estudianteEmail.toLowerCase().includes(q) ||
+        (n.documentoEstudiante && n.documentoEstudiante.toLowerCase().includes(q)) ||
+        n.evaluacionNombre.toLowerCase().includes(q)
+      );
+    });
+  }, [notasEstudiantes, filtroEstadoEstudiante, busquedaEstudiante]);
+
+  // Resetear página al cambiar búsqueda, filtro o curso
+  useEffect(() => {
+    setPaginaEstudiantes(1);
+  }, [busquedaEstudiante, filtroEstadoEstudiante, filtroCursoId]);
+
+  const totalPaginasEstudiantes = Math.ceil(notasTablaFiltradas.length / REGISTROS_POR_PAGINA) || 1;
+  const notasTablaPaginadas = useMemo(() => {
+    const inicio = (paginaEstudiantes - 1) * REGISTROS_POR_PAGINA;
+    return notasTablaFiltradas.slice(inicio, inicio + REGISTROS_POR_PAGINA);
+  }, [notasTablaFiltradas, paginaEstudiantes, REGISTROS_POR_PAGINA]);
 
   // Obtener evaluaciones únicas del curso
   const evaluacionesDelCurso = useMemo(() => {
@@ -809,72 +855,210 @@ export const ReportesPage: React.FC = () => {
                     ) : (
                       <Card>
                         <CardHeader>
-                          <CardTitle>Notas por Estudiante</CardTitle>
-                          <CardDescription>
-                            {cursoActual?.codigo}
-                            {notasEstudiantes[0]?.profesorNombre && ` — Docente: ${notasEstudiantes[0].profesorNombre}`}
-                            {` — ${notasEstudiantes.length} registros`}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="overflow-x-auto -mx-6">
-                            <div className="inline-block min-w-full px-6">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead>Estudiante</TableHead>
-                                    <TableHead>Documento</TableHead>
-                                    <TableHead>Evaluación</TableHead>
-                                    <TableHead>Nota</TableHead>
-                                    <TableHead>Porcentaje</TableHead>
-                                    <TableHead>Estado</TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {notasEstudiantes.map(n => (
-                                    <TableRow key={n.id}>
-                                      <TableCell>
-                                        <div>
-                                          <p className="text-gray-900">{n.estudianteNombre}</p>
-                                          <p className="text-xs text-gray-500">{n.estudianteEmail}</p>
-                                        </div>
-                                      </TableCell>
-                                      <TableCell className="text-sm text-gray-600">
-                                        {n.documentoEstudiante || '-'}
-                                      </TableCell>
-                                      <TableCell>{n.evaluacionNombre}</TableCell>
-                                      <TableCell>
-                                        <span className="font-medium">{n.notaEscala.toFixed(1)}</span>
-                                      </TableCell>
-                                      <TableCell>
-                                        <span className={n.porcentaje >= 60 ? 'text-green-600' : 'text-red-600'}>
-                                          {n.porcentaje.toFixed(1)}%
-                                        </span>
-                                      </TableCell>
-                                      <TableCell>
-                                        {n.estadoAprobacion === 'Aprobado' ? (
-                                          <span className="inline-flex items-center gap-1 text-green-600 text-sm">
-                                            <CheckCircle className="w-4 h-4" /> Aprobado
-                                          </span>
-                                        ) : (
-                                          <span className="inline-flex items-center gap-1 text-red-600 text-sm">
-                                            <XCircle className="w-4 h-4" /> Reprobado
-                                          </span>
-                                        )}
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div>
+                              <CardTitle>Notas por Estudiante</CardTitle>
+                              <CardDescription>
+                                {cursoActual?.codigo}
+                                {notasEstudiantes[0]?.profesorNombre && ` — Docente: ${notasEstudiantes[0].profesorNombre}`}
+                                {` — ${notasEstudiantes.length} calificaciones registradas`}
+                              </CardDescription>
                             </div>
                           </div>
+                        </CardHeader>
+                        <CardContent>
+                          {/* Barra de herramientas ergonómica: Buscador y Filtro */}
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+                            <div className="relative flex-1 max-w-sm">
+                              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                              <Input
+                                placeholder="Buscar por estudiante, documento o evaluación..."
+                                value={busquedaEstudiante}
+                                onChange={(e) => setBusquedaEstudiante(e.target.value)}
+                                className="pl-9 pr-8 text-sm"
+                              />
+                              {busquedaEstudiante && (
+                                <button
+                                  onClick={() => setBusquedaEstudiante('')}
+                                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
+                                  title="Limpiar búsqueda"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500 whitespace-nowrap">Estado:</span>
+                              <Select
+                                value={filtroEstadoEstudiante}
+                                onValueChange={(val: 'todos' | 'Aprobado' | 'Reprobado') => setFiltroEstadoEstudiante(val)}
+                              >
+                                <SelectTrigger className="w-[180px] text-xs h-9">
+                                  <SelectValue placeholder="Estado" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="todos">Todos ({notasEstudiantes.length})</SelectItem>
+                                  <SelectItem value="Aprobado">Aprobados ({notasEstudiantes.filter(n => n.estadoAprobacion === 'Aprobado').length})</SelectItem>
+                                  <SelectItem value="Reprobado">Reprobados ({notasEstudiantes.filter(n => n.estadoAprobacion === 'Reprobado').length})</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          {notasTablaFiltradas.length === 0 ? (
+                            <div className="py-12 text-center text-gray-400 border border-dashed rounded-lg bg-gray-50/50">
+                              <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-amber-500 opacity-80" />
+                              <p className="font-medium text-gray-600">No se encontraron resultados</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                No hay notas que coincidan con &ldquo;{busquedaEstudiante}&rdquo; o el filtro seleccionado.
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="mt-3 text-xs text-blue-600"
+                                onClick={() => {
+                                  setBusquedaEstudiante('');
+                                  setFiltroEstadoEstudiante('todos');
+                                }}
+                              >
+                                Restablecer filtros
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="overflow-x-auto -mx-6">
+                                <div className="inline-block min-w-full px-6">
+                                  <Table>
+                                    <TableHeader>
+                                      <TableRow className="bg-gray-50/75">
+                                        <TableHead>Estudiante</TableHead>
+                                        <TableHead>Documento</TableHead>
+                                        <TableHead>Evaluación</TableHead>
+                                        <TableHead className="text-center">Calificación</TableHead>
+                                        <TableHead className="text-center">Desempeño</TableHead>
+                                        <TableHead className="text-center">Estado</TableHead>
+                                      </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                      {notasTablaPaginadas.map(n => {
+                                        const iniciales = n.estudianteNombre
+                                          ? n.estudianteNombre.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+                                          : 'ES';
+                                        return (
+                                          <TableRow key={n.id} className="hover:bg-gray-50/60 transition-colors">
+                                            <TableCell>
+                                              <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0">
+                                                  {iniciales}
+                                                </div>
+                                                <div>
+                                                  <p className="text-gray-900 font-medium text-sm leading-tight">{n.estudianteNombre}</p>
+                                                  <p className="text-xs text-gray-500">{n.estudianteEmail}</p>
+                                                </div>
+                                              </div>
+                                            </TableCell>
+                                            <TableCell>
+                                              <span className="font-mono text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                                                {n.documentoEstudiante || '-'}
+                                              </span>
+                                            </TableCell>
+                                            <TableCell className="text-sm font-medium text-gray-800">
+                                              {n.evaluacionNombre}
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                              <div className="inline-flex items-baseline gap-1">
+                                                <span className={`text-base font-bold ${n.notaEscala >= 3.0 ? 'text-gray-900' : 'text-rose-600'}`}>
+                                                  {n.notaEscala.toFixed(1)}
+                                                </span>
+                                                <span className="text-xs text-gray-400">/ 5.0</span>
+                                              </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                              <div className="inline-flex flex-col items-center">
+                                                <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden mb-1">
+                                                  <div
+                                                    className={`h-full rounded-full ${n.porcentaje >= 60 ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                                                    style={{ width: `${Math.min(100, Math.max(0, n.porcentaje))}%` }}
+                                                  />
+                                                </div>
+                                                <span className={`text-xs font-semibold ${n.porcentaje >= 60 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                                  {n.porcentaje.toFixed(1)}%
+                                                </span>
+                                              </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                              {n.estadoAprobacion === 'Aprobado' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Aprobado
+                                                </span>
+                                              ) : (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                                  <XCircle className="w-3.5 h-3.5 text-rose-600" /> Reprobado
+                                                </span>
+                                              )}
+                                            </TableCell>
+                                          </TableRow>
+                                        );
+                                      })}
+                                    </TableBody>
+                                  </Table>
+                                </div>
+                              </div>
+
+                              {/* Paginación ergonómica */}
+                              {totalPaginasEstudiantes > 1 && (
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 mt-2 border-t border-gray-100 text-sm text-gray-600">
+                                  <p className="text-xs text-gray-500">
+                                    Mostrando <span className="font-semibold text-gray-800">{(paginaEstudiantes - 1) * REGISTROS_POR_PAGINA + 1}</span> a{' '}
+                                    <span className="font-semibold text-gray-800">{Math.min(paginaEstudiantes * REGISTROS_POR_PAGINA, notasTablaFiltradas.length)}</span> de{' '}
+                                    <span className="font-semibold text-gray-800">{notasTablaFiltradas.length}</span> notas
+                                  </p>
+                                  <div className="flex items-center gap-1.5">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 px-2 text-xs flex items-center gap-1"
+                                      onClick={() => setPaginaEstudiantes(p => Math.max(1, p - 1))}
+                                      disabled={paginaEstudiantes === 1}
+                                    >
+                                      <ChevronLeft className="w-3.5 h-3.5" /> Anterior
+                                    </Button>
+                                    <div className="flex items-center gap-1 px-1">
+                                      {Array.from({ length: totalPaginasEstudiantes }, (_, i) => i + 1).map(p => (
+                                        <button
+                                          key={p}
+                                          onClick={() => setPaginaEstudiantes(p)}
+                                          className={`h-8 min-w-[2rem] px-2 rounded text-xs font-medium transition-colors ${
+                                            paginaEstudiantes === p
+                                              ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                                              : 'text-gray-600 hover:bg-gray-100'
+                                          }`}
+                                        >
+                                          {p}
+                                        </button>
+                                      ))}
+                                    </div>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 px-2 text-xs flex items-center gap-1"
+                                      onClick={() => setPaginaEstudiantes(p => Math.min(totalPaginasEstudiantes, p + 1))}
+                                      disabled={paginaEstudiantes === totalPaginasEstudiantes}
+                                    >
+                                      Siguiente <ChevronRight className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
                         </CardContent>
                       </Card>
                     )}
                   </TabsContent>
 
                   {/* TAB 2: Resumen del grupo */}
-                  <TabsContent value="resumen" className="mt-4 space-y-4">
+                  <TabsContent value="resumen" className="mt-4 space-y-5">
                     {resumenGrupo.length === 0 ? (
                       <Card>
                         <CardContent className="py-10 text-center text-gray-400">
@@ -883,81 +1067,233 @@ export const ReportesPage: React.FC = () => {
                       </Card>
                     ) : (
                       <>
-                        {/* KPIs del grupo */}
+                        {/* KPIs del grupo con escala pedagógica correcta */}
                         {promedioGeneral && (
-                          <div className="grid grid-cols-3 gap-4">
-                            <Card>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <Card className="border-l-4 border-l-blue-600">
                               <CardContent className="pt-5 pb-5">
-                                <p className="text-sm text-gray-500">Promedio General</p>
-                                <p className="text-3xl mt-1 text-blue-600">{promedioGeneral}%</p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium text-gray-500">Promedio General</p>
+                                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                                </div>
+                                <div className="flex items-baseline gap-1.5 mt-1">
+                                  <p className="text-3xl font-extrabold text-blue-700">{promedioGeneral}</p>
+                                  <span className="text-sm font-medium text-gray-400">/ 5.0</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Rendimiento global: {((Number(promedioGeneral) / 5) * 100).toFixed(0)}%
+                                </p>
                               </CardContent>
                             </Card>
-                            <Card>
+
+                            <Card className="border-l-4 border-l-emerald-600">
                               <CardContent className="pt-5 pb-5">
-                                <p className="text-sm text-gray-500">Aprobados</p>
-                                <p className="text-3xl mt-1 text-green-600">{totalAprobados}</p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium text-gray-500">Tasa de Aprobación</p>
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                </div>
+                                <div className="flex items-baseline gap-1 mt-1">
+                                  <p className="text-3xl font-extrabold text-emerald-700">
+                                    {totalEstudiantesEvaluados > 0
+                                      ? ((totalAprobados / totalEstudiantesEvaluados) * 100).toFixed(1)
+                                      : '0.0'}%
+                                  </p>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {totalAprobados} de {totalEstudiantesEvaluados} evaluaciones superadas
+                                </p>
                               </CardContent>
                             </Card>
-                            <Card>
+
+                            <Card className="border-l-4 border-l-rose-500">
                               <CardContent className="pt-5 pb-5">
-                                <p className="text-sm text-gray-500">Reprobados</p>
-                                <p className="text-3xl mt-1 text-red-600">{totalReprobados}</p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium text-gray-500">Riesgo Académico</p>
+                                  <AlertTriangle className="w-4 h-4 text-rose-500" />
+                                </div>
+                                <div className="flex items-baseline gap-1.5 mt-1">
+                                  <p className="text-3xl font-extrabold text-rose-700">{totalReprobados}</p>
+                                  <span className="text-xs text-gray-400">evaluaciones</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {totalEstudiantesEvaluados > 0
+                                    ? ((totalReprobados / totalEstudiantesEvaluados) * 100).toFixed(1)
+                                    : '0.0'}% requieren refuerzo
+                                </p>
                               </CardContent>
                             </Card>
                           </div>
                         )}
 
-                        {/* Gráfica promedio por evaluación */}
+                        {/* Gráfica interactiva inclusiva con selector de modo */}
                         <Card>
-                          <CardHeader>
-                            <CardTitle>Promedio por Evaluación</CardTitle>
-                            <CardDescription>Desempeño del grupo en cada evaluación</CardDescription>
+                          <CardHeader className="pb-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                              <div>
+                                <CardTitle className="text-base sm:text-lg">Analítica Visual del Desempeño</CardTitle>
+                                <CardDescription>
+                                  {modoGrafico === 'distribucion'
+                                    ? 'Comparativa de Aprobados vs Reprobados por evaluación (Paleta inclusiva)'
+                                    : 'Promedios por evaluación en escala de 0.0 a 5.0 con referencia aprobatoria'}
+                                </CardDescription>
+                              </div>
+                              <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1 self-start sm:self-auto">
+                                <button
+                                  type="button"
+                                  onClick={() => setModoGrafico('distribucion')}
+                                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+                                    modoGrafico === 'distribucion'
+                                      ? 'bg-white text-blue-700 shadow-xs'
+                                      : 'text-gray-600 hover:text-gray-900'
+                                  }`}
+                                >
+                                  Distribución (Aprob/Reprob)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setModoGrafico('promedios')}
+                                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+                                    modoGrafico === 'promedios'
+                                      ? 'bg-white text-blue-700 shadow-xs'
+                                      : 'text-gray-600 hover:text-gray-900'
+                                  }`}
+                                >
+                                  Promedio (0.0 - 5.0 pts)
+                                </button>
+                              </div>
+                            </div>
                           </CardHeader>
                           <CardContent>
-                            <ResponsiveContainer width="100%" height={280}>
-                              <BarChart data={resumenGrupo}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="evaluacionNombre" tick={{ fontSize: 11 }} />
-                                <YAxis domain={[0, 100]} unit="%" />
-                                <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
-                                <Bar dataKey="promedioEscala" fill="#3b82f6" radius={[8, 8, 0, 0]} name="Promedio" />
-                              </BarChart>
-                            </ResponsiveContainer>
+                            {modoGrafico === 'distribucion' ? (
+                              <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={resumenGrupo} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                  <XAxis
+                                    dataKey="evaluacionNombre"
+                                    tick={{ fontSize: 11, fill: '#64748b' }}
+                                    interval={0}
+                                    angle={-10}
+                                    textAnchor="end"
+                                  />
+                                  <YAxis allowDecimals={false} unit=" est." tick={{ fontSize: 11, fill: '#64748b' }} />
+                                  <Tooltip
+                                    formatter={(v: number, name: string) => [
+                                      `${v} estudiantes`,
+                                      name === 'aprobados' ? 'Aprobados' : 'Reprobados',
+                                    ]}
+                                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                  />
+                                  <Legend verticalAlign="top" height={36} iconType="circle" />
+                                  <Bar dataKey="aprobados" name="Aprobados (Nota ≥ 3.0)" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                                  <Bar dataKey="reprobados" name="Reprobados (Nota < 3.0)" fill="#dc2626" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            ) : (
+                              <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={resumenGrupo} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                  <XAxis
+                                    dataKey="evaluacionNombre"
+                                    tick={{ fontSize: 11, fill: '#64748b' }}
+                                    interval={0}
+                                    angle={-10}
+                                    textAnchor="end"
+                                  />
+                                  <YAxis
+                                    domain={[0, 5]}
+                                    ticks={[0, 1, 2, 3, 4, 5]}
+                                    unit=" pts"
+                                    tick={{ fontSize: 11, fill: '#64748b' }}
+                                  />
+                                  <Tooltip
+                                    formatter={(v: number) => [
+                                      `${Number(v).toFixed(2)} / 5.0 (${((Number(v) / 5) * 100).toFixed(0)}%)`,
+                                      'Promedio de Calificación',
+                                    ]}
+                                    contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                  />
+                                  <ReferenceLine
+                                    y={3.0}
+                                    stroke="#dc2626"
+                                    strokeDasharray="4 4"
+                                    strokeWidth={2}
+                                    label={{
+                                      value: 'Mínimo aprobatorio (3.0)',
+                                      position: 'insideTopRight',
+                                      fill: '#b91c1c',
+                                      fontSize: 11,
+                                      fontWeight: 'bold',
+                                    }}
+                                  />
+                                  <Bar dataKey="promedioEscala" fill="#0284c7" radius={[6, 6, 0, 0]} name="Promedio" />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            )}
                           </CardContent>
                         </Card>
 
-                        {/* Tabla resumen */}
+                        {/* Tabla detalle analítico por evaluación */}
                         <Card>
-                          <CardHeader>
-                            <CardTitle>Detalle por Evaluación</CardTitle>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-base sm:text-lg">Detalle Analítico por Evaluación</CardTitle>
+                            <CardDescription>
+                              Indicadores cuantitativos consolidados por cada instrumento de evaluación
+                            </CardDescription>
                           </CardHeader>
                           <CardContent>
                             <div className="overflow-x-auto -mx-6">
                               <div className="inline-block min-w-full px-6">
                                 <Table>
                                   <TableHeader>
-                                    <TableRow>
+                                    <TableRow className="bg-gray-50/75">
                                       <TableHead>Evaluación</TableHead>
-                                      <TableHead>Promedio</TableHead>
-                                      <TableHead>Total</TableHead>
-                                      <TableHead>Aprobados</TableHead>
-                                      <TableHead>Reprobados</TableHead>
+                                      <TableHead className="text-center">Promedio</TableHead>
+                                      <TableHead className="text-center">Total Evaluados</TableHead>
+                                      <TableHead className="text-center">Aprobados</TableHead>
+                                      <TableHead className="text-center">Reprobados</TableHead>
+                                      <TableHead>Tasa de Aprobación</TableHead>
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
-                                    {resumenGrupo.map(r => (
-                                      <TableRow key={r.evaluacionId}>
-                                        <TableCell>{r.evaluacionNombre}</TableCell>
-                                        <TableCell>
-                                          <span className={r.promedioEscala >= 3 ? 'text-green-600' : 'text-red-600'}>
-                                            {r.promedioEscala.toFixed(1)}
-                                          </span>
-                                        </TableCell>
-                                        <TableCell>{r.totalEstudiantes}</TableCell>
-                                        <TableCell><span className="text-green-600">{r.aprobados}</span></TableCell>
-                                        <TableCell><span className="text-red-600">{r.reprobados}</span></TableCell>
-                                      </TableRow>
-                                    ))}
+                                    {resumenGrupo.map(r => {
+                                      const tasaAprob = r.totalEstudiantes > 0 ? (r.aprobados / r.totalEstudiantes) * 100 : 0;
+                                      return (
+                                        <TableRow key={r.evaluacionId} className="hover:bg-gray-50/60 transition-colors">
+                                          <TableCell className="font-medium text-gray-900">{r.evaluacionNombre}</TableCell>
+                                          <TableCell className="text-center">
+                                            <span className={`font-bold ${r.promedioEscala >= 3 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                                              {r.promedioEscala.toFixed(1)} <span className="text-xs font-normal text-gray-400">/ 5.0</span>
+                                            </span>
+                                          </TableCell>
+                                          <TableCell className="text-center font-medium text-gray-700">{r.totalEstudiantes}</TableCell>
+                                          <TableCell className="text-center">
+                                            <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-xs">
+                                              {r.aprobados}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell className="text-center">
+                                            <span className="font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full text-xs">
+                                              {r.reprobados}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell>
+                                            <div className="space-y-1 min-w-[120px]">
+                                              <div className="flex items-center justify-between text-xs font-medium">
+                                                <span className={tasaAprob >= 70 ? 'text-emerald-700' : tasaAprob >= 50 ? 'text-amber-700' : 'text-rose-700'}>
+                                                  {tasaAprob.toFixed(1)}%
+                                                </span>
+                                              </div>
+                                              <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                <div
+                                                  className={`h-full rounded-full ${tasaAprob >= 70 ? 'bg-emerald-500' : tasaAprob >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                                                  style={{ width: `${Math.min(100, Math.max(0, tasaAprob))}%` }}
+                                                />
+                                              </div>
+                                            </div>
+                                          </TableCell>
+                                        </TableRow>
+                                      );
+                                    })}
                                   </TableBody>
                                 </Table>
                               </div>

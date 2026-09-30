@@ -198,100 +198,90 @@ export const DashboardCoordinador: React.FC = () => {
               Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)
             ) : (
               <>
-                <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all">
-                  <CardContent className="pt-5 pb-5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cursos Activos</p>
-                        <p className="coordinador-stat-value text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">{cursos.length}</p>
-                      </div>
-                      <div className="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 p-2.5 rounded-xl flex-shrink-0">
-                        <BookOpen className="w-5 h-5 text-blue-700 dark:text-blue-300" />
-                      </div>
+                <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Cursos Activos</p>
+                      <p className="coordinador-stat-value text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-white leading-none">{cursos.length}</p>
                     </div>
-                  </CardContent>
+                    <div className="stat-icon-capsule rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800">
+                      <BookOpen className="w-4 h-4 text-blue-700 dark:text-blue-300" />
+                    </div>
+                  </div>
                 </Card>
 
-                <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all">
-                  <CardContent className="pt-5 pb-5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estudiantes</p>
-                        <p className="coordinador-stat-value text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">{totalEstudiantes}</p>
-                      </div>
-                      <div className="bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 p-2.5 rounded-xl flex-shrink-0">
-                        <GraduationCap className="w-5 h-5 text-indigo-700 dark:text-indigo-300" />
-                      </div>
+                <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Estudiantes</p>
+                      <p className="coordinador-stat-value text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-white leading-none">{totalEstudiantes}</p>
                     </div>
-                  </CardContent>
+                    <div className="stat-icon-capsule rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800">
+                      <GraduationCap className="w-4 h-4 text-indigo-700 dark:text-indigo-300" />
+                    </div>
+                  </div>
                 </Card>
 
-                <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all">
-                  <CardContent className="pt-5 pb-5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Instructores</p>
-                        <p className="coordinador-stat-value text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">{totalDocentes}</p>
-                      </div>
-                      <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-2.5 rounded-xl flex-shrink-0">
-                        <Users className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
-                      </div>
+                <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Instructores</p>
+                      <p className="coordinador-stat-value text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-white leading-none">{totalDocentes}</p>
                     </div>
-                  </CardContent>
+                    <div className="stat-icon-capsule rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800">
+                      <Users className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
+                    </div>
+                  </div>
                 </Card>
 
-                <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all">
-                  <CardContent className="pt-5 pb-5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pruebas Activas</p>
-                        <p className="coordinador-stat-value text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">{evaluacionesActivas.length}</p>
-                      </div>
-                      <div className="bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 p-2.5 rounded-xl flex-shrink-0">
-                        <TrendingUp className="w-5 h-5 text-teal-700 dark:text-teal-300" />
-                      </div>
+                <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Pruebas Activas</p>
+                      <p className="coordinador-stat-value text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-white leading-none">{evaluacionesActivas.length}</p>
                     </div>
-                  </CardContent>
+                    <div className="stat-icon-capsule rounded-lg bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800">
+                      <TrendingUp className="w-4 h-4 text-teal-700 dark:text-teal-300" />
+                    </div>
+                  </div>
                 </Card>
 
-                <Card className={`coordinador-stat-card border shadow-sm hover:shadow-md transition-all ${
+                <Card className={`coordinador-stat-card border shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4 ${
                   metricasPQRS.vencidas.length > 0
                     ? 'sla-danger border-red-300 dark:border-red-900 bg-red-50/70 dark:bg-red-950/30'
                     : metricasPQRS.proximas.length > 0
                     ? 'sla-warning border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/30'
                     : 'sla-ok border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
                 }`}>
-                  <CardContent className="pt-5 pb-5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">SLA PQRS (15d)</p>
-                        <p className={`coordinador-stat-value text-3xl font-extrabold mt-1 ${
-                          metricasPQRS.vencidas.length > 0
-                            ? 'text-red-600 dark:text-red-400'
-                            : metricasPQRS.proximas.length > 0
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-emerald-600 dark:text-emerald-400'
-                        }`}>
-                          {metricasPQRS.cumplimientoPct}%
-                        </p>
-                      </div>
-                      <div className={`p-2.5 rounded-xl border flex-shrink-0 ${
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">SLA PQRS (15d)</p>
+                      <p className={`coordinador-stat-value text-2xl sm:text-3xl font-extrabold mt-1 leading-none ${
                         metricasPQRS.vencidas.length > 0
-                          ? 'bg-red-100 dark:bg-red-950/60 border-red-200 dark:border-red-800'
+                          ? 'text-red-600 dark:text-red-400'
                           : metricasPQRS.proximas.length > 0
-                          ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800'
-                          : 'bg-emerald-100 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800'
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-emerald-600 dark:text-emerald-400'
                       }`}>
-                        <MessageSquare className={`w-5 h-5 ${
-                          metricasPQRS.vencidas.length > 0
-                            ? 'text-red-700 dark:text-red-300'
-                            : metricasPQRS.proximas.length > 0
-                            ? 'text-amber-700 dark:text-amber-300'
-                            : 'text-emerald-700 dark:text-emerald-300'
-                        }`} />
-                      </div>
+                        {metricasPQRS.cumplimientoPct}%
+                      </p>
                     </div>
-                  </CardContent>
+                    <div className={`stat-icon-capsule rounded-lg border ${
+                      metricasPQRS.vencidas.length > 0
+                        ? 'bg-red-100 dark:bg-red-950/60 border-red-200 dark:border-red-800'
+                        : metricasPQRS.proximas.length > 0
+                        ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800'
+                        : 'bg-emerald-100 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800'
+                    }`}>
+                      <MessageSquare className={`w-4 h-4 ${
+                        metricasPQRS.vencidas.length > 0
+                          ? 'text-red-700 dark:text-red-300'
+                          : metricasPQRS.proximas.length > 0
+                          ? 'text-amber-700 dark:text-amber-300'
+                          : 'text-emerald-700 dark:text-emerald-300'
+                      }`} />
+                    </div>
+                  </div>
                 </Card>
               </>
             )}
@@ -418,42 +408,34 @@ export const DashboardCoordinador: React.FC = () => {
                 <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-3 mt-2">
                   Desempeño institucional
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-evenly">
-                  <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all">
-                    <CardContent className="pt-5 pb-5 text-center">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center mx-auto mb-2.5">
-                        <CheckCircle className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
-                      </div>
-                      <p className="coordinador-stat-value text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">{metricas.pctAprobacion}%</p>
-                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Tasa de aprobación</p>
-                    </CardContent>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4 text-center flex flex-col items-center justify-center">
+                    <div className="stat-icon-capsule rounded-full bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 mb-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
+                    </div>
+                    <p className="coordinador-stat-value text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 leading-tight">{metricas.pctAprobacion}%</p>
+                    <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Tasa de aprobación</p>
                   </Card>
-                  <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all">
-                    <CardContent className="pt-5 pb-5 text-center">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 flex items-center justify-center mx-auto mb-2.5">
-                        <TrendingUp className="w-5 h-5 text-blue-700 dark:text-blue-300" />
-                      </div>
-                      <p className="coordinador-stat-value text-3xl font-extrabold text-blue-600 dark:text-sky-400">{metricas.promedio}</p>
-                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Promedio institucional</p>
-                    </CardContent>
+                  <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4 text-center flex flex-col items-center justify-center">
+                    <div className="stat-icon-capsule rounded-full bg-blue-100 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 mb-2">
+                      <TrendingUp className="w-4 h-4 text-blue-700 dark:text-blue-300" />
+                    </div>
+                    <p className="coordinador-stat-value text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-sky-400 leading-tight">{metricas.promedio}</p>
+                    <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Promedio institucional</p>
                   </Card>
-                  <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all">
-                    <CardContent className="pt-5 pb-5 text-center">
-                      <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 flex items-center justify-center mx-auto mb-2.5">
-                        <Users className="w-5 h-5 text-teal-700 dark:text-teal-300" />
-                      </div>
-                      <p className="coordinador-stat-value text-3xl font-extrabold text-teal-600 dark:text-teal-300">{metricas.aprobados}</p>
-                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Evaluaciones aprobadas</p>
-                    </CardContent>
+                  <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4 text-center flex flex-col items-center justify-center">
+                    <div className="stat-icon-capsule rounded-full bg-teal-100 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 mb-2">
+                      <Users className="w-4 h-4 text-teal-700 dark:text-teal-300" />
+                    </div>
+                    <p className="coordinador-stat-value text-2xl sm:text-3xl font-extrabold text-teal-600 dark:text-teal-300 leading-tight">{metricas.aprobados}</p>
+                    <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Evaluaciones aprobadas</p>
                   </Card>
-                  <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all">
-                    <CardContent className="pt-5 pb-5 text-center">
-                      <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 flex items-center justify-center mx-auto mb-2.5">
-                        <TrendingDown className="w-5 h-5 text-rose-700 dark:text-rose-300" />
-                      </div>
-                      <p className="coordinador-stat-value text-3xl font-extrabold text-rose-600 dark:text-rose-300">{metricas.reprobados}</p>
-                      <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Evaluaciones reprobadas</p>
-                    </CardContent>
+                  <Card className="coordinador-stat-card border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-all p-3.5 sm:p-4 text-center flex flex-col items-center justify-center">
+                    <div className="stat-icon-capsule rounded-full bg-rose-100 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 mb-2">
+                      <TrendingDown className="w-4 h-4 text-rose-700 dark:text-rose-300" />
+                    </div>
+                    <p className="coordinador-stat-value text-2xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-300 leading-tight">{metricas.reprobados}</p>
+                    <p className="coordinador-stat-label text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">Evaluaciones reprobadas</p>
                   </Card>
                 </div>
               </div>

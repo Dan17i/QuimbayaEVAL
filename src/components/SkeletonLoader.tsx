@@ -38,13 +38,13 @@ export const Skeleton: React.FC<SkeletonProps> = ({
  */
 export const StatCardSkeleton: React.FC = () => {
   return (
-    <div className="p-6 border border-gray-200 rounded-lg">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <Skeleton className="h-4 w-24 mb-2" variant="text" />
-          <Skeleton className="h-8 w-16" variant="text" />
+    <div className="p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl h-auto">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <Skeleton className="h-3.5 w-20 mb-2" variant="text" />
+          <Skeleton className="h-7 w-14" variant="text" />
         </div>
-        <Skeleton className="w-12 h-12 rounded-lg" variant="circular" />
+        <Skeleton className="w-8 h-8 rounded-lg flex-shrink-0" variant="rectangular" />
       </div>
     </div>
   );

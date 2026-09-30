@@ -3950,14 +3950,38 @@ html {
 .coordinador-stat-card {
   background-color: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0.75rem !important;
+  padding: 0.875rem 1rem !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  gap: 0 !important;
+}
+
+.coordinador-stat-card [data-slot="card-content"],
+.coordinador-stat-card [data-slot="card-content"]:last-child {
+  padding: 0 !important;
+  padding-bottom: 0 !important;
+  margin: 0 !important;
 }
 
 .coordinador-stat-card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1) !important;
   transform: translateY(-1px);
+}
+
+.stat-icon-capsule {
+  width: 2rem !important;
+  height: 2rem !important;
+  min-width: 2rem !important;
+  min-height: 2rem !important;
+  max-width: 2rem !important;
+  max-height: 2rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
 }
 
 .coordinador-stat-label {
@@ -3966,11 +3990,12 @@ html {
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
   color: #64748b !important;
+  line-height: 1.25 !important;
 }
 
 .coordinador-stat-value {
-  font-size: 1.875rem !important;
-  line-height: 2.25rem !important;
+  font-size: 1.75rem !important;
+  line-height: 1.2 !important;
   font-weight: 800 !important;
   margin-top: 0.25rem !important;
   color: #1e293b !important;

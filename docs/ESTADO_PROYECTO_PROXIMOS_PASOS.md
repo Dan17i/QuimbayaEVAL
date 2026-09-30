@@ -68,8 +68,8 @@
 | `PQRSPage.tsx` | ✅ Completado | Alto (SLA 15 días visible, filtros, respuesta docente) | `pqrsService.getDetalles` |
 | `RealizarEvaluacionPage.tsx` | ✅ Completado | Alto (Timer, borrador en localStorage, submit canónico) | `evaluacionesService.submit` |
 | `PerfilPage.tsx` | ✅ Completado | Alto (Validación tiempo real, cambio clave seguro, preview avatar, sync AuthContext) | `usersService` |
-| `DashboardCoordinador.tsx` | ⏳ Pendiente pulir | Intermedio (Requiere unificar métricas globales y alerta SLA PQRS) | Múltiples servicios |
-| `CursoDetallePage.tsx` | ⏳ Pendiente pulir | Intermedio (Ficha técnica y lista estudiantes) | `cursosService` |
+| `DashboardCoordinador.tsx` | ✅ Completado | Alto (KPIs globales reales, auditoría PQRS SLA 15d, alertas de urgencia y gráficas) | Múltiples servicios |
+| `CursoDetallePage.tsx` | ✅ Completado | Alto (Ficha técnica enriquecida, aprendices matriculados, promedio y métricas) | `cursosService` / `usersService` |
 
 ---
 
@@ -82,9 +82,11 @@
 - 4 nuevos tests de integración en `UserControllerIntegrationTest` pasando al 100% (241/241 en toda la suite).
 - Rediseño con estándar SENA en `PerfilPage.tsx`: preview ergonómico de imagen, correo institucional protegido, confirmación y validación de contraseña con `PasswordInput`, micro-estadísticas y sincronización directa con `AuthContext`.
 
-### **Paso 2: Dashboard del Coordinador (`DashboardCoordinador.tsx`) y Ficha de Curso (`CursoDetallePage.tsx`)**
-- Consolidar en `DashboardCoordinador.tsx` los KPIs institucionales reales: total estudiantes activos, cursos activos, tasa global de aprobación y panel de PQRS con alerta de SLAs próximos a vencer.
-- Enriquecer `CursoDetallePage.tsx` con listado de estudiantes matriculados y acciones de gestión académica.
+### **Paso 2: Dashboard del Coordinador (`DashboardCoordinador.tsx`) y Ficha de Curso (`CursoDetallePage.tsx` / `CursoMaestroPage.tsx`) — ✅ COMPLETADO**
+- Consolidado en `DashboardCoordinador.tsx` el módulo institucional de **Auditoría de PQRS y Cumplimiento Legal (SLA 15 Días)**: cálculo reactivo de % de cumplimiento, alertas de urgencia para tickets vencidos o por vencer con enlace directo de resolución, y conteo global de aprendices e instructores activos.
+- Enriquecido `CursoMaestroPage.tsx` con la pestaña **Estudiantes Matriculados** (buscador en tiempo real, conteo de aprendices y estado de matrícula).
+- Enriquecido `CursoDetallePage.tsx` con ficha técnica del curso, badge del instructor asignado, micro-métricas de promedio/evaluaciones y lista desplegable de compañeros matriculados.
+- Verificación con `npm run typecheck` (0 errores) y `npm run build` exitoso.
 
 ### **Paso 3: Prueba de Humo de Flujo Completo (End-to-End)**
 1. Iniciar sesión como Maestro -> Crear evaluación con 3 preguntas (opción múltiple y verdadero/falso) -> Publicar.

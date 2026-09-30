@@ -4,16 +4,19 @@ import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import {
   Plus, Clock, CheckCircle, AlertCircle, BarChart3,
   ClipboardList, Users, ChevronRight, BookOpen,
   FileSpreadsheet, FileText, Filter, Send,
+  Search, Mail, UserCheck,
 } from 'lucide-react';
 import { cursosService, Curso } from '../services/cursosService';
 import { evaluacionesService, Evaluacion } from '../services/evaluacionesService';
 import { resultadosService, ResultadoDetalle } from '../services/resultadosService';
+import { UserDTO } from '../services/usersService';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { formatDate } from '../utils/date';
@@ -32,10 +35,13 @@ export const CursoMaestroPage: React.FC = () => {
   const [curso, setCurso] = useState<Curso | null>(null);
   const [evaluaciones, setEvaluaciones] = useState<Evaluacion[]>([]);
   const [resultados, setResultados] = useState<ResultadoDetalle[]>([]);
+  const [estudiantes, setEstudiantes] = useState<UserDTO[]>([]);
   const [loadingCurso, setLoadingCurso] = useState(true);
   const [loadingEvals, setLoadingEvals] = useState(true);
+  const [loadingEstudiantes, setLoadingEstudiantes] = useState(true);
   const [loadingReporte, setLoadingReporte] = useState(false);
   const [mostrarReporte, setMostrarReporte] = useState(false);
+  const [searchEstudiante, setSearchEstudiante] = useState('');
 
   // Filtros del reporte
   const [filtroEstado, setFiltroEstado] = useState<'todos' | 'Aprobado' | 'Reprobado'>('todos');
@@ -52,6 +58,11 @@ export const CursoMaestroPage: React.FC = () => {
       .then(setEvaluaciones)
       .catch(() => toast.error('No se pudieron cargar las evaluaciones'))
       .finally(() => setLoadingEvals(false));
+
+    cursosService.getEstudiantes(cursoId)
+      .then(setEstudiantes)
+      .catch(() => setEstudiantes([]))
+      .finally(() => setLoadingEstudiantes(false));
   }, [cursoId]);
 
   const handlePublicar = async (evalId: number) => {
@@ -108,6 +119,15 @@ export const CursoMaestroPage: React.FC = () => {
       aprobados,
     };
   }, [resultadosFiltrados]);
+
+  // Estudiantes filtrados por búsqueda
+  const estudiantesFiltrados = useMemo(() => {
+    const q = searchEstudiante.toLowerCase().trim();
+    if (!q) return estudiantes;
+    return estudiantes.filter(e =>
+      e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q)
+    );
+  }, [estudiantes, searchEstudiante]);
 
   const metadatos = {
     curso: curso?.nombre ?? '',
@@ -310,7 +330,7 @@ export const CursoMaestroPage: React.FC = () => {
           </div>
 
           {/* Resumen rápido */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
               <p className="text-2xl font-bold text-green-700">{activas.length}</p>
               <p className="text-xs text-green-600 mt-1">Activas / Programadas</p>
@@ -319,18 +339,22 @@ export const CursoMaestroPage: React.FC = () => {
               <p className="text-2xl font-bold text-orange-700">{porCalificar.length}</p>
               <p className="text-xs text-orange-600 mt-1">Por calificar</p>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center col-span-2 sm:col-span-1">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
               <p className="text-2xl font-bold text-blue-700">{evaluaciones.length}</p>
               <p className="text-xs text-blue-600 mt-1">Total evaluaciones</p>
             </div>
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-indigo-700">{estudiantes.length}</p>
+              <p className="text-xs text-indigo-600 mt-1">Aprendices matriculados</p>
+            </div>
           </div>
 
-          {/* Tabs de evaluaciones */}
+          {/* Tabs de evaluaciones y estudiantes */}
           <Card>
             <CardHeader className="pb-0">
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-gray-500" />
-                Evaluaciones
+                Gestión Académica del Curso
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
@@ -356,6 +380,14 @@ export const CursoMaestroPage: React.FC = () => {
                       {porCalificar.length > 0 && (
                         <span className="ml-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
                           {porCalificar.length}
+                        </span>
+                      )}
+                    </TabsTrigger>
+                    <TabsTrigger value="estudiantes">
+                      Estudiantes Matriculados
+                      {estudiantes.length > 0 && (
+                        <span className="ml-2 bg-indigo-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
+                          {estudiantes.length}
                         </span>
                       )}
                     </TabsTrigger>
@@ -389,6 +421,67 @@ export const CursoMaestroPage: React.FC = () => {
                         {porCalificar.map(e => <EvalCard key={e.id} eval={e} />)}
                       </div>
                     )}
+                  </TabsContent>
+
+                  <TabsContent value="estudiantes">
+                    <div className="space-y-4">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div className="relative w-full sm:w-72">
+                          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <Input
+                            placeholder="Buscar aprendiz por nombre o correo..."
+                            value={searchEstudiante}
+                            onChange={(e) => setSearchEstudiante(e.target.value)}
+                            className="pl-9 text-sm"
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Total matriculados: <strong>{estudiantes.length} aprendices</strong>
+                        </p>
+                      </div>
+
+                      {loadingEstudiantes ? (
+                        <div className="space-y-2">
+                          {Array.from({ length: 3 }).map((_, i) => (
+                            <div key={i} className="h-14 bg-gray-100 rounded-lg animate-pulse" />
+                          ))}
+                        </div>
+                      ) : estudiantesFiltrados.length === 0 ? (
+                        <EmptyState
+                          icon={Users}
+                          title={searchEstudiante ? "Sin resultados" : "Sin estudiantes matriculados"}
+                          description={searchEstudiante ? "No se encontraron aprendices con ese término de búsqueda." : "Aún no se han matriculado aprendices en este curso."}
+                        />
+                      ) : (
+                        <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-gray-800">
+                          {estudiantesFiltrados.map(est => {
+                            const ini = est.name.trim().split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+                            return (
+                              <div key={est.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold flex items-center justify-center text-sm flex-shrink-0">
+                                    {ini}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                      {est.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
+                                      <Mail className="w-3 h-3 text-gray-400" />
+                                      {est.email}
+                                    </p>
+                                  </div>
+                                </div>
+                                <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300 border border-green-200 dark:border-green-800">
+                                  <UserCheck className="w-3 h-3" />
+                                  Matriculado
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </TabsContent>
                 </Tabs>
               )}

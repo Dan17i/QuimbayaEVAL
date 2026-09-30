@@ -11,11 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import {
   Clock, CheckCircle, AlertCircle,
   MessageSquare, Play, FileDown, ChevronLeft, Star,
+  Users, GraduationCap, BookOpen, ChevronDown, ChevronUp, Mail, UserCheck
 } from 'lucide-react';
 import { useCursos } from '../hooks/useCursos';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
+import { cursosService } from '../services/cursosService';
 import { pqrsService, TipoPQRS } from '../services/pqrsService';
 import { resultadosService, ResultadoDetalle } from '../services/resultadosService';
+import { usersService, UserDTO } from '../services/usersService';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { formatDateTime } from '../utils/date';
@@ -133,6 +136,12 @@ export const CursoDetallePage: React.FC = () => {
   const [resultados, setResultados] = useState<ResultadoDetalle[]>([]);
   const [loadingResultados, setLoadingResultados] = useState(true);
 
+  // Compañeros y Docente del curso
+  const [companeros, setCompaneros] = useState<UserDTO[]>([]);
+  const [docente, setDocente] = useState<UserDTO | null>(null);
+  const [loadingCompaneros, setLoadingCompaneros] = useState(true);
+  const [mostrarCompaneros, setMostrarCompaneros] = useState(false);
+
   useEffect(() => {
     resultadosService.getMisResultados()
       .then(all => {
@@ -146,6 +155,30 @@ export const CursoDetallePage: React.FC = () => {
       .catch(() => { /* interceptor */ })
       .finally(() => setLoadingResultados(false));
   }, [curso]);
+
+  useEffect(() => {
+    if (!cursoId) return;
+    cursosService.getEstudiantes(cursoId)
+      .then(setCompaneros)
+      .catch(() => setCompaneros([]))
+      .finally(() => setLoadingCompaneros(false));
+  }, [cursoId]);
+
+  useEffect(() => {
+    if (!curso?.profesorId) return;
+    usersService.getByRole('maestro')
+      .then(docentes => {
+        const found = docentes.find(d => d.id === curso.profesorId);
+        if (found) setDocente(found);
+      })
+      .catch(() => {});
+  }, [curso?.profesorId]);
+
+  const promedioMateria = useMemo(() => {
+    if (resultados.length === 0) return null;
+    const notas = resultados.map(r => r.notaEscala ?? r.porcentaje / 20);
+    return (notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(1);
+  }, [resultados]);
 
   // PQRS modal
   const [pqrsOpen, setPqrsOpen] = useState(false);
@@ -252,25 +285,59 @@ export const CursoDetallePage: React.FC = () => {
             </button>
 
             {loading ? (
-              <div className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+              <div className="h-24 bg-gray-100 dark:bg-gray-800 rounded-xl animate-pulse" />
             ) : (
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div>
-                  <p className="text-xs font-mono text-gray-400 mb-1">{curso!.codigo}</p>
-                  <h1 className="text-2xl font-bold text-gray-900">{curso!.nombre}</h1>
-                  {curso!.descripcion && (
-                    <p className="text-gray-500 text-sm mt-1">{curso!.descripcion}</p>
-                  )}
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
+                        {curso!.codigo}
+                      </span>
+                      {docente && (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1 font-medium">
+                          <GraduationCap className="w-3.5 h-3.5 text-emerald-600" />
+                          Instructor: {docente.name}
+                        </span>
+                      )}
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{curso!.nombre}</h1>
+                    {curso!.descripcion && (
+                      <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{curso!.descripcion}</p>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                    onClick={() => abrirPQRS()}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Enviar PQRS
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                  onClick={() => abrirPQRS()}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  Enviar PQRS
-                </Button>
+
+                {/* Micro-cards de estado en el curso */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                  <div className="p-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-xl text-center">
+                    <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">{evalsAbiertas.length}</p>
+                    <p className="text-xs text-orange-600 dark:text-orange-400 mt-0.5">Pendientes</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-center">
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{resultados.length}</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">Calificadas</p>
+                  </div>
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl text-center">
+                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+                      {promedioMateria ? `${promedioMateria}` : '—'}
+                    </p>
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Promedio (0-5.0)</p>
+                  </div>
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl text-center">
+                    <p className="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{companeros.length}</p>
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">Compañeros</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -405,6 +472,62 @@ export const CursoDetallePage: React.FC = () => {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </section>
+
+          {/* Compañeros de curso */}
+          <section className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-gray-900 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Users className="w-4 h-4 text-indigo-500" />
+                Compañeros de Curso
+                <span className="text-xs bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full font-bold">
+                  {companeros.length}
+                </span>
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 gap-1"
+                onClick={() => setMostrarCompaneros(!mostrarCompaneros)}
+              >
+                {mostrarCompaneros ? (
+                  <>Ocultar <ChevronUp className="w-3.5 h-3.5" /></>
+                ) : (
+                  <>Ver lista <ChevronDown className="w-3.5 h-3.5" /></>
+                )}
+              </Button>
+            </div>
+
+            {mostrarCompaneros && (
+              <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                {loadingCompaneros ? (
+                  <div className="space-y-2">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="h-10 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+                    ))}
+                  </div>
+                ) : companeros.length === 0 ? (
+                  <p className="text-xs text-gray-400 py-2 text-center">No hay otros aprendices matriculados.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                    {companeros.map(c => {
+                      const ini = c.name.trim().split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+                      return (
+                        <div key={c.id} className="p-2.5 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                            {ini}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{c.name}</p>
+                            <p className="text-[10px] text-gray-400 truncate">{c.email}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </section>

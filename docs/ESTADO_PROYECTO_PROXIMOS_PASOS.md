@@ -88,8 +88,13 @@
 - Enriquecido `CursoDetallePage.tsx` con ficha técnica del curso, badge del instructor asignado, micro-métricas de promedio/evaluaciones y lista desplegable de compañeros matriculados.
 - Verificación con `npm run typecheck` (0 errores) y `npm run build` exitoso.
 
-### **Paso 3: Prueba de Humo de Flujo Completo (End-to-End)**
-1. Iniciar sesión como Maestro -> Crear evaluación con 3 preguntas (opción múltiple y verdadero/falso) -> Publicar.
-2. Iniciar sesión como Estudiante -> Rendir evaluación -> Confirmar autocalificación instantánea en Historial.
-3. Iniciar sesión como Maestro -> Calificar en batch observaciones cualitativas -> Verificar actualización en Reportes.
-4. Radicar ticket en PQRS -> Comprobar visualización de días de SLA (15 días) y responder como Coordinador.
+### **Paso 3: Prueba de Humo de Flujo Completo End-to-End (`FlujoCompletoEndToEndTest.java`) — ✅ COMPLETADO**
+- Implementado el test de integración automatizado completo en Spring Boot MockMvc: [`FlujoCompletoEndToEndTest.java`](file:///C:/Users/DANIEL-PC/Documents/bases%20SENA/quimbayaeval-backend/src/test/java/com/quimbayaeval/controller/FlujoCompletoEndToEndTest.java).
+- Validados los 4 eslabones de la cadena de valor institucional:
+  1. **Creación y Publicación Docente:** Creación de evaluación con 3 preguntas (opción múltiple, V/F y abierta) y publicación inmediata.
+  2. **Rendición y Autocalificación:** Aprendiz presenta examen; autocalificación instantánea de preguntas objetivas (3.5/5.0 puntos -> nota 3.8 en escala SENA).
+  3. **Batch Grading y Reporte Consolidado:** Instructor califica reactivo abierto con retroalimentación cualitativa en lote atómico; verificación del 100% (nota 5.0) en reporte del curso.
+  4. **PQRS y Cumplimiento Legal (SLA 15 Días):** Aprendiz radica petición, Coordinador consulta auditoría con SLA `A_TIEMPO` y resuelve la solicitud quedando en estado `ATENDIDO_A_TIEMPO`.
+- Corregido bug crítico en [`SubmissionDao.java`](file:///C:/Users/DANIEL-PC/Documents/bases%20SENA/quimbayaeval-backend/src/main/java/com/quimbayaeval/dao/SubmissionDao.java) donde `SQL_INSERT` omitía `respuestas_json` y `fecha_envio` al persistir el envío.
+- Verificación exhaustiva: **242 / 242 tests pasando** al 100% en backend (`mvn test`) y **0 errores de TypeScript** en frontend (`npm run typecheck`).
+

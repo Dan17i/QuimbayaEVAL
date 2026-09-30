@@ -198,75 +198,97 @@ export const DashboardCoordinador: React.FC = () => {
               Array.from({ length: 5 }).map((_, i) => <StatCardSkeleton key={i} />)
             ) : (
               <>
-                <Card>
+                <Card className="border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md transition-all">
                   <CardContent className="pt-5 pb-5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs text-gray-500 dark:text-white/50">Cursos Activos</p>
-                        <p className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{cursos.length}</p>
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Cursos Activos</p>
+                        <p className="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{cursos.length}</p>
                       </div>
-                      <div className="bg-blue-100 dark:bg-blue-900/40 p-2.5 rounded-lg flex-shrink-0">
-                        <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <div className="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 p-2.5 rounded-xl flex-shrink-0">
+                        <BookOpen className="w-5 h-5 text-blue-700 dark:text-blue-300" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md transition-all">
                   <CardContent className="pt-5 pb-5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs text-gray-500 dark:text-white/50">Estudiantes</p>
-                        <p className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{totalEstudiantes}</p>
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Estudiantes</p>
+                        <p className="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{totalEstudiantes}</p>
                       </div>
-                      <div className="bg-indigo-100 dark:bg-indigo-900/40 p-2.5 rounded-lg flex-shrink-0">
-                        <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                      <div className="bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 p-2.5 rounded-xl flex-shrink-0">
+                        <GraduationCap className="w-5 h-5 text-indigo-700 dark:text-indigo-300" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md transition-all">
                   <CardContent className="pt-5 pb-5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs text-gray-500 dark:text-white/50">Instructores</p>
-                        <p className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{totalDocentes}</p>
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Instructores</p>
+                        <p className="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{totalDocentes}</p>
                       </div>
-                      <div className="bg-emerald-100 dark:bg-emerald-900/40 p-2.5 rounded-lg flex-shrink-0">
-                        <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-2.5 rounded-xl flex-shrink-0">
+                        <Users className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md transition-all">
                   <CardContent className="pt-5 pb-5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs text-gray-500 dark:text-white/50">Pruebas Activas</p>
-                        <p className="text-3xl font-bold mt-1 text-gray-900 dark:text-white">{evaluacionesActivas.length}</p>
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Pruebas Activas</p>
+                        <p className="text-3xl font-extrabold mt-1 text-gray-900 dark:text-white">{evaluacionesActivas.length}</p>
                       </div>
-                      <div className="bg-green-100 dark:bg-green-900/40 p-2.5 rounded-lg flex-shrink-0">
-                        <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <div className="bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 p-2.5 rounded-xl flex-shrink-0">
+                        <TrendingUp className="w-5 h-5 text-teal-700 dark:text-teal-300" />
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className={metricasPQRS.urgentes.length > 0 ? 'border-amber-300 dark:border-amber-700 bg-amber-50/20' : ''}>
+                <Card className={`border shadow-xs hover:shadow-md transition-all ${
+                  metricasPQRS.vencidas.length > 0
+                    ? 'border-red-300 dark:border-red-800 bg-red-50/40 dark:bg-red-950/20'
+                    : metricasPQRS.proximas.length > 0
+                    ? 'border-amber-300 dark:border-amber-800 bg-amber-50/40 dark:bg-amber-950/20'
+                    : 'border-gray-200/90 dark:border-gray-800 bg-white dark:bg-gray-900'
+                }`}>
                   <CardContent className="pt-5 pb-5">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-xs text-gray-500 dark:text-white/50">SLA PQRS (15d)</p>
-                        <p className={`text-3xl font-bold mt-1 ${metricasPQRS.vencidas.length > 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">SLA PQRS (15d)</p>
+                        <p className={`text-3xl font-extrabold mt-1 ${
+                          metricasPQRS.vencidas.length > 0
+                            ? 'text-red-700 dark:text-red-400'
+                            : metricasPQRS.proximas.length > 0
+                            ? 'text-amber-700 dark:text-amber-400'
+                            : 'text-emerald-700 dark:text-emerald-400'
+                        }`}>
                           {metricasPQRS.cumplimientoPct}%
                         </p>
                       </div>
-                      <div className={`p-2.5 rounded-lg flex-shrink-0 ${
-                        metricasPQRS.urgentes.length > 0 ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-teal-100 dark:bg-teal-900/40'
+                      <div className={`p-2.5 rounded-xl border flex-shrink-0 ${
+                        metricasPQRS.vencidas.length > 0
+                          ? 'bg-red-100 dark:bg-red-950/60 border-red-200 dark:border-red-800'
+                          : metricasPQRS.proximas.length > 0
+                          ? 'bg-amber-100 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800'
+                          : 'bg-emerald-100 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800'
                       }`}>
-                        <MessageSquare className={`w-5 h-5 ${metricasPQRS.urgentes.length > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-teal-600 dark:text-teal-400'}`} />
+                        <MessageSquare className={`w-5 h-5 ${
+                          metricasPQRS.vencidas.length > 0
+                            ? 'text-red-700 dark:text-red-300'
+                            : metricasPQRS.proximas.length > 0
+                            ? 'text-amber-700 dark:text-amber-300'
+                            : 'text-emerald-700 dark:text-emerald-300'
+                        }`} />
                       </div>
                     </div>
                   </CardContent>
@@ -299,29 +321,29 @@ export const DashboardCoordinador: React.FC = () => {
             <CardContent className="pt-6 space-y-6">
               {/* Micro-cards SLA */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Total Radicadas</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{metricasPQRS.total}</p>
+                <div className="p-3.5 bg-gray-50 dark:bg-gray-800/80 rounded-xl border border-gray-200 dark:border-gray-700 text-center">
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">Total Radicadas</p>
+                  <p className="text-2xl font-black text-gray-900 dark:text-white mt-1">{metricasPQRS.total}</p>
                 </div>
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-800 text-center">
-                  <p className="text-xs text-blue-600 dark:text-blue-400">En Trámite</p>
-                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">{metricasPQRS.pendientes.length}</p>
+                <div className="p-3.5 bg-blue-50 dark:bg-blue-950/60 rounded-xl border border-blue-200 dark:border-blue-800 text-center">
+                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">En Trámite</p>
+                  <p className="text-2xl font-black text-blue-900 dark:text-blue-100 mt-1">{metricasPQRS.pendientes.length}</p>
                 </div>
-                <div className={`p-3 rounded-xl border text-center ${
+                <div className={`p-3.5 rounded-xl border text-center transition-colors ${
                   metricasPQRS.proximas.length > 0
-                    ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300'
-                    : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500'
+                    ? 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200'
+                    : 'bg-gray-50 dark:bg-gray-800/80 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300'
                 }`}>
-                  <p className="text-xs">Próximas a Vencer</p>
-                  <p className="text-2xl font-bold mt-1">{metricasPQRS.proximas.length}</p>
+                  <p className="text-xs font-semibold">Próximas a Vencer</p>
+                  <p className={`text-2xl font-black mt-1 ${metricasPQRS.proximas.length > 0 ? 'text-amber-900 dark:text-amber-200' : 'text-gray-900 dark:text-white'}`}>{metricasPQRS.proximas.length}</p>
                 </div>
-                <div className={`p-3 rounded-xl border text-center ${
+                <div className={`p-3.5 rounded-xl border text-center transition-colors ${
                   metricasPQRS.vencidas.length > 0
-                    ? 'bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800 text-red-700 dark:text-red-300'
-                    : 'bg-green-50 dark:bg-green-950/40 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                    ? 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700 text-red-900 dark:text-red-200'
+                    : 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
                 }`}>
-                  <p className="text-xs">{metricasPQRS.vencidas.length > 0 ? 'Vencidas (>15d)' : 'Sin Vencimientos'}</p>
-                  <p className="text-2xl font-bold mt-1">{metricasPQRS.vencidas.length}</p>
+                  <p className="text-xs font-semibold">{metricasPQRS.vencidas.length > 0 ? 'Vencidas (>15d)' : 'Sin Vencimientos'}</p>
+                  <p className={`text-2xl font-black mt-1 ${metricasPQRS.vencidas.length > 0 ? 'text-red-900 dark:text-red-200' : 'text-emerald-900 dark:text-emerald-200'}`}>{metricasPQRS.vencidas.length}</p>
                 </div>
               </div>
 
@@ -393,36 +415,44 @@ export const DashboardCoordinador: React.FC = () => {
             <>
               {/* KPIs de desempeño */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 dark:text-white/50 uppercase tracking-wide mb-3 mt-2">
+                <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-3 mt-2">
                   Desempeño institucional
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-evenly">
-                  <Card className="border-green-200 dark:border-green-900/50">
+                  <Card className="border border-emerald-200 dark:border-emerald-800/80 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md transition-all">
                     <CardContent className="pt-5 pb-5 text-center">
-                      <CheckCircle className="w-6 h-6 text-green-500 dark:text-green-400 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-green-700 dark:text-green-400">{metricas.pctAprobacion}%</p>
-                      <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Tasa de aprobación</p>
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center mx-auto mb-2.5">
+                        <CheckCircle className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
+                      </div>
+                      <p className="text-3xl font-black text-emerald-800 dark:text-emerald-300">{metricas.pctAprobacion}%</p>
+                      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mt-1">Tasa de aprobación</p>
                     </CardContent>
                   </Card>
-                  <Card className="border-blue-200 dark:border-blue-900/50">
+                  <Card className="border border-blue-200 dark:border-blue-800/80 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md transition-all">
                     <CardContent className="pt-5 pb-5 text-center">
-                      <TrendingUp className="w-6 h-6 text-blue-500 dark:text-blue-400 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{metricas.promedio}</p>
-                      <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Promedio institucional</p>
+                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/70 border border-blue-200 dark:border-blue-800 flex items-center justify-center mx-auto mb-2.5">
+                        <TrendingUp className="w-5 h-5 text-blue-700 dark:text-blue-300" />
+                      </div>
+                      <p className="text-3xl font-black text-blue-800 dark:text-blue-300">{metricas.promedio}</p>
+                      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mt-1">Promedio institucional</p>
                     </CardContent>
                   </Card>
-                  <Card className="border-emerald-200 dark:border-emerald-900/50">
+                  <Card className="border border-teal-200 dark:border-teal-800/80 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md transition-all">
                     <CardContent className="pt-5 pb-5 text-center">
-                      <Users className="w-6 h-6 text-emerald-500 dark:text-emerald-400 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{metricas.aprobados}</p>
-                      <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Evaluaciones aprobadas</p>
+                      <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800 flex items-center justify-center mx-auto mb-2.5">
+                        <Users className="w-5 h-5 text-teal-700 dark:text-teal-300" />
+                      </div>
+                      <p className="text-3xl font-black text-teal-800 dark:text-teal-300">{metricas.aprobados}</p>
+                      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mt-1">Evaluaciones aprobadas</p>
                     </CardContent>
                   </Card>
-                  <Card className="border-red-200 dark:border-red-900/50">
+                  <Card className="border border-rose-200 dark:border-rose-800/80 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md transition-all">
                     <CardContent className="pt-5 pb-5 text-center">
-                      <TrendingDown className="w-6 h-6 text-red-500 dark:text-red-400 mx-auto mb-2" />
-                      <p className="text-2xl font-bold text-red-600 dark:text-red-400">{metricas.reprobados}</p>
-                      <p className="text-xs text-gray-500 dark:text-white/50 mt-1">Evaluaciones reprobadas</p>
+                      <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-800 flex items-center justify-center mx-auto mb-2.5">
+                        <TrendingDown className="w-5 h-5 text-rose-700 dark:text-rose-300" />
+                      </div>
+                      <p className="text-3xl font-black text-rose-800 dark:text-rose-300">{metricas.reprobados}</p>
+                      <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mt-1">Evaluaciones reprobadas</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -431,10 +461,10 @@ export const DashboardCoordinador: React.FC = () => {
               {/* Gráficas */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Torta aprobados/reprobados */}
-                <Card>
+                <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Aprobación global</CardTitle>
-                    <CardDescription>Distribución institucional</CardDescription>
+                    <CardTitle className="text-sm font-bold text-gray-900 dark:text-white">Aprobación global</CardTitle>
+                    <CardDescription className="text-xs text-gray-600 dark:text-gray-400">Distribución institucional</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={200}>
@@ -467,7 +497,7 @@ export const DashboardCoordinador: React.FC = () => {
                         />
                       </PieChart>
                     </ResponsiveContainer>
-                    <p className="text-center text-xs text-gray-500 dark:text-white/50 -mt-2">
+                    <p className="text-center text-xs font-semibold text-gray-700 dark:text-gray-300 -mt-2">
                       {metricas?.pctAprobacion}% aprobación
                     </p>
                   </CardContent>
@@ -475,10 +505,10 @@ export const DashboardCoordinador: React.FC = () => {
 
                 {/* Barras aprobación por curso */}
                 {aprobacionPorCurso.length > 0 && (
-                  <Card className="lg:col-span-2">
+                  <Card className="lg:col-span-2 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">Aprobación por curso</CardTitle>
-                      <CardDescription>Aprobados vs reprobados por materia</CardDescription>
+                      <CardTitle className="text-sm font-bold text-gray-900 dark:text-white">Aprobación por curso</CardTitle>
+                      <CardDescription className="text-xs text-gray-600 dark:text-gray-400">Aprobados vs reprobados por materia</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={200}>
@@ -501,10 +531,10 @@ export const DashboardCoordinador: React.FC = () => {
 
           {/* Evaluaciones por curso */}
           {!loading && evalsPorCurso.length > 0 && (
-            <Card>
+            <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs">
               <CardHeader>
-                <CardTitle>Actividad evaluativa por curso</CardTitle>
-                <CardDescription>Cantidad de evaluaciones registradas por materia</CardDescription>
+                <CardTitle className="text-base font-bold text-gray-900 dark:text-white">Actividad evaluativa por curso</CardTitle>
+                <CardDescription className="text-xs text-gray-600 dark:text-gray-400">Cantidad de evaluaciones registradas por materia</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={260}>
@@ -522,40 +552,71 @@ export const DashboardCoordinador: React.FC = () => {
 
           {/* Accesos rápidos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer" onClick={() => navigate('/reportes')}>
+            <Card 
+              className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-600 transition-all cursor-pointer group" 
+              onClick={() => navigate('/reportes')}
+            >
               <CardHeader>
-                <div className="bg-blue-100 dark:bg-blue-900/40 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
-                  <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 w-11 h-11 rounded-xl flex items-center justify-center mb-2.5">
+                  <BarChart3 className="w-5 h-5 text-blue-700 dark:text-blue-300" />
                 </div>
-                <CardTitle className="text-base">Reportes</CardTitle>
-                <CardDescription>KPIs y exportación PDF/XLSX</CardDescription>
+                <CardTitle className="text-base font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  Reportes
+                </CardTitle>
+                <CardDescription className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
+                  KPIs y exportación PDF/XLSX
+                </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg hover:border-green-300 dark:hover:border-green-700 transition-all cursor-pointer" onClick={() => navigate('/usuarios')}>
+
+            <Card 
+              className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md hover:border-emerald-400 dark:hover:border-emerald-600 transition-all cursor-pointer group" 
+              onClick={() => navigate('/usuarios')}
+            >
               <CardHeader>
-                <div className="bg-green-100 dark:bg-green-900/40 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
-                  <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 w-11 h-11 rounded-xl flex items-center justify-center mb-2.5">
+                  <Users className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
                 </div>
-                <CardTitle className="text-base">Usuarios</CardTitle>
-                <CardDescription>Roles, cuentas y permisos</CardDescription>
+                <CardTitle className="text-base font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  Usuarios
+                </CardTitle>
+                <CardDescription className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
+                  Roles, cuentas y permisos
+                </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-700 transition-all cursor-pointer" onClick={() => navigate('/cursos')}>
+
+            <Card 
+              className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-600 transition-all cursor-pointer group" 
+              onClick={() => navigate('/cursos')}
+            >
               <CardHeader>
-                <div className="bg-indigo-100 dark:bg-indigo-900/40 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
-                  <BookOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                <div className="bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 w-11 h-11 rounded-xl flex items-center justify-center mb-2.5">
+                  <BookOpen className="w-5 h-5 text-indigo-700 dark:text-indigo-300" />
                 </div>
-                <CardTitle className="text-base">Cursos</CardTitle>
-                <CardDescription>Docentes y matrículas</CardDescription>
+                <CardTitle className="text-base font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  Cursos
+                </CardTitle>
+                <CardDescription className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
+                  Docentes y matrículas
+                </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="hover:shadow-lg hover:border-orange-300 dark:hover:border-orange-700 transition-all cursor-pointer" onClick={() => navigate('/pqrs')}>
+
+            <Card 
+              className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md hover:border-amber-400 dark:hover:border-amber-600 transition-all cursor-pointer group" 
+              onClick={() => navigate('/pqrs')}
+            >
               <CardHeader>
-                <div className="bg-orange-100 dark:bg-orange-900/40 w-11 h-11 rounded-lg flex items-center justify-center mb-2">
-                  <MessageSquare className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                <div className="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 w-11 h-11 rounded-xl flex items-center justify-center mb-2.5">
+                  <MessageSquare className="w-5 h-5 text-amber-700 dark:text-amber-300" />
                 </div>
-                <CardTitle className="text-base">PQRS</CardTitle>
-                <CardDescription>Peticiones y reclamos</CardDescription>
+                <CardTitle className="text-base font-bold text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                  PQRS
+                </CardTitle>
+                <CardDescription className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
+                  Peticiones y reclamos (SLA 15d)
+                </CardDescription>
               </CardHeader>
             </Card>
           </div>

@@ -215,15 +215,19 @@ describe('PerfilPage Component', () => {
     // Debe mostrar las iniciales "DJ"
     const initials = screen.getByText('DJ');
     expect(initials).toBeInTheDocument();
-    expect(initials.className).toContain('w-12');
-    expect(initials.className).toContain('h-12');
-    expect(initials.className).toContain('rounded-full');
-    expect(initials.className).toContain('bg-slate-700');
+    expect(initials.className).toContain('text-white');
     expect(initials.className).toContain('font-bold');
 
-    // Debe contener el botón para cambiar foto
-    const changePhotoBtns = screen.getAllByRole('button', { name: /cambiar foto/i });
-    expect(changePhotoBtns.length).toBeGreaterThan(0);
+    const avatarContainer = initials.closest('div');
+    expect(avatarContainer?.className).toContain('w-16');
+    expect(avatarContainer?.className).toContain('h-16');
+    expect(avatarContainer?.className).toContain('rounded-full');
+    expect(avatarContainer?.className).toContain('bg-slate-800');
+    expect(avatarContainer?.className).toContain('border-slate-700');
+
+    // Debe contener el botón flotante para cambiar foto
+    const changeBtn = screen.getByRole('button', { name: 'Cambiar foto de perfil' });
+    expect(changeBtn).toBeInTheDocument();
   });
 
   it('abre el selector de archivos al interactuar con el avatar o botón de cambiar foto', async () => {

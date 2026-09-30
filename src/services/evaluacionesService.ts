@@ -97,4 +97,20 @@ export const evaluacionesService = {
     const { data } = await api.post<ApiResponse<string>>(`/evaluaciones/${id}/publicar`);
     return data.data;
   },
+
+  /**
+   * Duplica una evaluación completa con todas sus preguntas
+   */
+  async duplicar(id: number): Promise<Evaluacion> {
+    const { data } = await api.post<ApiResponse<Evaluacion>>(`/evaluaciones/${id}/duplicar`);
+    return data.data;
+  },
+
+  /**
+   * Entrega final y autocalificación inmediata de una evaluación
+   */
+  async submit(id: number, payload: { respuestas: Record<string, any>; tiempoEmpleadoSegundos?: number }): Promise<any> {
+    const { data } = await api.post<ApiResponse<any>>(`/evaluaciones/${id}/submit`, payload);
+    return data.data;
+  },
 };

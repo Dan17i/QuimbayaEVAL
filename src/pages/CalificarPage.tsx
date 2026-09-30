@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { EmptyState } from '../components/EmptyState';
-import { submissionsService, Submission } from '../services/submissionsService';
+import { submissionsService, SubmissionDetalle } from '../services/submissionsService';
 import { preguntasService, Pregunta } from '../services/preguntasService';
 import { evaluacionesService, Evaluacion } from '../services/evaluacionesService';
 import { calificacionesService, Calificacion } from '../services/calificacionesService';
@@ -30,7 +30,7 @@ export const CalificarPage: React.FC = () => {
   const evaluacionId = rawId ? Number(rawId) : 0;
 
   const [evaluacion, setEvaluacion] = useState<Evaluacion | null>(null);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [submissions, setSubmissions] = useState<SubmissionDetalle[]>([]);
   const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
   const [usuarios, setUsuarios] = useState<Record<number, UserDTO>>({});
   const [loading, setLoading] = useState(true);
@@ -48,25 +48,23 @@ export const CalificarPage: React.FC = () => {
   const [busquedaEstudiante, setBusquedaEstudiante] = useState('');
   const [filtroEstadoSidebar, setFiltroEstadoSidebar] = useState<'todos' | 'Pendiente' | 'Calificada'>('todos');
 
-  // Carga inicial
+  // Carga inicial optimizada desde DTOs enriquecidos del backend
   useEffect(() => {
     if (!evaluacionId) { navigate(ROUTES.EVALUACIONES); return; }
     const cargar = async () => {
       setLoading(true);
       try {
-        const [ev, subs, pqs, usrs] = await Promise.all([
+        const [ev, subs, pqs] = await Promise.all([
           evaluacionesService.getById(evaluacionId),
-          submissionsService.getByEvaluacion(evaluacionId),
+          submissionsService.getDetallesByEvaluacion(evaluacionId).catch(async () => {
+            const raw = await submissionsService.getByEvaluacion(evaluacionId);
+            return raw as unknown as SubmissionDetalle[];
+          }),
           preguntasService.getByEvaluacion(evaluacionId),
-          usersService.getAll().catch(() => [] as UserDTO[]),
         ]);
         setEvaluacion(ev);
         setSubmissions(subs.filter(s => s.estado === 'Enviada' || s.estado === 'Calificada'));
         setPreguntas(pqs);
-
-        const uMap: Record<number, UserDTO> = {};
-        usrs.forEach(u => { uMap[u.id] = u; });
-        setUsuarios(uMap);
       } catch {
         toast.error('Error', { description: 'No se pudo cargar la evaluación y sus entregas' });
       } finally {
@@ -74,7 +72,7 @@ export const CalificarPage: React.FC = () => {
       }
     };
     cargar();
-  }, [evaluacionId]);
+  }, [evaluacionId, navigate]);
 
   const submission = submissions[submissionActual];
 
@@ -182,52 +180,24 @@ export const CalificarPage: React.FC = () => {
     });
   };
 
-  // Guardar calificación
+  // Guardar calificación atómica transaccional (Backend Batch)
   const handleGuardar = async (avanzar = false) => {
     if (!submission) return;
     setSaving(true);
     try {
-      // 1. Guardar o actualizar calificaciones por cada pregunta
-      await Promise.all(
-        preguntas.map(async (p) => {
-          const califExistente = calificacionesExistentes[p.id];
-          const puntuacionObtenida = puntajes[p.id] ?? 0;
-          const retroalimentacion =
-            (retroalimentaciones[p.id] && retroalimentaciones[p.id].trim()) ||
-            feedbackGeneral.trim() ||
-            '';
+      // 1. Guardar calificaciones atómicamente por lote en backend
+      await calificacionesService.calificarBatch({
+        submissionId: submission.id,
+        calificaciones: preguntas.map(p => ({
+          preguntaId: p.id,
+          puntuacionObtenida: puntajes[p.id] ?? 0,
+          puntuacionMaxima: p.puntuacion,
+          retroalimentacion: (retroalimentaciones[p.id] && retroalimentaciones[p.id].trim()) || feedbackGeneral.trim() || '',
+        })),
+        observacionesGenerales: feedbackGeneral.trim() || undefined,
+      });
 
-          if (califExistente) {
-            return calificacionesService.update(califExistente.id, {
-              submissionId: submission.id,
-              preguntaId: p.id,
-              puntuacionObtenida,
-              retroalimentacion,
-            });
-          } else {
-            return calificacionesService.create({
-              submissionId: submission.id,
-              preguntaId: p.id,
-              puntuacionObtenida,
-              retroalimentacion,
-            });
-          }
-        })
-      );
-
-      // 2. Marcar la submission como 'Calificada' en el backend
-      try {
-        await submissionsService.update(submission.id, {
-          estado: 'Calificada',
-          evaluacionId: submission.evaluacionId,
-          intentoNumero: submission.intentoNumero,
-          respuestasJson: submission.respuestasJson,
-        });
-      } catch {
-        // En caso de que el backend ya lo marque automáticamente por trigger/servicio
-      }
-
-      // 3. Actualizar estado local reactivo
+      // 2. Actualizar estado local reactivo
       setSubmissions(prev =>
         prev.map((s, i) => (i === submissionActual ? { ...s, estado: 'Calificada' } : s))
       );
@@ -318,9 +288,8 @@ export const CalificarPage: React.FC = () => {
         ) : (
           <div className="space-y-1.5 flex-1 overflow-y-auto max-h-[420px] pr-1">
             {submissionsFiltradas.map(({ s, indexOriginal }) => {
-              const u = usuarios[s.estudianteId];
-              const nombre = u?.name || `Estudiante #${s.estudianteId}`;
-              const email = u?.email || '';
+              const nombre = s.estudianteNombre || usuarios[s.estudianteId]?.name || `Estudiante #${s.estudianteId}`;
+              const email = s.estudianteEmail || usuarios[s.estudianteId]?.email || '';
               const esActiva = indexOriginal === submissionActual;
               const estaCalificada = s.estado === 'Calificada';
 
@@ -416,11 +385,16 @@ export const CalificarPage: React.FC = () => {
                 <div className="flex items-center gap-2 mt-1 text-sm text-gray-700">
                   <User className="w-4 h-4 text-blue-600 flex-shrink-0" />
                   <span className="font-semibold text-gray-900">
-                    {estudianteActual?.name || `Estudiante #${submission?.estudianteId}`}
+                    {submission?.estudianteNombre || estudianteActual?.name || `Estudiante #${submission?.estudianteId}`}
                   </span>
-                  {estudianteActual?.email && (
+                  {(submission?.estudianteEmail || estudianteActual?.email) && (
                     <span className="text-xs text-gray-400 font-normal">
-                      ({estudianteActual.email})
+                      ({submission?.estudianteEmail || estudianteActual?.email})
+                    </span>
+                  )}
+                  {submission?.estudianteDocumento && (
+                    <span className="text-[11px] font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                      Doc: {submission.estudianteDocumento}
                     </span>
                   )}
                 </div>

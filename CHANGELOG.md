@@ -5,6 +5,23 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.8.0] - 2026-09-30
+
+### 🚀 Rendimiento, Arquitectura & SLA Institucional - Integración Backend
+- **Eliminación de Client-Side Joins y Consumo de DTOs Enriquecidos:**
+  - **Calificación Docente (`CalificarPage.tsx`):**
+    - Integrado `submissionsService.getDetallesByEvaluacion()`, eliminando la dependencia pesada de `usersService.getAll()` para asociar estudiantes. Nombre, correo, documento de identidad y resultados previos ahora viajan en una sola petición optimizada.
+    - Reemplazado el ciclo iterativo de llamadas múltiples `create`/`update` por el endpoint transaccional `calificacionesService.calificarBatch()`, persistiendo ítems de calificación, nota ponderada y observaciones generales en un único llamado atómico.
+  - **Módulo PQRS y Trazabilidad Institucional (`PQRSPage.tsx` y `usePQRS.ts`):**
+    - Consumo directo de `pqrsService.getDetalles()`, suprimiendo la sobrecarga de consultas paralelas a cursos y usuarios.
+    - Incorporación de indicadores visuales de **SLA Legal de 15 Días** (`En plazo`, `Por Vencer`, `SLA Vencido`, `Resuelto a tiempo`, `Resuelto fuera de plazo`) con contador de días transcurridos y badge semántico accesible de alto contraste.
+    - Visualización del funcionario o docente que atendió la solicitud (`respondidoPorNombre`).
+  - **Gestión de Evaluaciones (`EvaluacionesPage.tsx`):**
+    - Añadida acción "Duplicar" en el menú contextual utilizando `evaluacionesService.duplicar()`, permitiendo clonar evaluaciones y todos sus reactivos con retroalimentación instantánea vía toast.
+    - Mejorado el manejo y comunicación de validaciones al publicar evaluaciones sin preguntas.
+  - **Rendición de Pruebas (`RealizarEvaluacionPage.tsx`):**
+    - Integración con el endpoint canónico `evaluacionesService.submit()` con fallback resiliente, activando la autocalificación instantánea de preguntas objetivas en backend y redirección guiada al historial.
+
 ## [1.7.0] - 2026-09-29
 
 ### 📊 HCI & DCU - Bloque 6: Reportes Académicos y Analítica Visual Inclusiva

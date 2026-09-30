@@ -244,14 +244,39 @@ const VistaCoordinador: React.FC<{
                         {ticket.tipo}
                       </Badge>
                       <StatusBadge estado={ticket.estado} />
+                      {ticket.estadoSLA && (
+                        <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1 ${
+                          ticket.estadoSLA === 'VENCIDO' || ticket.estadoSLA === 'ATENDIDO_FUERA_DE_PLAZO'
+                            ? 'bg-red-100 text-red-800 border border-red-200'
+                            : ticket.estadoSLA === 'PROXIMO_A_VENCER'
+                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                            : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        }`}>
+                          <Clock className="w-3 h-3" />
+                          {ticket.estadoSLA === 'VENCIDO'
+                            ? `SLA Vencido (${ticket.diasTranscurridos}d / 15d)`
+                            : ticket.estadoSLA === 'PROXIMO_A_VENCER'
+                            ? `Por Vencer (${ticket.diasTranscurridos}d / 15d)`
+                            : ticket.estadoSLA === 'ATENDIDO_A_TIEMPO'
+                            ? `Resuelto a tiempo (${ticket.diasTranscurridos}d)`
+                            : ticket.estadoSLA === 'ATENDIDO_FUERA_DE_PLAZO'
+                            ? `Resuelto fuera de plazo (${ticket.diasTranscurridos}d)`
+                            : `En plazo (${ticket.diasTranscurridos}d / 15d)`}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
                       <span className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
                         {ticket.usuarioNombre || 'Usuario'} ({ticket.usuarioEmail || 'N/A'})
                       </span>
                       <span>{ticket.curso}</span>
                       <span>{formatDateTime(ticket.fechaCreacion)}</span>
+                      {ticket.respondidoPorNombre && (
+                        <span className="text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                          Atendido por: {ticket.respondidoPorNombre}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -468,6 +493,22 @@ const VistaEstudiante: React.FC<{
                           <CardTitle className="text-gray-900">{ticket.asunto}</CardTitle>
                           {getTipoBadge(ticket.tipo)}
                           <StatusBadge estado={ticket.estado} />
+                          {ticket.estadoSLA && (
+                            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1 ${
+                              ticket.estadoSLA === 'VENCIDO' || ticket.estadoSLA === 'ATENDIDO_FUERA_DE_PLAZO'
+                                ? 'bg-red-100 text-red-800 border border-red-200'
+                                : ticket.estadoSLA === 'PROXIMO_A_VENCER'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            }`}>
+                              <Clock className="w-3 h-3" />
+                              {ticket.estadoSLA === 'VENCIDO'
+                                ? `Plazo Vencido (${ticket.diasTranscurridos}d / 15d)`
+                                : ticket.estadoSLA === 'PROXIMO_A_VENCER'
+                                ? `Por vencer (${ticket.diasTranscurridos}d / 15d)`
+                                : `En plazo (${ticket.diasTranscurridos}d / 15d)`}
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-gray-600">
                           {ticket.curso} • {formatDateTime(ticket.fechaCreacion)}

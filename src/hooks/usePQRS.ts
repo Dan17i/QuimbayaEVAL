@@ -25,27 +25,16 @@ export const usePQRS = (esCoordinador: boolean = false) => {
       setLoading(true);
       setError(null);
       
-      const rawTickets = await pqrsService.getAll();
-      
-      const cursos = await cursosService.getAll();
-      const cursoMap = new Map(cursos.map(c => [c.id, `${c.codigo} - ${c.nombre}`]));
-
-      // Si es coordinador, también necesitamos los nombres de usuarios
-      let usuarioMap = new Map<number, { nombre: string; email: string }>();
-      if (esCoordinador && rawTickets.length > 0) {
-        const usuarioIds = [...new Set(rawTickets.map(t => t.usuarioId))];
-        try {
-          const usuarios: UserDTO[] = await usersService.getAll();
-          usuarioMap = new Map(usuarios.map((u: UserDTO) => [u.id, { nombre: u.name, email: u.email }]));
-        } catch (e) {
-          console.warn('No se pudieron cargar los nombres de usuarios');
-          toast.warning('Algunos datos de usuario no están disponibles', {
-            description: 'Los nombres de usuarios no pudieron ser cargados'
-          });
-        }
+      // Intentar cargar detalles enriquecidos con SLA del backend
+      let rawDetalles: any[] = [];
+      try {
+        rawDetalles = await pqrsService.getDetalles();
+      } catch {
+        // Fallback para usuarios con permisos restringidos
+        rawDetalles = await pqrsService.getAll();
       }
 
-      const mapped: TicketPQRS[] = rawTickets.map((t: PQRSBackend) => ({
+      const mappedDetalle: DetallePQRS[] = rawDetalles.map(t => ({
         id: t.id,
         tipo: t.tipo,
         asunto: t.asunto,
@@ -53,28 +42,17 @@ export const usePQRS = (esCoordinador: boolean = false) => {
         estado: t.estado,
         fechaCreacion: t.fechaCreacion,
         createdAt: t.createdAt,
-        curso: t.cursoId ? (cursoMap.get(t.cursoId) ?? 'General') : 'General',
+        curso: t.cursoNombre ? `${t.cursoCodigo ? t.cursoCodigo + ' - ' : ''}${t.cursoNombre}` : (t.curso || 'General'),
         respuesta: t.respuesta,
+        usuarioNombre: t.usuarioNombre || 'Usuario',
+        usuarioEmail: t.usuarioEmail || '',
+        respondidoPorNombre: t.respondidoPorNombre || undefined,
+        diasTranscurridos: t.diasTranscurridos,
+        enPlazo: t.enPlazo,
+        estadoSLA: t.estadoSLA,
       }));
 
-      const mappedDetalle: DetallePQRS[] = rawTickets.map((t: PQRSBackend) => {
-        const usuarioInfo = usuarioMap.get(t.usuarioId);
-        return {
-          id: t.id,
-          tipo: t.tipo,
-          asunto: t.asunto,
-          descripcion: t.descripcion,
-          estado: t.estado,
-          fechaCreacion: t.fechaCreacion,
-          createdAt: t.createdAt,
-          curso: t.cursoId ? (cursoMap.get(t.cursoId) ?? 'General') : 'General',
-          respuesta: t.respuesta,
-          usuarioNombre: usuarioInfo?.nombre ?? 'Usuario',
-          usuarioEmail: usuarioInfo?.email ?? '',
-        };
-      });
-
-      setTickets(mapped);
+      setTickets(mappedDetalle);
       setDetalleTickets(mappedDetalle);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar PQRS';

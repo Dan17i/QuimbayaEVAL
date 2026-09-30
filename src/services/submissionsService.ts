@@ -24,6 +24,22 @@ export interface CreateSubmissionRequest {
   intentoNumero: number;
 }
 
+export interface SubmissionDetalle extends Submission {
+  estudianteNombre: string;
+  estudianteEmail: string;
+  estudianteDocumento: string;
+  evaluacionNombre: string;
+  evaluacionTipo: string;
+  cursoId: number;
+  cursoNombre: string;
+  cursoCodigo: string;
+  puntuacionTotal: number | null;
+  puntuacionMaxima: number | null;
+  porcentaje: number | null;
+  estadoAprobacion: string | null;
+  observacionesDocente: string | null;
+}
+
 export const submissionsService = {
   async getAll(): Promise<Submission[]> {
     const { data } = await api.get<ApiResponse<Submission[]>>('/submissions');
@@ -35,13 +51,28 @@ export const submissionsService = {
     return data.data;
   },
 
+  async getMisSubmissionsDetalles(): Promise<SubmissionDetalle[]> {
+    const { data } = await api.get<ApiResponse<SubmissionDetalle[]>>('/submissions/mis-submissions/detalles');
+    return data.data;
+  },
+
   async getById(id: number): Promise<Submission> {
     const { data } = await api.get<ApiResponse<Submission>>(`/submissions/${id}`);
     return data.data;
   },
 
+  async getDetalleById(id: number): Promise<SubmissionDetalle> {
+    const { data } = await api.get<ApiResponse<SubmissionDetalle>>(`/submissions/${id}/detalle`);
+    return data.data;
+  },
+
   async getByEvaluacion(evaluacionId: number): Promise<Submission[]> {
     const { data } = await api.get<ApiResponse<Submission[]>>(`/submissions/evaluacion/${evaluacionId}`);
+    return data.data;
+  },
+
+  async getDetallesByEvaluacion(evaluacionId: number): Promise<SubmissionDetalle[]> {
+    const { data } = await api.get<ApiResponse<SubmissionDetalle[]>>(`/submissions/evaluacion/${evaluacionId}/detalles`);
     return data.data;
   },
 

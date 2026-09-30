@@ -19,6 +19,19 @@ export interface CreateCalificacionRequest {
   retroalimentacion: string;
 }
 
+export interface CalificacionItem {
+  preguntaId: number;
+  puntuacionObtenida: number;
+  puntuacionMaxima?: number;
+  retroalimentacion?: string;
+}
+
+export interface CalificacionBatchRequest {
+  submissionId: number;
+  calificaciones: CalificacionItem[];
+  observacionesGenerales?: string;
+}
+
 export const calificacionesService = {
   async getAll(): Promise<Calificacion[]> {
     const { data } = await api.get<ApiResponse<Calificacion[]>>('/calificaciones');
@@ -47,5 +60,13 @@ export const calificacionesService = {
 
   async delete(id: number): Promise<void> {
     await api.delete(`/calificaciones/${id}`);
+  },
+
+  /**
+   * Calificación atómica por lote de una entrega completa
+   */
+  async calificarBatch(payload: CalificacionBatchRequest): Promise<string> {
+    const { data } = await api.post<ApiResponse<string>>('/calificaciones/batch', payload);
+    return data.data;
   },
 };

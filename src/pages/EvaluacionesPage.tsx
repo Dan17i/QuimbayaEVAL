@@ -6,7 +6,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Plus, Search, Filter, MoreVertical, Edit, Send } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, Edit, Send, Copy } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { useEvaluaciones } from '../hooks/useEvaluaciones';
 import { evaluacionesService } from '../services/evaluacionesService';
@@ -32,9 +32,22 @@ export const EvaluacionesPage: React.FC = () => {
       const msg = await evaluacionesService.publicar(id);
       toast.success(msg || 'Evaluación publicada exitosamente');
       refetch();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al publicar evaluación';
-      toast.error('Error al publicar evaluación', { description: message });
+    } catch (err: any) {
+      const message = err?.response?.data?.message || (err instanceof Error ? err.message : 'Error al publicar evaluación');
+      toast.error('No se pudo publicar la evaluación', { description: message });
+    }
+  };
+
+  const handleDuplicar = async (id: number) => {
+    try {
+      await evaluacionesService.duplicar(id);
+      toast.success('Evaluación duplicada exitosamente', {
+        description: 'Se ha creado una copia en borrador con todas sus preguntas.',
+      });
+      refetch();
+    } catch (err: any) {
+      const message = err?.response?.data?.message || (err instanceof Error ? err.message : 'Error al duplicar evaluación');
+      toast.error('Error al duplicar la evaluación', { description: message });
     }
   };
 
@@ -159,6 +172,9 @@ export const EvaluacionesPage: React.FC = () => {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => navigate(`${ROUTES.EVALUACIONES}/${evaluacion.id}/editar`)}>
                                     <Edit className="w-4 h-4 mr-2" /> Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleDuplicar(evaluacion.id)}>
+                                    <Copy className="w-4 h-4 mr-2" /> Duplicar
                                   </DropdownMenuItem>
                                   {evaluacion.estado === 'Borrador' && (
                                     <DropdownMenuItem onClick={() => handlePublicar(evaluacion.id)}>

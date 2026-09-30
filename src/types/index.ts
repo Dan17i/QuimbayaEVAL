@@ -49,5 +49,13 @@ export interface TicketPQRS {
   createdAt: string;
   curso: string;
   respuesta?: string | null;
+  diasTranscurridos?: number;
+  enPlazo?: boolean;
+  estadoSLA?: 'A_TIEMPO' | 'PROXIMO_A_VENCER' | 'VENCIDO' | 'ATENDIDO_A_TIEMPO' | 'ATENDIDO_FUERA_DE_PLAZO';
+  usuarioNombre?: string;
+  usuarioEmail?: string;
+  respondidoPorNombre?: string;
 }
+
+export type EstadoSLA = 'A_TIEMPO' | 'PROXIMO_A_VENCER' | 'VENCIDO' | 'ATENDIDO_A_TIEMPO' | 'ATENDIDO_FUERA_DE_PLAZO';
 

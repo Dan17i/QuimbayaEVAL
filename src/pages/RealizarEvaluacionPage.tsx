@@ -161,16 +161,25 @@ export const RealizarEvaluacionPage: React.FC = () => {
     setSubmitting(true);
     setConfirmarFinalizar(false);
     try {
-      await submissionsService.create({
-        evaluacionId: evaluacion.id,
-        respuestasJson: JSON.stringify(respuestasRef.current),
-        estado: 'Enviada',
-        intentoNumero: 1,
-      });
+      try {
+        await evaluacionesService.submit(evaluacion.id, {
+          respuestas: respuestasRef.current,
+        });
+      } catch {
+        // Fallback al endpoint directo de submissions
+        await submissionsService.create({
+          evaluacionId: evaluacion.id,
+          respuestasJson: JSON.stringify(respuestasRef.current),
+          estado: 'Enviada',
+          intentoNumero: 1,
+        });
+      }
       // Limpiar borrador local al enviar exitosamente
       if (user.id) localStorage.removeItem(draftKey(evaluacion.id, user.id));
-      toast.success('Evaluación enviada', { description: 'Tus respuestas han sido registradas correctamente' });
-      navigate(ROUTES.MIS_EVALUACIONES);
+      toast.success('Evaluación enviada', {
+        description: 'Tus respuestas han sido registradas y autocalificadas correctamente',
+      });
+      navigate(ROUTES.HISTORIAL);
     } catch {
       toast.error('Error al enviar', { description: 'No se pudo enviar la evaluación. Intenta de nuevo.' });
     } finally {

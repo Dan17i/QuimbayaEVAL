@@ -55,4 +55,12 @@ export const preguntasService = {
   async delete(id: number): Promise<void> {
     await api.delete(`/preguntas/${id}`);
   },
+
+  /**
+   * Reordena atómicamente la secuencia de preguntas en la evaluación
+   */
+  async reordenar(ordenes: { id: number; orden: number }[]): Promise<string> {
+    const { data } = await api.put<ApiResponse<string>>('/preguntas/reordenar', { ordenes });
+    return data.data;
+  },
 };

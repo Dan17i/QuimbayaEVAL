@@ -198,4 +198,86 @@ describe('PerfilPage Component', () => {
     expect((passNueva as HTMLInputElement).value).toBe('');
     expect((passConfirm as HTMLInputElement).value).toBe('');
   });
+
+  it('muestra el avatar con fallback e iniciales cuando no hay foto guardada', async () => {
+    const userSinFoto: UserProfile = {
+      ...mockUser,
+      fotoUrl: null,
+    };
+    vi.mocked(usersService.getMe).mockResolvedValue(userSinFoto);
+
+    render(<PerfilPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Mi Perfil Institucional')).toBeInTheDocument();
+    });
+
+    // Debe mostrar las iniciales "DJ"
+    const initials = screen.getByText('DJ');
+    expect(initials).toBeInTheDocument();
+    expect(initials.className).toContain('w-12');
+    expect(initials.className).toContain('h-12');
+    expect(initials.className).toContain('rounded-full');
+    expect(initials.className).toContain('bg-slate-700');
+    expect(initials.className).toContain('font-bold');
+
+    // Debe contener el botón para cambiar foto
+    const changePhotoBtns = screen.getAllByRole('button', { name: /cambiar foto/i });
+    expect(changePhotoBtns.length).toBeGreaterThan(0);
+  });
+
+  it('abre el selector de archivos al interactuar con el avatar o botón de cambiar foto', async () => {
+    vi.mocked(usersService.getMe).mockResolvedValue(mockUser);
+
+    render(<PerfilPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Mi Perfil Institucional')).toBeInTheDocument();
+    });
+
+    const fileInput = screen.getByTestId('avatar-file-input') as HTMLInputElement;
+    expect(fileInput).toBeInTheDocument();
+    expect(fileInput.type).toBe('file');
+
+    const clickSpy = vi.spyOn(fileInput, 'click');
+    const changeBtn = screen.getByRole('button', { name: 'Cambiar foto de perfil' });
+    changeBtn.click();
+
+    expect(clickSpy).toHaveBeenCalled();
+  });
+
+  it('permite seleccionar un archivo de imagen y actualiza la foto en el avatar dinámicamente', async () => {
+    const userSinFoto: UserProfile = {
+      ...mockUser,
+      fotoUrl: null,
+    };
+    vi.mocked(usersService.getMe).mockResolvedValue(userSinFoto);
+
+    render(<PerfilPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Mi Perfil Institucional')).toBeInTheDocument();
+    });
+
+    const fileInput = screen.getByTestId('avatar-file-input') as HTMLInputElement;
+    const file = new File(['test-image'], 'avatar.png', { type: 'image/png' });
+
+    const mockDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA';
+    vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(function (this: FileReader) {
+      setTimeout(() => {
+        Object.defineProperty(this, 'result', { value: mockDataUrl, writable: false });
+        this.onload?.({ target: { result: mockDataUrl } } as any);
+      }, 10);
+    });
+
+    await userEvent.upload(fileInput, file);
+
+    await waitFor(() => {
+      const img = screen.getByAltText(userSinFoto.name) as HTMLImageElement;
+      expect(img).toBeInTheDocument();
+      expect(img.className).toContain('rounded-full');
+      expect(img.className).toContain('object-cover');
+    });
+  });
 });
+

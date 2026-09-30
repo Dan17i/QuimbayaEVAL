@@ -2,13 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../components/Layout';
 import { ProtectedRoute } from '../components/ProtectedRoute';
+import { Button } from '../components/ui/button';
 import {
   BookOpen, ChevronRight, AlertCircle,
   Calculator, Code2, FlaskConical, Database, Globe,
   Music, Palette, Dumbbell, Landmark, Microscope, ClipboardList,
+  Clock, ArrowRight,
 } from 'lucide-react';
 import { cursosService, Curso } from '../services/cursosService';
-import { evaluacionesService } from '../services/evaluacionesService';
+import { evaluacionesService, Evaluacion } from '../services/evaluacionesService';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes';
 import { EmptyState } from '../components/EmptyState';
@@ -44,6 +46,7 @@ export const DashboardMaestro: React.FC = () => {
 
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [pendientesPorCurso, setPendientesPorCurso] = useState<Record<number, number>>({});
+  const [evaluacionesPorCalificar, setEvaluacionesPorCalificar] = useState<{ id: number; nombre: string; cursoNombre: string; cursoId: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,19 +57,31 @@ export const DashboardMaestro: React.FC = () => {
         const misCursos = await cursosService.getByProfesor(Number(user.id));
         setCursos(misCursos);
 
-        // Para cada curso, contar evaluaciones cerradas (por calificar)
+        // Para cada curso, contar evaluaciones cerradas (por calificar) y extraer detalles
         const counts: Record<number, number> = {};
+        const listaPorCalificar: { id: number; nombre: string; cursoNombre: string; cursoId: number }[] = [];
+
         await Promise.all(
           misCursos.map(async (curso) => {
             try {
               const evals = await evaluacionesService.getByCurso(curso.id);
-              counts[curso.id] = evals.filter(e => e.estado === 'Cerrada').length;
+              const cerradas = evals.filter(e => e.estado === 'Cerrada');
+              counts[curso.id] = cerradas.length;
+              cerradas.forEach(e => {
+                listaPorCalificar.push({
+                  id: e.id,
+                  nombre: e.nombre,
+                  cursoNombre: curso.nombre,
+                  cursoId: curso.id,
+                });
+              });
             } catch {
               counts[curso.id] = 0;
             }
           })
         );
         setPendientesPorCurso(counts);
+        setEvaluacionesPorCalificar(listaPorCalificar);
       } catch (err) {
         toast.error('Error al cargar tus cursos');
       } finally {
@@ -104,6 +119,49 @@ export const DashboardMaestro: React.FC = () => {
               )}
             </p>
           </div>
+
+          {/* Widget de Evaluaciones Pendientes de Calificación (HCI: Acceso Rápido) */}
+          {evaluacionesPorCalificar.length > 0 && (
+            <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/50 border border-orange-200 rounded-2xl p-5 shadow-xs space-y-3">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <ClipboardList className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-gray-900">
+                      Evaluaciones listas para calificar
+                    </h2>
+                    <p className="text-xs text-gray-500">
+                      Hay {evaluacionesPorCalificar.length} evaluación{evaluacionesPorCalificar.length > 1 ? 'es' : ''} cerrada{evaluacionesPorCalificar.length > 1 ? 's' : ''} con entregas de estudiantes pendientes de revisión
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                {evaluacionesPorCalificar.slice(0, 4).map((ev) => (
+                  <div
+                    key={ev.id}
+                    className="bg-white rounded-xl p-3.5 border border-orange-200/80 shadow-xs flex items-center justify-between gap-3 hover:border-orange-300 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-gray-900 text-sm truncate">{ev.nombre}</p>
+                      <p className="text-xs text-gray-500 truncate">{ev.cursoNombre}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="bg-orange-600 hover:bg-orange-700 text-white text-xs h-8 px-3 gap-1.5 flex-shrink-0"
+                      onClick={() => navigate(`${ROUTES.CALIFICAR}?id=${ev.id}`)}
+                    >
+                      <ClipboardList className="w-3.5 h-3.5" />
+                      Calificar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Grid de cursos */}
           {loading ? (

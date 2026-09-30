@@ -218,28 +218,52 @@ export const CursoMaestroPage: React.FC = () => {
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <p className="font-medium text-gray-900 truncate">{e.nombre}</p>
+          <p className="font-semibold text-gray-900 truncate">{e.nombre}</p>
           {estadoBadge(e.estado)}
         </div>
         <p className="text-xs text-gray-500">
           {e.tipo} · {e.deadline ? `Cierre: ${formatDate(e.deadline)}` : 'Sin fecha límite'}
         </p>
       </div>
-      {e.estado === 'Cerrada' && (
-        <Button size="sm" onClick={() => navigate(`${ROUTES.CALIFICAR}?id=${e.id}`)}>
-          <ClipboardList className="w-3.5 h-3.5 mr-1.5" /> Calificar
-        </Button>
-      )}
-      {e.estado === 'Borrador' && (
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => navigate(`${ROUTES.EVALUACIONES}/${e.id}/editar`)}>
-            Editar
+      <div className="flex items-center gap-2 flex-wrap">
+        {e.estado === 'Cerrada' && (
+          <Button
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5"
+            onClick={() => navigate(`${ROUTES.CALIFICAR}?id=${e.id}`)}
+          >
+            <ClipboardList className="w-3.5 h-3.5" /> Calificar Entregas
           </Button>
-          <Button size="sm" onClick={() => handlePublicar(e.id)}>
-            <Send className="w-3.5 h-3.5 mr-1.5" /> Publicar
+        )}
+        {e.estado === 'Activa' && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs gap-1.5 border-gray-300"
+            onClick={() => navigate(`${ROUTES.CALIFICAR}?id=${e.id}`)}
+          >
+            <ClipboardList className="w-3.5 h-3.5" /> Revisar Entregas
           </Button>
-        </div>
-      )}
+        )}
+        {e.estado === 'Borrador' && (
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`${ROUTES.EVALUACIONES}/${e.id}/editar`)}
+            >
+              Editar
+            </Button>
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white gap-1.5"
+              onClick={() => handlePublicar(e.id)}
+            >
+              <Send className="w-3.5 h-3.5" /> Publicar
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   );
 

@@ -5,6 +5,24 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
+## [1.6.0] - 2026-09-29
+
+### 👨‍🏫 HCI & DCU - Bloque 5: Experiencia del Docente y Calificación Ergonómica
+- **Rediseño Integral de la Interfaz de Calificación (`CalificarPage.tsx`):**
+  - **Identificación Humana y Empatía (DCU):** Integración con `usersService.getAll()` para desplegar nombres reales y correos de los estudiantes en lugar de identificadores anónimos (`Estudiante #X`).
+  - **Carga y Resguardo de Calificaciones Previas:** Al cambiar de estudiante, se recuperan automáticamente las notas y retroalimentaciones ya existentes mediante `calificacionesService.getBySubmission()`, evitando sobreescritura con ceros o pérdida de información.
+  - **Autoevaluación Tentativa Asistida:** En preguntas de opción múltiple y verdadero/falso, el sistema contrasta la respuesta del estudiante con `respuestaCorrectaJson` y sugiere el puntaje máximo preliminar con indicador visual de coincidencia.
+  - **Retroalimentación Cualitativa por Pregunta:** Se reemplazó la duplicación del feedback global por campos de retroalimentación individuales por pregunta con botones de comentarios formativos rápidos ("¡Excelente!", "Incompleta").
+  - **Ergonomía de Puntuación (Ley de Fitts):** Atajos rápidos de 1 clic para asignar `0 pts`, `50%` o `Puntaje Máximo`, reduciendo la fatiga motriz del docente.
+  - **Cálculo Dinámico en Escala SENA 5.0:** Consola de resumen con nota final sobre 5.0 y badge de estado (`Aprobado` / `Reprobado`) con flujo continuo de "Guardar y Siguiente".
+  - **Sidebar Filtrable y Accesible:** Buscador por nombre/correo de estudiante y filtro por estado (Todos / Pendientes / Listas) con barra de progreso de revisión.
+- **Acceso Directo a Calificaciones Pendientes (`DashboardMaestro.tsx`):**
+  - Incorporado banner prioritario con accesos directos hacia evaluaciones cerradas con entregas pendientes de revisión.
+- **Optimización de Acciones de Curso (`CursoMaestroPage.tsx`):**
+  - Estandarizadas acciones de `EvalCard` con botones explícitos para "Calificar Entregas" y "Revisar Entregas".
+- **Garantía Transaccional en Backend (`CalificacionService.java`):**
+  - Anotación `@Transactional` en método `actualizar` con recálculo automático de resultados agregados vía `resultadoDao.upsertFromSubmission()`.
+
 ## [1.5.0] - 2026-09-29
 
 ### 🎓 HCI & DCU - Bloque 4: Dashboard y Experiencia Completa del Estudiante

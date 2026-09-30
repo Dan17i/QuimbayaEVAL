@@ -68,7 +68,9 @@
 | `PQRSPage.tsx` | ✅ Completado | Alto (SLA 15 días visible, filtros, respuesta docente) | `pqrsService.getDetalles` |
 | `RealizarEvaluacionPage.tsx` | ✅ Completado | Alto (Timer, borrador en localStorage, submit canónico) | `evaluacionesService.submit` |
 | `PerfilPage.tsx` | ✅ Completado | Alto (Validación tiempo real, cambio clave seguro, preview avatar, sync AuthContext) | `usersService` |
+| `DashboardMaestro.tsx` | ✅ Completado | Alto (KPIs rápidos, evaluaciones por calificar, auditoría PQRS SLA 15d y alerta de urgencia) | `cursosService` / `evaluacionesService` / `pqrsService` |
 | `DashboardCoordinador.tsx` | ✅ Completado | Alto (KPIs globales reales, auditoría PQRS SLA 15d, alertas de urgencia y gráficas) | Múltiples servicios |
+| `CursoMaestroPage.tsx` | ✅ Completado | Alto (Ficha técnica del instructor, pestaña de estudiantes matriculados y buscador) | `cursosService` / `usersService` |
 | `CursoDetallePage.tsx` | ✅ Completado | Alto (Ficha técnica enriquecida, aprendices matriculados, promedio y métricas) | `cursosService` / `usersService` |
 
 ---
@@ -97,4 +99,14 @@
   4. **PQRS y Cumplimiento Legal (SLA 15 Días):** Aprendiz radica petición, Coordinador consulta auditoría con SLA `A_TIEMPO` y resuelve la solicitud quedando en estado `ATENDIDO_A_TIEMPO`.
 - Corregido bug crítico en [`SubmissionDao.java`](file:///C:/Users/DANIEL-PC/Documents/bases%20SENA/quimbayaeval-backend/src/main/java/com/quimbayaeval/dao/SubmissionDao.java) donde `SQL_INSERT` omitía `respuestas_json` y `fecha_envio` al persistir el envío.
 - Verificación exhaustiva: **242 / 242 tests pasando** al 100% en backend (`mvn test`) y **0 errores de TypeScript** en frontend (`npm run typecheck`).
+
+### **Paso 4: Auditoría de PQRS y Alerta de SLA (15 Días) en Panel Docente (`DashboardMaestro.tsx`) — ✅ COMPLETADO**
+- Integrado consumo de `pqrsService.getDetalles()` filtrado automáticamente por el backend para los cursos a cargo del instructor.
+- Incorporado grid superior de KPIs rápidos: Cursos asignados, Evaluaciones cerradas por calificar, PQRS de aprendices en trámite y % de Cumplimiento de SLA legal SENA (15 días).
+- Creado widget interactivo de **Atención de PQRS y Término Legal**:
+  - Alerta prioritaria visual cuando existen solicitudes vencidas (`> 15 días`) o por vencer (`10 a 14 días`), con desglose de aprendiz, curso y botón directo de respuesta rápida.
+  - Listado de requerimientos en plazo con badges semánticos de días transcurridos.
+  - Mensaje institucional de felicitación y confirmación cuando todos los requerimientos se encuentran al día.
+- Verificación: `npm run typecheck` (0 errores) y `npm run build` completado exitosamente en 27.20s.
+
 

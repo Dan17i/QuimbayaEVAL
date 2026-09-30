@@ -77,9 +77,34 @@
 
 ---
 
-## 3. Hoja de Ruta para la Próxima Sesión
+## 3. Avances de Automatización y Calidad (Sesión Actual)
 
-Cuando reanudes el trabajo, las prioridades sugeridas son:
+### 🧪 **Suite de Pruebas Automatizadas de Frontend (Vitest / Testing Library): ✅ Completado**
+- Entorno configurado con Vitest 3.2, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event` y `jsdom`.
+- **36 de 36 pruebas pasando al 100%** en 6 suites:
+  - `PasswordInput.test.tsx` (5 tests)
+  - `slaUtils.test.ts` (12 tests) — Ley 1755 / SLA institucional 15 días
+  - `usePQRS.test.ts` (6 tests) — Mapeo, estados, filtros y resolución
+  - `PerfilPage.test.tsx` (4 tests) — Validaciones, reactividad y actualización
+  - `validation.test.ts` (4 tests) — Emails, formato de clave y campos requeridos
+  - `format.test.ts` (5 tests) — Notas 0.0 a 5.0, duraciones y porcentajes
+- TypeScript typecheck con 0 errores y compilación de producción validada.
+
+### ⚙️ **Pipelines de Integración Continua (CI/CD con GitHub Actions): ✅ Completado**
+- **Backend (`quimbayaeval-backend/.github/workflows/ci.yml`):**
+  - Checkout, configuración de JDK 17 Temurin con caché Maven.
+  - Generado Maven Wrapper (`mvnw` / `mvnw.cmd`).
+  - Compilación, ejecución de 242 pruebas automatizadas y empaquetado del JAR.
+  - Almacenamiento de reportes Surefire como artefacto.
+- **Frontend (`quimbayaEVAL-front/.github/workflows/ci.yml`):**
+  - Checkout, Node.js 20 con caché de npm (`npm ci`).
+  - Verificación estática con `npm run typecheck`.
+  - Ejecución de la suite completa de 36 pruebas con `npm test`.
+  - Construcción del paquete de producción con `npm run build` y carga de artefacto `dist/`.
+
+---
+
+## 4. Próximos Pasos Disponibles
 
 ### 🎯 **Paso 1: Validación y Prueba de Despliegue con Docker**
 - Ejecutar `docker compose up -d --build` desde la raíz para verificar el arranque sincronizado de los 3 contenedores:
@@ -88,19 +113,7 @@ Cuando reanudes el trabajo, las prioridades sugeridas son:
   - `quimbayaeval-front` (Nginx en puerto 3000).
 - Verificar que el proxy reverso `/api/` en Nginx conecte correctamente con el backend sin errores de CORS.
 
-### 🧪 **Paso 2: Suite de Pruebas Automatizadas de Frontend (Vitest / Testing Library)**
-- Configurar entorno de pruebas unitarias en `quimbayaEVAL-front`.
-- Implementar tests de componentes críticos:
-  - `PasswordInput.tsx`: Visibilidad de contraseña, accesibilidad y eventos.
-  - `PerfilPage.tsx`: Validaciones de contraseña y formulario reactivo.
-  - `usePQRS.ts` y cálculo de estados SLA (15 días, próximo a vencer, vencido).
-
-### ⚙️ **Paso 3: Pipeline de Integración Continua (CI/CD con GitHub Actions)**
-- Crear flujo de trabajo `.github/workflows/ci.yml` para ejecutar automáticamente:
-  - Backend: `mvn test` (242 tests).
-  - Frontend: `npm run typecheck` y `npm run build`.
-
-### 📱 **Paso 4: Demostración Interactiva en Vivo y Cierre de Proyecto**
+### 📱 **Paso 2: Demostración Interactiva en Vivo y Cierre de Proyecto**
 - Prueba de humo visual en navegador navegando con los tres roles:
   - **Aprendiz:** Login -> Ver cursos -> Rendir prueba con autocalificación -> Radicar PQRS.
   - **Maestro:** Login -> Ver dashboard con alerta SLA -> Calificar batch -> Ver reporte de curso.

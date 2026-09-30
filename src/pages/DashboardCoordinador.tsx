@@ -535,71 +535,63 @@ export const DashboardCoordinador: React.FC = () => {
           {/* Accesos rápidos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card 
-              className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-600 transition-all cursor-pointer group" 
+              className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all cursor-pointer group p-4 rounded-xl h-auto gap-0" 
               onClick={() => navigate('/reportes')}
             >
-              <CardHeader>
-                <div className="bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 w-11 h-11 rounded-xl flex items-center justify-center mb-2.5">
-                  <BarChart3 className="w-5 h-5 text-blue-700 dark:text-blue-300" />
-                </div>
-                <CardTitle className="text-base font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  Reportes
-                </CardTitle>
-                <CardDescription className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
-                  KPIs y exportación PDF/XLSX
-                </CardDescription>
-              </CardHeader>
+              <div className="stat-icon-capsule rounded-lg bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 mb-2.5">
+                <BarChart3 className="w-4 h-4 text-blue-700 dark:text-blue-300" />
+              </div>
+              <h4 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                Reportes
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                KPIs y exportación PDF/XLSX
+              </p>
             </Card>
 
             <Card 
-              className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md hover:border-emerald-400 dark:hover:border-emerald-600 transition-all cursor-pointer group" 
+              className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md hover:border-emerald-400 dark:hover:border-emerald-500 transition-all cursor-pointer group p-4 rounded-xl h-auto gap-0" 
               onClick={() => navigate('/usuarios')}
             >
-              <CardHeader>
-                <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 w-11 h-11 rounded-xl flex items-center justify-center mb-2.5">
-                  <Users className="w-5 h-5 text-emerald-700 dark:text-emerald-300" />
-                </div>
-                <CardTitle className="text-base font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                  Usuarios
-                </CardTitle>
-                <CardDescription className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
-                  Roles, cuentas y permisos
-                </CardDescription>
-              </CardHeader>
+              <div className="stat-icon-capsule rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 mb-2.5">
+                <Users className="w-4 h-4 text-emerald-700 dark:text-emerald-300" />
+              </div>
+              <h4 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                Usuarios
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                Roles, cuentas y permisos
+              </p>
             </Card>
 
             <Card 
-              className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-600 transition-all cursor-pointer group" 
+              className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-500 transition-all cursor-pointer group p-4 rounded-xl h-auto gap-0" 
               onClick={() => navigate('/cursos')}
             >
-              <CardHeader>
-                <div className="bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 w-11 h-11 rounded-xl flex items-center justify-center mb-2.5">
-                  <BookOpen className="w-5 h-5 text-indigo-700 dark:text-indigo-300" />
-                </div>
-                <CardTitle className="text-base font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                  Cursos
-                </CardTitle>
-                <CardDescription className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
-                  Docentes y matrículas
-                </CardDescription>
-              </CardHeader>
+              <div className="stat-icon-capsule rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 mb-2.5">
+                <BookOpen className="w-4 h-4 text-indigo-700 dark:text-indigo-300" />
+              </div>
+              <h4 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                Cursos
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                Docentes y matrículas
+              </p>
             </Card>
 
             <Card 
-              className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xs hover:shadow-md hover:border-amber-400 dark:hover:border-amber-600 transition-all cursor-pointer group" 
+              className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:shadow-md hover:border-amber-400 dark:hover:border-amber-500 transition-all cursor-pointer group p-4 rounded-xl h-auto gap-0" 
               onClick={() => navigate('/pqrs')}
             >
-              <CardHeader>
-                <div className="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 w-11 h-11 rounded-xl flex items-center justify-center mb-2.5">
-                  <MessageSquare className="w-5 h-5 text-amber-700 dark:text-amber-300" />
-                </div>
-                <CardTitle className="text-base font-bold text-gray-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                  PQRS
-                </CardTitle>
-                <CardDescription className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
-                  Peticiones y reclamos (SLA 15d)
-                </CardDescription>
-              </CardHeader>
+              <div className="stat-icon-capsule rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 mb-2.5">
+                <MessageSquare className="w-4 h-4 text-amber-700 dark:text-amber-300" />
+              </div>
+              <h4 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                PQRS
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                Peticiones y reclamos (SLA 15d)
+              </p>
             </Card>
           </div>
 

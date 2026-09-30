@@ -17,12 +17,15 @@ import { ROUTES } from '../constants/routes';
 import { toast } from 'sonner';
 
 function Iniciales({ name }: { name: string }) {
-  const parts = name.trim().split(' ');
+  const parts = name.trim().split(' ').filter(Boolean);
   const ini = parts.length >= 2
     ? parts[0][0] + parts[1][0]
-    : parts[0].slice(0, 2);
+    : parts[0]?.slice(0, 2) || 'US';
   return (
-    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-2xl font-bold shadow-md select-none">
+    <div
+      translate="no"
+      className="notranslate w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-md select-none flex-shrink-0"
+    >
       {ini.toUpperCase()}
     </div>
   );
@@ -186,76 +189,91 @@ export const PerfilPage: React.FC = () => {
             <div className="space-y-6">
 
               {/* Tarjeta de Resumen / Avatar */}
-              <Card className="border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+              <Card className="border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden bg-white dark:bg-slate-900">
                 <div className="h-20 bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600" />
-                <CardContent className="pt-0 pb-6 px-6 relative">
-                  <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-10 mb-4">
-                    <div className="relative group">
-                      {perfil.fotoUrl && !imgError ? (
-                        <img
-                          src={perfil.fotoUrl}
-                          alt={perfil.name}
-                          onError={() => setImgError(true)}
-                          className="w-24 h-24 rounded-2xl object-cover border-4 border-white dark:border-gray-900 shadow-md flex-shrink-0 bg-white"
-                        />
-                      ) : (
-                        <div className="border-4 border-white dark:border-gray-900 rounded-2xl shadow-md">
-                          <Iniciales name={perfil.name} />
+                <CardContent className="pt-0 pb-5 px-4 sm:px-6">
+                  {/* Bloque superior de usuario */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 -mt-9 sm:-mt-10 mb-4">
+                    {/* Avatar e información principal */}
+                    <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left min-w-0">
+                      {/* Avatar */}
+                      <div className="relative flex-shrink-0">
+                        {perfil.fotoUrl && !imgError ? (
+                          <img
+                            src={perfil.fotoUrl}
+                            alt={perfil.name}
+                            onError={() => setImgError(true)}
+                            className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-4 border-white dark:border-slate-900 shadow-md flex-shrink-0 bg-white"
+                          />
+                        ) : (
+                          <div className="border-4 border-white dark:border-slate-900 rounded-2xl shadow-md">
+                            <Iniciales name={perfil.name} />
+                          </div>
+                        )}
+                        <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1 border-2 border-white dark:border-slate-900" title="Cuenta Activa">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                         </div>
-                      )}
-                      <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1 border-2 border-white dark:border-gray-900" title="Cuenta Activa">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </div>
+
+                      {/* Información del usuario en 2 filas limpias */}
+                      <div className="flex flex-col justify-center gap-1.5 min-w-0">
+                        {/* Fila 1: Título o Rol + Insignia/Badge al lado */}
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+                            {perfil.name}
+                          </h2>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${rolBadgeInfo[perfil.role]?.badge || 'bg-slate-100 text-slate-800'}`}>
+                            {rolBadgeInfo[perfil.role]?.label || perfil.role}
+                          </span>
+                        </div>
+
+                        {/* Fila 2: Correo electrónico + Estado con icono discreto */}
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <span className="font-normal">{perfil.email}</span>
+                          <span className="text-slate-300 dark:text-slate-600 hidden sm:inline">•</span>
+                          <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                            Cuenta Activa
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex-1 text-center sm:text-left">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                          {perfil.name}
-                        </h2>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${rolBadgeInfo[perfil.role]?.badge || 'bg-gray-100 text-gray-800'}`}>
-                          {rolBadgeInfo[perfil.role]?.label || perfil.role}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                        {perfil.email}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
+                    {/* Botón Refrescar alineado verticalmente al centro */}
+                    <div className="flex items-center justify-center self-center sm:self-center flex-shrink-0">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={cargarPerfil}
                         title="Actualizar datos"
-                        className="text-xs"
+                        className="text-xs border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-1.5 h-auto rounded-lg shadow-xs flex items-center gap-1.5"
                       >
-                        <RefreshCw className="w-3.5 h-3.5 mr-1" />
+                        <RefreshCw className="w-3.5 h-3.5" />
                         Refrescar
                       </Button>
                     </div>
                   </div>
 
-                  {/* Micro métricas */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-center sm:text-left">
-                    <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Estado de Cuenta</p>
-                      <p className="text-sm font-semibold text-green-600 dark:text-green-400 flex items-center justify-center sm:justify-start gap-1 mt-0.5">
-                        <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-                        Activo
-                      </p>
+                  {/* Micro métricas en una sola fila compacta (grid-cols-3) */}
+                  <div className="grid grid-cols-3 gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                    <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl flex flex-col justify-center text-left">
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Estado de Cuenta</p>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block flex-shrink-0" />
+                        <span className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">Activo</span>
+                      </div>
                     </div>
-                    <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl flex flex-col justify-center text-left">
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
                         {perfil.role === 'maestro' ? 'Cursos a Cargo' : 'Cursos Inscritos'}
                       </p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5">
+                      <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-1">
                         {perfil.cursos?.length ?? 0} curso(s)
                       </p>
                     </div>
-                    <div className="col-span-2 sm:col-span-1 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Identificador SENA</p>
-                      <p className="text-sm font-mono font-medium text-gray-900 dark:text-white mt-0.5">
+                    <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 rounded-xl flex flex-col justify-center text-left">
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Identificador SENA</p>
+                      <p className="text-sm sm:text-base font-bold font-mono text-slate-900 dark:text-white mt-1">
                         ID #{perfil.id}
                       </p>
                     </div>

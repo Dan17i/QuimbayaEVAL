@@ -3850,12 +3850,14 @@ html {
 .bg-white { background-color: #ffffff !important; }
 .bg-slate-50 { background-color: #f8fafc !important; }
 .bg-slate-100 { background-color: #f1f5f9 !important; }
+.bg-slate-700 { background-color: #334155 !important; }
 .bg-slate-800 { background-color: #1e293b !important; }
 .bg-slate-900 { background-color: #0f172a !important; }
 
 .border-slate-100 { border-color: #f1f5f9 !important; }
 .border-slate-200 { border-color: #e2e8f0 !important; }
 .border-slate-300 { border-color: #cbd5e1 !important; }
+.border-slate-600 { border-color: #475569 !important; }
 .border-slate-700 { border-color: #334155 !important; }
 .border-slate-800 { border-color: #1e293b !important; }
 
@@ -3945,6 +3947,52 @@ html {
 .dark .dark\:border-amber-800, :is(.dark .dark\:border-amber-800) { border-color: #92400e !important; }
 .dark .dark\:bg-red-950\/60, :is(.dark .dark\:bg-red-950\/60) { background-color: rgba(69, 10, 10, 0.6) !important; }
 .dark .dark\:border-red-800, :is(.dark .dark\:border-red-800) { border-color: #991b1b !important; }
+
+/* Slate and ticket badge utilities for light & dark mode */
+.hover\:bg-slate-100:hover { background-color: #f1f5f9 !important; }
+.text-slate-100 { color: #f1f5f9 !important; }
+.text-slate-200 { color: #e2e8f0 !important; }
+.dark .dark\:text-slate-100, :is(.dark .dark\:text-slate-100) { color: #f1f5f9 !important; }
+.dark .dark\:text-slate-200, :is(.dark .dark\:text-slate-200) { color: #e2e8f0 !important; }
+.dark .dark\:bg-slate-800\/50, :is(.dark .dark\:bg-slate-800\/50) { background-color: rgba(30, 41, 59, 0.5) !important; }
+.dark .dark\:hover\:bg-slate-700:hover, :is(.dark .dark\:hover\:bg-slate-700:hover) { background-color: #334155 !important; }
+.dark .dark\:bg-blue-950\/40, :is(.dark .dark\:bg-blue-950\/40) { background-color: rgba(23, 37, 84, 0.4) !important; }
+.dark .dark\:border-blue-800\/60, :is(.dark .dark\:border-blue-800\/60) { border-color: rgba(30, 64, 175, 0.6) !important; }
+.dark .dark\:border-red-800\/60, :is(.dark .dark\:border-red-800\/60) { border-color: rgba(153, 27, 27, 0.6) !important; }
+.dark .dark\:border-amber-800\/60, :is(.dark .dark\:border-amber-800\/60) { border-color: rgba(146, 64, 14, 0.6) !important; }
+.dark .dark\:border-emerald-800\/60, :is(.dark .dark\:border-emerald-800\/60) { border-color: rgba(6, 95, 70, 0.6) !important; }
+.dark .dark\:bg-slate-800\/60, :is(.dark .dark\:bg-slate-800\/60) { background-color: rgba(30, 41, 59, 0.6) !important; }
+.dark .dark\:border-slate-700\/60, :is(.dark .dark\:border-slate-700\/60) { border-color: rgba(51, 65, 85, 0.6) !important; }
+.w-72 { width: 18rem !important; }
+.w-80 { width: 20rem !important; }
+@media (min-width: 640px) {
+  .sm\:w-72 { width: 18rem !important; }
+  .sm\:w-80 { width: 20rem !important; }
+}
+.text-blue-400 { color: #60a5fa !important; }
+.dark .dark\:text-blue-400, :is(.dark .dark\:text-blue-400) { color: #60a5fa !important; }
+.hover\:text-blue-300:hover { color: #93c5fd !important; }
+.dark .dark\:hover\:text-blue-300:hover, :is(.dark .dark\:hover\:text-blue-300:hover) { color: #93c5fd !important; }
+.dark .dark\:bg-slate-700, :is(.dark .dark\:bg-slate-700) { background-color: #334155 !important; }
+.dark .dark\:border-slate-600, :is(.dark .dark\:border-slate-600) { border-color: #475569 !important; }
+.hover\:bg-slate-600:hover { background-color: #475569 !important; }
+.dark .dark\:hover\:bg-slate-600:hover, :is(.dark .dark\:hover\:bg-slate-600:hover) { background-color: #475569 !important; }
+button.bg-slate-800, .dark button.bg-slate-800 { background-color: #1e293b !important; opacity: 1 !important; }
+button.bg-slate-700, .dark button.bg-slate-700 { background-color: #334155 !important; opacity: 1 !important; }
+button.bg-slate-800:hover, .dark button.bg-slate-800:hover { background-color: #334155 !important; }
+button.bg-slate-700:hover, .dark button.bg-slate-700:hover { background-color: #475569 !important; }
+.hover\:bg-slate-700:hover { background-color: #334155 !important; }
+.font-bold { font-weight: 700 !important; --tw-font-weight: 700; }
+.text-white { color: #ffffff !important; }
+.bg-red-950\/60 { background-color: rgba(69, 10, 10, 0.6) !important; }
+.bg-red-950\/80 { background-color: rgba(69, 10, 10, 0.8) !important; }
+.text-red-300 { color: #fca5a5 !important; }
+.border-red-800\/50 { border-color: rgba(153, 27, 27, 0.5) !important; }
+.bg-slate-800\/50 { background-color: rgba(30, 41, 59, 0.5) !important; }
+.bg-slate-800\/80 { background-color: rgba(30, 41, 59, 0.8) !important; }
+.border-slate-500 { border-color: #64748b !important; }
+.border-slate-700\/70 { border-color: rgba(51, 65, 85, 0.7) !important; }
+.hover\:text-sky-300:hover { color: #7dd3fc !important; }
 
 /* Dedicated Metric Card Styles */
 .coordinador-stat-card {

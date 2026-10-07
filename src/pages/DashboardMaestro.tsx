@@ -20,12 +20,12 @@ import { EmptyState } from '../components/EmptyState';
 import { toast } from 'sonner';
 
 const CARD_COLORS = [
-  { border: 'border-blue-400',    bg: 'bg-blue-50',    icon: 'text-blue-600',    iconBg: 'bg-blue-100'    },
-  { border: 'border-emerald-400', bg: 'bg-emerald-50', icon: 'text-emerald-600', iconBg: 'bg-emerald-100' },
-  { border: 'border-violet-400',  bg: 'bg-violet-50',  icon: 'text-violet-600',  iconBg: 'bg-violet-100'  },
-  { border: 'border-amber-400',   bg: 'bg-amber-50',   icon: 'text-amber-600',   iconBg: 'bg-amber-100'   },
-  { border: 'border-rose-400',    bg: 'bg-rose-50',    icon: 'text-rose-600',    iconBg: 'bg-rose-100'    },
-  { border: 'border-teal-400',    bg: 'bg-teal-50',    icon: 'text-teal-600',    iconBg: 'bg-teal-100'    },
+  { border: 'border-sky-500',    icon: 'text-sky-400',    iconBg: 'bg-sky-100 dark:bg-sky-950/60'    },
+  { border: 'border-emerald-500', icon: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-100 dark:bg-emerald-950/60' },
+  { border: 'border-violet-500',  icon: 'text-violet-600 dark:text-violet-400',  iconBg: 'bg-violet-100 dark:bg-violet-950/60'  },
+  { border: 'border-amber-500',   icon: 'text-amber-600 dark:text-amber-400',   iconBg: 'bg-amber-100 dark:bg-amber-950/60'   },
+  { border: 'border-rose-500',    icon: 'text-rose-600 dark:text-rose-400',    iconBg: 'bg-rose-100 dark:bg-rose-950/60'    },
+  { border: 'border-teal-500',    icon: 'text-teal-600 dark:text-teal-400',    iconBg: 'bg-teal-100 dark:bg-teal-950/60'    },
 ];
 
 function iconoPorCodigo(codigo: string) {
@@ -41,6 +41,23 @@ function iconoPorCodigo(codigo: string) {
   if (c.startsWith('HIS') || c.startsWith('SOC') || c.startsWith('POL')) return Landmark;
   if (c.startsWith('MED') || c.startsWith('SAL'))  return Microscope;
   return BookOpen;
+}
+
+function esNombreFemenino(nombre: string): boolean {
+  if (!nombre) return false;
+  const n = nombre.trim().toLowerCase();
+  const firstWord = n.split(' ')[0];
+  const excepcionesFemeninas = [
+    'carmen', 'pilar', 'isabel', 'mercedes', 'raquel', 'inés', 'ines',
+    'beatriz', 'esther', 'ester', 'belén', 'belen', 'concepción', 'concepcion',
+    'rosario', 'dolores', 'lourdes', 'monserrat', 'montserrat', 'rocío', 'rocio',
+    'consuelo', 'amparo', 'luz', 'mar', 'paz', 'sol', 'ana', 'maría', 'maria',
+    'profesora', 'docente', 'instructora'
+  ];
+  if (excepcionesFemeninas.includes(firstWord)) return true;
+  const excepcionesMasculinas = ['luca', 'lucas', 'sasha', 'elías', 'elias', 'josué', 'josue', 'borja'];
+  if (excepcionesMasculinas.includes(firstWord)) return false;
+  return firstWord.endsWith('a');
 }
 
 export const DashboardMaestro: React.FC = () => {
@@ -135,88 +152,89 @@ export const DashboardMaestro: React.FC = () => {
   }, []);
 
   const firstName = user?.name?.split(' ')[0] ?? 'Profesor';
+  const bienvenida = esNombreFemenino(firstName) ? 'Bienvenida' : 'Bienvenido';
   const totalPendientes = Object.values(pendientesPorCurso).reduce((a, b) => a + b, 0);
 
   return (
     <ProtectedRoute allowedRoles={['maestro']}>
       <Layout breadcrumbs={[{ label: 'Inicio' }]}>
-        <div className="max-w-4xl mx-auto py-2 space-y-6">
+        <div className="max-w-4xl mx-auto py-2 pb-24 space-y-8">
 
           {/* Saludo */}
           <div>
-            <p className="text-sm text-gray-400">{saludo},</p>
-            <h1 className="text-2xl font-bold text-gray-900 mt-0.5">
-              Bienvenido, {firstName} 👋
+            <p className="text-sm text-slate-400 dark:text-slate-400">{saludo},</p>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">
+              {bienvenida}, {firstName} 👋
             </h1>
-            <p className="text-gray-500 mt-3 text-sm">
-              Tienes <span className="font-semibold text-gray-700">{cursos.length}</span> curso{cursos.length !== 1 ? 's' : ''} asignado{cursos.length !== 1 ? 's' : ''}
+            <p className="text-slate-600 dark:text-slate-400 mt-3 text-sm">
+              Tienes <span className="font-semibold text-slate-800 dark:text-slate-200">{cursos.length}</span> curso{cursos.length !== 1 ? 's' : ''} asignado{cursos.length !== 1 ? 's' : ''}
               {totalPendientes > 0 && (
-                <> y <span className="font-semibold text-orange-600">{totalPendientes} evaluación{totalPendientes !== 1 ? 'es' : ''} por calificar</span></>
+                <> y <span className="font-semibold text-orange-600 dark:text-orange-400">{totalPendientes} evaluación{totalPendientes !== 1 ? 'es' : ''} por calificar</span></>
               )}
               {metricasPQRS.pendientes.length > 0 && (
-                <>, además de <span className="font-semibold text-amber-600">{metricasPQRS.pendientes.length} PQRS de aprendices en trámite</span></>
+                <>, además de <span className="font-semibold text-amber-600 dark:text-amber-400">{metricasPQRS.pendientes.length} PQRS de aprendices en trámite</span></>
               )}
             </p>
           </div>
 
           {/* Métricas Rápidas del Instructor */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Card className="border border-gray-200 shadow-2xs">
+            <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <p className="text-xs text-gray-500 font-medium">Cursos Asignados</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-0.5">{cursos.length}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Cursos Asignados</p>
+                    <p className="text-2xl font-bold text-slate-900 dark:text-white mt-0.5">{cursos.length}</p>
                   </div>
-                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-950/60 rounded-lg text-sky-400">
                     <BookOpen className="w-5 h-5" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className={`border shadow-2xs ${totalPendientes > 0 ? 'border-orange-300 bg-orange-50/20' : 'border-gray-200'}`}>
+            <Card className={`border shadow-2xs ${totalPendientes > 0 ? 'border-orange-300 dark:border-orange-800 bg-orange-50/20 dark:bg-orange-950/20' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <p className="text-xs text-gray-500 font-medium">Por Calificar</p>
-                    <p className={`text-2xl font-bold mt-0.5 ${totalPendientes > 0 ? 'text-orange-600' : 'text-gray-900'}`}>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Por Calificar</p>
+                    <p className={`text-2xl font-bold mt-0.5 ${totalPendientes > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-slate-900 dark:text-white'}`}>
                       {totalPendientes}
                     </p>
                   </div>
-                  <div className={`p-2 rounded-lg ${totalPendientes > 0 ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
+                  <div className={`p-2 rounded-lg ${totalPendientes > 0 ? 'bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                     <ClipboardList className="w-5 h-5" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className={`border shadow-2xs ${metricasPQRS.pendientes.length > 0 ? 'border-amber-300 bg-amber-50/20' : 'border-gray-200'}`}>
+            <Card className={`border shadow-2xs ${metricasPQRS.pendientes.length > 0 ? 'border-amber-300 dark:border-amber-800 bg-amber-50/20 dark:bg-amber-950/20' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}>
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <p className="text-xs text-gray-500 font-medium">PQRS en Trámite</p>
-                    <p className={`text-2xl font-bold mt-0.5 ${metricasPQRS.vencidas.length > 0 ? 'text-red-600' : metricasPQRS.pendientes.length > 0 ? 'text-amber-600' : 'text-gray-900'}`}>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">PQRS en Trámite</p>
+                    <p className={`text-2xl font-bold mt-0.5 ${metricasPQRS.vencidas.length > 0 ? 'text-red-600 dark:text-red-400' : metricasPQRS.pendientes.length > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>
                       {metricasPQRS.pendientes.length}
                     </p>
                   </div>
-                  <div className={`p-2 rounded-lg ${metricasPQRS.urgentes.length > 0 ? 'bg-amber-100 text-amber-600' : 'bg-teal-100 text-teal-600'}`}>
+                  <div className={`p-2 rounded-lg ${metricasPQRS.urgentes.length > 0 ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400' : 'bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400'}`}>
                     <MessageSquare className="w-5 h-5" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border border-gray-200 shadow-2xs">
+            <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center justify-between gap-2">
                   <div>
-                    <p className="text-xs text-gray-500 font-medium">SLA PQRS (15d)</p>
-                    <p className={`text-2xl font-bold mt-0.5 ${metricasPQRS.vencidas.length > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">SLA PQRS (15d)</p>
+                    <p className={`text-2xl font-bold mt-0.5 ${metricasPQRS.vencidas.length > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
                       {metricasPQRS.cumplimientoPct}%
                     </p>
                   </div>
-                  <div className={`p-2 rounded-lg ${metricasPQRS.vencidas.length > 0 ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                  <div className={`p-2 rounded-lg ${metricasPQRS.vencidas.length > 0 ? 'bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400' : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'}`}>
                     <ShieldAlert className="w-5 h-5" />
                   </div>
                 </div>
@@ -226,17 +244,17 @@ export const DashboardMaestro: React.FC = () => {
 
           {/* Widget de Evaluaciones Pendientes de Calificación (HCI: Acceso Rápido) */}
           {evaluacionesPorCalificar.length > 0 && (
-            <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/50 border border-orange-200 rounded-2xl p-5 shadow-xs space-y-3">
+            <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/50 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-orange-950/30 border border-orange-200 dark:border-orange-900/60 rounded-2xl p-5 shadow-xs space-y-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-orange-100 rounded-lg">
-                    <ClipboardList className="w-5 h-5 text-orange-600" />
+                  <div className="p-2 bg-orange-100 dark:bg-orange-950/60 rounded-lg">
+                    <ClipboardList className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-gray-900">
+                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                       Evaluaciones listas para calificar
                     </h2>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
                       Hay {evaluacionesPorCalificar.length} evaluación{evaluacionesPorCalificar.length > 1 ? 'es' : ''} cerrada{evaluacionesPorCalificar.length > 1 ? 's' : ''} con entregas de estudiantes pendientes de revisión
                     </p>
                   </div>
@@ -247,15 +265,15 @@ export const DashboardMaestro: React.FC = () => {
                 {evaluacionesPorCalificar.slice(0, 4).map((ev) => (
                   <div
                     key={ev.id}
-                    className="bg-white rounded-xl p-3.5 border border-orange-200/80 shadow-xs flex items-center justify-between gap-3 hover:border-orange-300 transition-colors"
+                    className="bg-white dark:bg-slate-900 rounded-xl p-3.5 border border-orange-200 dark:border-orange-900/60 shadow-xs flex items-center justify-between gap-3 hover:border-orange-300 dark:hover:border-orange-700 transition-colors"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-gray-900 text-sm truncate">{ev.nombre}</p>
-                      <p className="text-xs text-gray-500 truncate">{ev.cursoNombre}</p>
+                      <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate">{ev.nombre}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{ev.cursoNombre}</p>
                     </div>
                     <Button
                       size="sm"
-                      className="bg-orange-600 hover:bg-orange-700 text-white text-xs h-8 px-3 gap-1.5 flex-shrink-0"
+                      className="bg-orange-600 hover:bg-orange-700 text-white text-xs h-8 px-3 gap-1.5 flex-shrink-0 cursor-pointer"
                       onClick={() => navigate(`${ROUTES.CALIFICAR}?id=${ev.id}`)}
                     >
                       <ClipboardList className="w-3.5 h-3.5" />
@@ -268,20 +286,20 @@ export const DashboardMaestro: React.FC = () => {
           )}
 
           {/* Widget de PQRS y Requerimientos de Aprendices (SLA 15 Días) */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs space-y-4">
+          <div className="bg-white text-slate-900 border border-slate-200 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-teal-100 rounded-xl text-teal-700">
+                <div className="p-2 bg-teal-100 dark:bg-teal-950/60 rounded-xl text-teal-700 dark:text-teal-300">
                   <MessageSquare className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     PQRS y Requerimientos de Aprendices
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
                       SLA Ley 1755 / 15 Días
                     </span>
                   </h2>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
                     Monitorea las peticiones, dudas y reclamos asignados a tus cursos formativos
                   </p>
                 </div>
@@ -289,7 +307,7 @@ export const DashboardMaestro: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs h-8 gap-1.5"
+                className="text-xs h-8 gap-1.5 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
                 onClick={() => navigate(ROUTES.PQRS)}
               >
                 Gestionar en PQRS
@@ -298,107 +316,115 @@ export const DashboardMaestro: React.FC = () => {
             </div>
 
             {loadingPqrs ? (
-              <div className="h-20 bg-gray-50 rounded-xl animate-pulse flex items-center justify-center text-xs text-gray-400">
+              <div className="h-20 bg-slate-50 dark:bg-slate-800/50 rounded-xl animate-pulse flex items-center justify-center text-xs text-slate-400">
                 Cargando estado de requerimientos...
               </div>
             ) : metricasPQRS.urgentes.length > 0 ? (
               /* Alerta Prioritaria: Tickets con término perentorio próximo o vencido */
-              <div className="p-4 rounded-xl border border-red-200 bg-red-50/70 space-y-3">
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-3">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2 text-red-800 font-semibold text-xs sm:text-sm">
-                    <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
-                    <span>
+                  <div className="flex items-center gap-2 text-red-400 font-bold text-xs sm:text-sm" style={{ color: '#f87171' }}>
+                    <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" style={{ color: '#f87171' }} />
+                    <span className="text-red-400 font-bold" style={{ color: '#f87171' }}>
                       Atención Requerida: {metricasPQRS.urgentes.length} solicitud(es) tienen el plazo perentorio legal comprometido
                     </span>
                   </div>
-                  <span className="text-[11px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-md">
+                  <span
+                    className="bg-red-950/80 text-red-300 border border-red-800/60 px-3 py-1 rounded-full text-xs font-semibold"
+                    style={{ color: '#fca5a5' }}
+                  >
                     Término legal: 15 días hábiles
                   </span>
                 </div>
 
-                <div className="divide-y divide-red-200 rounded-xl overflow-hidden border border-red-200 bg-white">
+                <div className="flex flex-col gap-3">
                   {metricasPQRS.urgentes.slice(0, 3).map(ticket => (
-                    <div key={ticket.id} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div
+                      key={ticket.id}
+                      className="bg-slate-800/50 border border-slate-700/70 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                    >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="font-semibold text-gray-900 truncate">
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 truncate">
                             #{ticket.id} · {ticket.asunto}
                           </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-700">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
                             {ticket.tipo}
                           </span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                             ticket.estadoSLA === 'VENCIDO'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-amber-100 text-amber-700'
+                              ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200 dark:border-red-800/60'
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
                           }`}>
                             {ticket.estadoSLA === 'VENCIDO'
                               ? `Vencido (${ticket.diasTranscurridos} días)`
                               : `Por vencer (${ticket.diasTranscurridos}/15 días)`}
                           </span>
                         </div>
-                        <p className="text-gray-500 text-xs truncate">
-                          Aprendiz: <span className="font-medium text-gray-700">{ticket.usuarioNombre || 'Aprendiz SENA'}</span>
-                          {ticket.cursoNombre && <> · Curso: <span className="font-medium text-gray-700">{ticket.cursoNombre}</span></>}
+                        <p className="text-slate-500 dark:text-slate-400 text-xs truncate">
+                          Aprendiz: <span className="font-medium text-slate-700 dark:text-slate-300">{ticket.usuarioNombre || 'Aprendiz SENA'}</span>
+                          {ticket.cursoNombre && <> · Curso: <span className="font-medium text-slate-700 dark:text-slate-300">{ticket.cursoNombre}</span></>}
                         </p>
                       </div>
-                      <Button
-                        size="sm"
-                        className="bg-red-600 hover:bg-red-700 text-white text-xs h-8 px-3 gap-1.5 flex-shrink-0 self-start sm:self-auto"
+                      <button
+                        type="button"
+                        className="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-lg border border-slate-500 shadow-md inline-flex items-center gap-1.5 flex-shrink-0 self-start sm:self-auto transition-all cursor-pointer"
+                        style={{ backgroundColor: '#334155', borderColor: '#64748b', color: '#ffffff' }}
                         onClick={() => navigate(ROUTES.PQRS)}
                       >
                         <Send className="w-3.5 h-3.5" />
                         Responder Requerimiento
-                      </Button>
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
             ) : metricasPQRS.pendientes.length > 0 ? (
               /* Solicitudes pendientes a tiempo */
-              <div className="space-y-2">
-                <div className="divide-y divide-gray-100 rounded-xl overflow-hidden border border-gray-200 bg-white">
-                  {metricasPQRS.pendientes.slice(0, 3).map(ticket => (
-                    <div key={ticket.id} className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="font-semibold text-gray-900 truncate">
-                            #{ticket.id} · {ticket.asunto}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-700">
-                            {ticket.tipo}
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
-                            A tiempo ({ticket.diasTranscurridos}/15 días)
-                          </span>
-                        </div>
-                        <p className="text-gray-500 text-xs truncate">
-                          Aprendiz: <span className="font-medium text-gray-700">{ticket.usuarioNombre || 'Aprendiz SENA'}</span>
-                          {ticket.cursoNombre && <> · Curso: <span className="font-medium text-gray-700">{ticket.cursoNombre}</span></>}
-                        </p>
+              <div className="flex flex-col gap-3">
+                {metricasPQRS.pendientes.slice(0, 3).map(ticket => (
+                  <div
+                    key={ticket.id}
+                    className="bg-slate-800/50 border border-slate-700/70 p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                          #{ticket.id} · {ticket.asunto}
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200">
+                          {ticket.tipo}
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+                          A tiempo ({ticket.diasTranscurridos}/15 días)
+                        </span>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-xs h-8 px-3 gap-1.5 flex-shrink-0 self-start sm:self-auto hover:bg-teal-50 hover:text-teal-700 hover:border-teal-300"
-                        onClick={() => navigate(ROUTES.PQRS)}
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        Atender
-                      </Button>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs truncate">
+                        Aprendiz: <span className="font-medium text-slate-700 dark:text-slate-300">{ticket.usuarioNombre || 'Aprendiz SENA'}</span>
+                        {ticket.cursoNombre && <> · Curso: <span className="font-medium text-slate-700 dark:text-slate-300">{ticket.cursoNombre}</span></>}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                    <button
+                      type="button"
+                      className="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-lg border border-slate-500 shadow-md inline-flex items-center gap-1.5 flex-shrink-0 self-start sm:self-auto transition-all cursor-pointer"
+                      style={{ backgroundColor: '#334155', borderColor: '#64748b', color: '#ffffff' }}
+                      onClick={() => navigate(ROUTES.PQRS)}
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Atender
+                    </button>
+                  </div>
+                ))}
               </div>
             ) : (
               /* Sin pendientes - Estado óptimo */
-              <div className="flex items-center gap-3 p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 text-emerald-800 text-xs">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 text-xs">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-emerald-900">
+                  <p className="font-semibold text-emerald-900 dark:text-emerald-300">
                     ¡Excelente! No tienes PQRS ni requerimientos pendientes por atender.
                   </p>
-                  <p className="text-emerald-700 text-[11px] mt-0.5">
+                  <p className="text-emerald-700 dark:text-emerald-400 text-[11px] mt-0.5">
                     Todos los requerimientos de tus aprendices se encuentran al día dentro del plazo institucional de 15 días hábiles.
                   </p>
                 </div>
@@ -407,14 +433,14 @@ export const DashboardMaestro: React.FC = () => {
           </div>
 
           {/* Grid de cursos */}
-          <div className="space-y-3">
-            <h2 className="text-base font-bold text-gray-900">
+          <div className="space-y-4 pb-12">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-200">
               Mis Cursos y Fichas Formativas
             </h2>
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-40 bg-gray-100 rounded-2xl animate-pulse" />
+                  <div key={i} className="h-48 w-full bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : cursos.length === 0 ? (
@@ -429,19 +455,19 @@ export const DashboardMaestro: React.FC = () => {
                   const porCalificar = pendientesPorCurso[curso.id] ?? 0;
                   const c = CARD_COLORS[idx % CARD_COLORS.length];
                   const Icono = iconoPorCodigo(curso.codigo);
-                  const esUltimaImpar = cursos.length % 3 === 1 && idx === cursos.length - 1;
                   return (
                     <button
                       key={curso.id}
                       onClick={() => navigate(`/mis-cursos-maestro/${curso.id}`)}
                       className={`
-                        text-left border-t-4 ${c.border} ${c.bg}
+                        w-full text-left border-t-4 ${c.border}
+                        border-x border-b border-slate-200 dark:border-slate-800
+                        bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100
                         rounded-2xl p-5 shadow-sm
                         hover:shadow-lg hover:-translate-y-1
                         active:scale-95
                         transition-all duration-200 group
-                        flex flex-col gap-4
-                        ${esUltimaImpar ? 'sm:col-start-1 lg:col-start-2' : ''}
+                        flex flex-col justify-between gap-4 cursor-pointer h-full
                       `}
                     >
                       {/* Icono + badge */}
@@ -459,23 +485,20 @@ export const DashboardMaestro: React.FC = () => {
 
                       {/* Texto */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-mono text-gray-400 leading-none mb-2 uppercase tracking-wide">{curso.codigo}</p>
-                        <p className="font-semibold text-gray-900 leading-snug line-clamp-2">{curso.nombre}</p>
+                        <p className="text-[10px] font-mono text-slate-400 dark:text-slate-400 leading-none mb-2 uppercase tracking-wide">{curso.codigo}</p>
+                        <p className="text-slate-900 dark:text-white font-bold text-lg leading-snug line-clamp-2">{curso.nombre}</p>
                         {curso.descripcion && (
-                          <p className="text-xs text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">{curso.descripcion}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">{curso.descripcion}</p>
                         )}
                       </div>
 
                       {/* CTA */}
-                      <div className={`
-                        flex items-center justify-center gap-2
-                        text-xs font-semibold ${c.icon}
-                        border-2 ${c.border} rounded-xl
-                        py-2.5 px-4
-                        group-hover:bg-white/70 transition-colors
-                      `}>
+                      <div
+                        className="w-full mt-3 py-2 px-4 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-sky-400 hover:text-sky-300 font-semibold text-xs border border-slate-700 flex items-center justify-center gap-1 transition-all"
+                        style={{ color: '#38bdf8' }}
+                      >
                         Gestionar curso
-                        <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        <ChevronRight className="w-3.5 h-3.5" style={{ color: '#38bdf8' }} />
                       </div>
                     </button>
                   );

@@ -238,21 +238,26 @@ const VistaCoordinador: React.FC<{
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <CardTitle className="text-gray-900">{ticket.asunto}</CardTitle>
+                    {/* Header del Ticket: Título principal */}
+                    <CardTitle className="text-slate-900 dark:text-slate-100 text-lg font-bold">
+                      {ticket.asunto}
+                    </CardTitle>
+
+                    {/* Contenedor Flex independiente para Badges */}
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
                       <Badge variant={ticket.tipo === 'Queja' ? 'error' : ticket.tipo === 'Reclamo' ? 'warning' : ticket.tipo === 'Sugerencia' ? 'default' : 'info'}>
                         {ticket.tipo}
                       </Badge>
                       <StatusBadge estado={ticket.estado} />
                       {ticket.estadoSLA && (
-                        <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1 ${
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 ${
                           ticket.estadoSLA === 'VENCIDO' || ticket.estadoSLA === 'ATENDIDO_FUERA_DE_PLAZO'
-                            ? 'bg-red-100 text-red-800 border border-red-200'
+                            ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200 dark:border-red-800/60'
                             : ticket.estadoSLA === 'PROXIMO_A_VENCER'
-                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                            : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
+                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
                         }`}>
-                          <Clock className="w-3 h-3" />
+                          <Clock className="w-3.5 h-3.5" />
                           {ticket.estadoSLA === 'VENCIDO'
                             ? `SLA Vencido (${ticket.diasTranscurridos}d / 15d)`
                             : ticket.estadoSLA === 'PROXIMO_A_VENCER'
@@ -265,17 +270,34 @@ const VistaCoordinador: React.FC<{
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {ticket.usuarioNombre || 'Usuario'} ({ticket.usuarioEmail || 'N/A'})
+
+                    {/* Metadatos del Solicitante con separadores limpios */}
+                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 flex-wrap mt-3">
+                      <span className="flex items-center gap-1.5 font-medium text-slate-900 dark:text-slate-200">
+                        <Users className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        {ticket.usuarioNombre || 'Usuario'}
                       </span>
-                      <span>{ticket.curso}</span>
+                      {ticket.usuarioEmail && (
+                        <>
+                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span>{ticket.usuarioEmail}</span>
+                        </>
+                      )}
+                      {ticket.curso && (
+                        <>
+                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span className="font-medium text-slate-700 dark:text-slate-300">{ticket.curso}</span>
+                        </>
+                      )}
+                      <span className="text-slate-300 dark:text-slate-600">•</span>
                       <span>{formatDateTime(ticket.fechaCreacion)}</span>
                       {ticket.respondidoPorNombre && (
-                        <span className="text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                          Atendido por: {ticket.respondidoPorNombre}
-                        </span>
+                        <>
+                          <span className="text-slate-300 dark:text-slate-600">•</span>
+                          <span className="text-xs text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-800/60">
+                            Atendido por: {ticket.respondidoPorNombre}
+                          </span>
+                        </>
                       )}
                     </div>
                   </div>
@@ -283,63 +305,68 @@ const VistaCoordinador: React.FC<{
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm text-gray-600 mb-2">Descripción:</h4>
-                    <p className="text-gray-900 bg-gray-50 p-3 rounded-lg">{ticket.descripcion}</p>
+                  {/* Caja de Descripción con alto contraste y padding cómodo */}
+                  <div className="flex flex-col gap-2">
+                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Descripción:</h4>
+                    <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700">
+                      <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{ticket.descripcion}</p>
+                    </div>
                   </div>
                   
                   {ticket.respuesta && (
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="w-4 h-4 text-blue-600" />
-                        <h4 className="text-sm text-blue-900 font-medium">Respuesta:</h4>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300">Respuesta:</h4>
                       </div>
-                      <p className="text-gray-900">{ticket.respuesta}</p>
+                      <div className="p-4 bg-blue-50/70 border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800/60 rounded-lg">
+                        <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{ticket.respuesta}</p>
+                      </div>
                     </div>
                   )}
 
-                  {/* Acciones del coordinador */}
-                  <div className="flex flex-wrap gap-2 pt-2 border-t">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
+                  {/* Botones de Acción (Pie de tarjeta) con espaciado cómodo sin borde separador */}
+                  <div className="flex flex-wrap items-center gap-3 mt-6">
+                    <button 
+                      type="button"
+                      className="inline-flex items-center px-4 py-2 rounded-md font-medium text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer"
                       onClick={() => openResponseDialog(ticket)}
                     >
-                      <Send className="w-4 h-4 mr-1" />
+                      <Send className="w-4 h-4 mr-1.5" />
                       Responder
-                    </Button>
+                    </button>
                     
                     {ticket.estado === 'Pendiente' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
+                      <button 
+                        type="button"
+                        className="inline-flex items-center px-4 py-2 rounded-md font-medium text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer"
                         onClick={() => handleCambiarEstado(ticket.id, 'En Proceso')}
                       >
-                        <Clock className="w-4 h-4 mr-1" />
+                        <Clock className="w-4 h-4 mr-1.5" />
                         Marcar En Proceso
-                      </Button>
+                      </button>
                     )}
                     
                     {ticket.estado === 'En Proceso' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
+                      <button 
+                        type="button"
+                        className="inline-flex items-center px-4 py-2 rounded-md font-medium text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer"
                         onClick={() => handleCambiarEstado(ticket.id, 'Resuelta')}
                       >
-                        <CheckCircle className="w-4 h-4 mr-1" />
+                        <CheckCircle className="w-4 h-4 mr-1.5" />
                         Marcar Resuelta
-                      </Button>
+                      </button>
                     )}
                     
                     {(ticket.estado === 'Resuelta' || ticket.estado === 'En Proceso') && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
+                      <button 
+                        type="button"
+                        className="inline-flex items-center px-4 py-2 rounded-md font-medium text-sm border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer"
                         onClick={() => handleCambiarEstado(ticket.id, 'Cerrada')}
                       >
-                        <X className="w-4 h-4 mr-1" />
+                        <X className="w-4 h-4 mr-1.5" />
                         Cerrar
-                      </Button>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -485,23 +512,25 @@ const VistaEstudiante: React.FC<{
           ) : (
             <div className="space-y-4">
               {ticketsActivos.map((ticket) => (
-                <Card key={ticket.id}>
+                <Card key={ticket.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <CardTitle className="text-gray-900">{ticket.asunto}</CardTitle>
+                        <CardTitle className="text-slate-900 dark:text-slate-100 text-lg font-bold">
+                          {ticket.asunto}
+                        </CardTitle>
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
                           {getTipoBadge(ticket.tipo)}
                           <StatusBadge estado={ticket.estado} />
                           {ticket.estadoSLA && (
-                            <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1 ${
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 ${
                               ticket.estadoSLA === 'VENCIDO' || ticket.estadoSLA === 'ATENDIDO_FUERA_DE_PLAZO'
-                                ? 'bg-red-100 text-red-800 border border-red-200'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200 dark:border-red-800/60'
                                 : ticket.estadoSLA === 'PROXIMO_A_VENCER'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60'
+                                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
                             }`}>
-                              <Clock className="w-3 h-3" />
+                              <Clock className="w-3.5 h-3.5" />
                               {ticket.estadoSLA === 'VENCIDO'
                                 ? `Plazo Vencido (${ticket.diasTranscurridos}d / 15d)`
                                 : ticket.estadoSLA === 'PROXIMO_A_VENCER'
@@ -510,25 +539,35 @@ const VistaEstudiante: React.FC<{
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-600">
-                          {ticket.curso} • {formatDateTime(ticket.fechaCreacion)}
-                        </p>
+                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 flex-wrap mt-3">
+                          {ticket.curso && (
+                            <>
+                              <span className="font-medium text-slate-700 dark:text-slate-300">{ticket.curso}</span>
+                              <span className="text-slate-300 dark:text-slate-600">•</span>
+                            </>
+                          )}
+                          <span>{formatDateTime(ticket.fechaCreacion)}</span>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm text-gray-600 mb-2">Descripción:</h4>
-                        <p className="text-gray-900">{ticket.descripcion}</p>
+                      <div className="flex flex-col gap-2">
+                        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Descripción:</h4>
+                        <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700">
+                          <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{ticket.descripcion}</p>
+                        </div>
                       </div>
                       {ticket.respuesta && (
-                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <div className="flex items-center gap-2 mb-2">
-                            <MessageSquare className="w-4 h-4 text-blue-600" />
-                            <h4 className="text-sm text-blue-900">Respuesta del Equipo:</h4>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300">Respuesta del Equipo:</h4>
                           </div>
-                          <p className="text-gray-900">{ticket.respuesta}</p>
+                          <div className="p-4 bg-blue-50/70 border border-blue-200 dark:bg-blue-950/40 dark:border-blue-800/60 rounded-lg">
+                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{ticket.respuesta}</p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -549,34 +588,46 @@ const VistaEstudiante: React.FC<{
           ) : (
             <div className="space-y-4">
               {ticketsResueltos.map((ticket) => (
-                <Card key={ticket.id}>
+                <Card key={ticket.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <CardTitle className="text-gray-900">{ticket.asunto}</CardTitle>
+                        <CardTitle className="text-slate-900 dark:text-slate-100 text-lg font-bold">
+                          {ticket.asunto}
+                        </CardTitle>
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
                           {getTipoBadge(ticket.tipo)}
                           <StatusBadge estado={ticket.estado} />
                         </div>
-                        <p className="text-sm text-gray-600">
-                          {ticket.curso} • {formatDateTime(ticket.fechaCreacion)}
-                        </p>
+                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 flex-wrap mt-3">
+                          {ticket.curso && (
+                            <>
+                              <span className="font-medium text-slate-700 dark:text-slate-300">{ticket.curso}</span>
+                              <span className="text-slate-300 dark:text-slate-600">•</span>
+                            </>
+                          )}
+                          <span>{formatDateTime(ticket.fechaCreacion)}</span>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div>
-                        <h4 className="text-sm text-gray-600 mb-2">Descripción:</h4>
-                        <p className="text-gray-900">{ticket.descripcion}</p>
+                      <div className="flex flex-col gap-2">
+                        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Descripción:</h4>
+                        <div className="p-4 rounded-lg bg-slate-50 border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700">
+                          <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{ticket.descripcion}</p>
+                        </div>
                       </div>
                       {ticket.respuesta && (
-                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center gap-2 mb-2">
-                            <MessageSquare className="w-4 h-4 text-green-600" />
-                            <h4 className="text-sm text-green-900">Respuesta del Equipo:</h4>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <h4 className="text-sm font-semibold text-emerald-900 dark:text-emerald-300">Respuesta del Equipo:</h4>
                           </div>
-                          <p className="text-gray-900">{ticket.respuesta}</p>
+                          <div className="p-4 bg-emerald-50/70 border border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800/60 rounded-lg">
+                            <p className="text-slate-800 dark:text-slate-200 whitespace-pre-wrap leading-relaxed">{ticket.respuesta}</p>
+                          </div>
                         </div>
                       )}
                     </div>
